@@ -8,6 +8,10 @@ class OutputProvider(metaclass=ABCMeta):
 	def set(self, new_data):
 		pass
 
+	@abstractmethod
+	def create(self, *args, **kwargs):
+		pass
+
 
 
 import sys

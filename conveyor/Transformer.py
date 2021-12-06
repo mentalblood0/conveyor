@@ -6,9 +6,8 @@ from . import InputProvider, ComplexDataProvider
 
 class Transformer(metaclass=ABCMeta):
 
-	item_type: str
 	input_status: str
-	possible_output_status: list
+	possible_output_statuses: list
 
 	def __init__(self, input_provider: InputProvider) -> None:
 		self.input_provider = input_provider
@@ -24,7 +23,7 @@ class Transformer(metaclass=ABCMeta):
 			raise Exception('Input provider returned None')
 
 		new_status = self.transform(data)
-		if (new_status == None) or (not new_status in self.possible_output_status):
+		if (new_status == None) or (not new_status in self.possible_output_statuses):
 			return None
 		else:
 			data['status'].set(new_status)

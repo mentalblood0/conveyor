@@ -24,6 +24,9 @@ class StatusProvider(InputProvider, OutputProvider):
 	
 	def set(self, new_value):
 		return self.db_item_type_interface.setStatus(self.id, new_value)
+	
+	def create(self):
+		raise NotImplementedError
 
 
 class ItemInputProvider(InputProvider):

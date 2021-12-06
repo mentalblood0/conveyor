@@ -18,7 +18,7 @@ class DbItemTypeInterface:
 		
 		if not self.item_type.table_exists():
 			self.create()
-		
+
 		return self.item_type(**fields).save()
 	
 	def getById(self, id):
@@ -28,6 +28,9 @@ class DbItemTypeInterface:
 			return None
 		
 		return item.__data__
+	
+	def setById(self, id, new_fields):
+		return self.item_type.update(**new_fields).where(self.item_type.id==id).execute()
 	
 	def getStatus(self, id):
 

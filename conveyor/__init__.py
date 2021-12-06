@@ -1,7 +1,8 @@
 __all__ = [
 	'InputProvider',
-	'OutputProvider',
 	'input_providers',
+	'OutputProvider',
+	'output_providers',
 	'ComplexDataProvider',
 	'Transformer'
 ]

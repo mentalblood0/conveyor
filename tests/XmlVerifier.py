@@ -3,12 +3,12 @@ from conveyor import Transformer
 
 
 
-class isXml(Transformer):
+class XmlVerifier(Transformer):
 
-	item_type = 'PersonalizationRequest'
+	item_type = 'undefined'
 
 	input_status = 'created'
-	possible_output_status = [
+	possible_output_statuses = [
 		'xml',
 		'not xml'
 	]
@@ -26,4 +26,4 @@ class isXml(Transformer):
 
 
 import sys
-sys.modules[__name__] = isXml
+sys.modules[__name__] = XmlVerifier
