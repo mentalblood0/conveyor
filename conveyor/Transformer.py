@@ -14,19 +14,21 @@ class Transformer(metaclass=ABCMeta):
 		self.input_provider = input_provider
 
 	@abstractmethod
-	def transform(self, item: ComplexDataProvider) -> dict:
+	def transform(self, data: ComplexDataProvider) -> dict:
 		pass
 
 	def __call__(self) -> dict:
 
-		data = self.input_provider.get(match=self.input_type)
-		new_state = self.transform(input)
+		data = self.input_provider.get(self.input_state)
+		if data == None:
+			raise Exception('Input provider returned None')
 
+		new_state = self.transform(data)
 		if (new_state == None) or (not new_state in self.possible_output_states):
 			return None
 		else:
-			data['metadata'].set(state=new_state)
-		
+			data['state'].set(new_state)
+
 		return new_state
 
 

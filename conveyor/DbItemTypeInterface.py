@@ -21,6 +21,22 @@ class DbItemTypeInterface:
 		
 		return self.item_type(**fields).save()
 	
+	def getById(self, id):
+
+		item = self.item_type.select().where(self.item_type.id==id).first()
+		if item == None:
+			return None
+		
+		return item.__data__
+	
+	def getStatus(self, id):
+
+		item = self.item_type.select(self.item_type.status).where(self.item_type.id==id).first()
+		if item == None:
+			return None
+		
+		return item.__data__
+	
 	def setStatus(self, id, new_status):
 		return self.item_type.update(status=new_status).where(self.item_type.id==id).execute()
 	

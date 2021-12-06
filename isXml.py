@@ -6,7 +6,7 @@ from conveyor import Transformer
 class isXml(Transformer):
 
 	item_type = 'PersonalizationRequest'
-	
+
 	input_state = 'saved'
 	possible_output_states = [
 		'xml',
@@ -19,15 +19,9 @@ class isXml(Transformer):
 		
 		try:
 			etree.fromstring(file_content)
-			return {
-				'type': 'PersonalizationRequest',
-				'state': 'xml'
-			}
+			return 'xml'
 		except etree.XMLSyntaxError:
-			return {
-				'type': 'PersonalizationRequest',
-				'state': 'not xml'
-			}
+			return 'not xml'
 
 
 
