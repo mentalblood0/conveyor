@@ -1,16 +1,11 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+
+from . import InputProvider, OutputProvider
 
 
 
-class DataProvider(metaclass=ABCMeta):
-
-	@abstractmethod
-	def get(self):
-		pass
-
-	@abstractmethod
-	def set(self, new_data):
-		pass
+class DataProvider(InputProvider, OutputProvider, metaclass=ABCMeta):
+	pass
 
 
 

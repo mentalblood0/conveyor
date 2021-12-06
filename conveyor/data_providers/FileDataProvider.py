@@ -18,3 +18,8 @@ class FileDataProvider(DataProvider):
 	def set(self, new_data):
 		with open(self.path, 'wb') as f:
 			f.write(new_data)
+
+
+
+import sys
+sys.modules[__name__] = FileDataProvider
