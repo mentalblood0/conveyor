@@ -1,8 +1,16 @@
 from conveyor import DbItemTypeInterface
 from peewee import PostgresqlDatabase, CharField
 
+from . import config
 
-db = PostgresqlDatabase('postgres', user='postgres', password='5924', host='localhost', port=5432)
+
+db = PostgresqlDatabase(
+	config.db['db'], 
+	user=config.db['user'], 
+	password=config.db['password'], 
+	host=config.db['host'], 
+	port=config.db['port']
+)
 items = DbItemTypeInterface(db, 'PersonalizationRequest', {'message_id': CharField()})
 
 
