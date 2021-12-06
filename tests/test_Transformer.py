@@ -28,11 +28,12 @@ def test_example():
 	]
 
 	item_output_provider = ItemOutputProvider('./dir_tree', *item_providers_args)
+	item_input_provider = ItemInputProvider(*item_providers_args)
+
 	file_saver_creator = FileSaver(item_output_provider)
 	with open('tests/example_file.xml', 'rb') as f:
 		text = f.read()
 
-	item_input_provider = ItemInputProvider(*item_providers_args)
 	is_xml_transformer = XmlVerifier(item_input_provider)
 	get_type_transformer = Typer(item_input_provider)
 
