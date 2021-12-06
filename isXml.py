@@ -5,17 +5,13 @@ from conveyor import Transformer
 
 class isXml(Transformer):
 
-	input = {
-		'type': 'PersonalizationRequest',
-		'state': 'saved'
-	}
-	possible_outputs = [{
-		'type': 'PersonalizationRequest',
-		'state': 'xml'
-	}, {
-		'type': 'PersonalizationRequest',
-		'state': 'not xml'
-	}]
+	item_type = 'PersonalizationRequest'
+	
+	input_state = 'saved'
+	possible_output_states = [
+		'xml',
+		'not xml'
+	]
 
 	def transform(self, data):
 

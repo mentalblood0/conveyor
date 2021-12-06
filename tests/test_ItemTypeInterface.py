@@ -1,9 +1,9 @@
-from conveyor import ItemTypeInterface
+from conveyor import DbItemTypeInterface
 from peewee import PostgresqlDatabase, CharField
 
 
 db = PostgresqlDatabase('postgres', user='postgres', password='5924', host='localhost', port=5432)
-items = ItemTypeInterface(db, 'PersonalizationRequest', {'message_id': CharField()})
+items = DbItemTypeInterface(db, 'PersonalizationRequest', {'message_id': CharField()})
 
 
 def test_drop():

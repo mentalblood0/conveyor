@@ -10,22 +10,22 @@ def BaseModel(db):
 	)
 
 
-def ItemType_(db):
+def DbItemType_(db):
 	return type(
-		'ItemType__',
+		'DbItemType__',
 		(BaseModel(db),),
 		{'status': CharField()}
 	)
 
 
-def ItemType(db, item_type_name, data_fields):
+def DbItemType(db, item_type_name, data_fields):
 	return type(
 		item_type_name.capitalize(),
-		(ItemType_(db),),
+		(DbItemType_(db),),
 		data_fields | {'status': CharField(default='created')}
 	)
 
 
 
 import sys
-sys.modules[__name__] = ItemType
+sys.modules[__name__] = DbItemType

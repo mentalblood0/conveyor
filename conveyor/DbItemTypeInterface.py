@@ -1,12 +1,12 @@
-from . import ItemType
+from . import DbItemType
 
 
 
-class ItemTypeInterface:
+class DbItemTypeInterface:
 
 	def __init__(self, db, item_type_name, data_fields):
 		self.db = db
-		self.item_type = ItemType(db, item_type_name, data_fields)
+		self.item_type = DbItemType(db, item_type_name, data_fields)
 	
 	def drop(self):
 		return self.db.drop_tables([self.item_type])
@@ -41,4 +41,4 @@ class ItemTypeInterface:
 
 
 import sys
-sys.modules[__name__] = ItemTypeInterface
+sys.modules[__name__] = DbItemTypeInterface

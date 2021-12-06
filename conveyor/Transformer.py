@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from . import InputProvider, OutputProvider, ComplexDataProvider
+from . import InputProvider, OutputProvider, ComplexInputProvider
 
 
 
@@ -13,18 +13,19 @@ def matchDict(d, pattern):
 
 class Transformer(metaclass=ABCMeta):
 
-	input = {}
-	possible_outputs = []
+	item_type: str
+	input_state: str
+	possible_output_states: list
 
-	def __init__(self, input_provider: InputProvider, output_provider: OutputProvider):
+	def __init__(self, input_provider: InputProvider, output_provider: OutputProvider) -> None:
 		self.input_provider = input_provider
 		self.output_provider = output_provider
 
 	@abstractmethod
-	def transform(self, data: ComplexDataProvider):
+	def transform(self, item: ComplexInputProvider) -> dict:
 		pass
 
-	def __call__(self):
+	def __call__(self) -> dict:
 
 		input = self.input_provider.get(match=self.input)
 		output = self.transform(input)
@@ -36,8 +37,6 @@ class Transformer(metaclass=ABCMeta):
 			return None
 		else:
 			self.output_provider.set(output)
-		
-		self.input_provider.delete()
 		
 		return output
 
