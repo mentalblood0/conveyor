@@ -9,7 +9,7 @@ from conveyor.output_providers import ItemOutputProvider
 
 def test_example():
 
-	shutil.rmtree('./dir_tree')
+	shutil.rmtree('./dir_tree', ignore_errors=True)
 
 	db = PostgresqlDatabase(
 		config.db['db'], 
@@ -41,3 +41,12 @@ def test_example():
 	assert file_saver_creator(text)
 	assert is_xml_transformer() == 'xml'
 	assert get_type_transformer() == 'PersonalizationRequest'
+
+	assert is_xml_transformer() == None
+	assert get_type_transformer() == None
+
+	assert file_saver_creator(text)
+	assert is_xml_transformer() == 'xml'
+	assert get_type_transformer() == 'PersonalizationRequest'
+
+	shutil.rmtree('./dir_tree')

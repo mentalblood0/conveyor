@@ -20,7 +20,7 @@ class Transformer(metaclass=ABCMeta):
 
 		data = self.input_provider.get(self.input_status)
 		if data == None:
-			raise Exception('Input provider returned None')
+			return None
 
 		new_status = self.transform(data)
 		if (new_status == None) or (not new_status in self.possible_output_statuses):
