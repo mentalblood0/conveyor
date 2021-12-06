@@ -8,7 +8,7 @@ class Transformer(metaclass=ABCMeta):
 
 	item_type: str
 	input_status: str
-	possible_output_statuss: list
+	possible_output_status: list
 
 	def __init__(self, input_provider: InputProvider) -> None:
 		self.input_provider = input_provider
@@ -24,7 +24,7 @@ class Transformer(metaclass=ABCMeta):
 			raise Exception('Input provider returned None')
 
 		new_status = self.transform(data)
-		if (new_status == None) or (not new_status in self.possible_output_statuss):
+		if (new_status == None) or (not new_status in self.possible_output_status):
 			return None
 		else:
 			data['status'].set(new_status)

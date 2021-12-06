@@ -8,7 +8,7 @@ class isXml(Transformer):
 	item_type = 'PersonalizationRequest'
 
 	input_status = 'created'
-	possible_output_statuss = [
+	possible_output_status = [
 		'xml',
 		'not xml'
 	]

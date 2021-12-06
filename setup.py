@@ -13,10 +13,10 @@ if __name__ == '__main__':
 	setup(
 		name='conveyor',
 		version='0.1.0',
-		description='',
+		description='Library for creating conveyor-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
 		author='mentalblood',
 		install_requires=[],
-		packages=['conveyor']
+		packages=['conveyor', 'conveyor.input_providers']
 	)
