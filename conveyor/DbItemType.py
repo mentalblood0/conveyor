@@ -2,19 +2,14 @@ from peewee import *
 
 
 
-def BaseModel(db):
-	return type(
-		'BaseModel_',
-		(Model,),
-		{'Meta': type('Meta', (), {'database': db})}
-	)
-
-
 def DbItemType_(db):
 	return type(
 		'DbItemType__',
-		(BaseModel(db),),
-		{'status': CharField()}
+		(Model,),
+		{
+			'Meta': type('Meta', (), {'database': db}),
+			'status': CharField()
+		}
 	)
 
 

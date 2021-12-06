@@ -6,3 +6,4 @@ build.cmd
 build.sh
 .vscode
 config.py
+example_file.xml

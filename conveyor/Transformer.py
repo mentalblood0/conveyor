@@ -7,8 +7,8 @@ from . import InputProvider, ComplexDataProvider
 class Transformer(metaclass=ABCMeta):
 
 	item_type: str
-	input_state: str
-	possible_output_states: list
+	input_status: str
+	possible_output_statuss: list
 
 	def __init__(self, input_provider: InputProvider) -> None:
 		self.input_provider = input_provider
@@ -19,17 +19,17 @@ class Transformer(metaclass=ABCMeta):
 
 	def __call__(self) -> dict:
 
-		data = self.input_provider.get(self.input_state)
+		data = self.input_provider.get(self.input_status)
 		if data == None:
 			raise Exception('Input provider returned None')
 
-		new_state = self.transform(data)
-		if (new_state == None) or (not new_state in self.possible_output_states):
+		new_status = self.transform(data)
+		if (new_status == None) or (not new_status in self.possible_output_statuss):
 			return None
 		else:
-			data['state'].set(new_state)
+			data['status'].set(new_status)
 
-		return new_state
+		return new_status
 
 
 

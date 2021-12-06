@@ -7,8 +7,8 @@ class isXml(Transformer):
 
 	item_type = 'PersonalizationRequest'
 
-	input_state = 'saved'
-	possible_output_states = [
+	input_status = 'created'
+	possible_output_statuss = [
 		'xml',
 		'not xml'
 	]
