@@ -17,13 +17,10 @@ class DbItemTypeInterface:
 	
 	def add(self, fields):
 
-		print(f"add {self.item_type} {fields}")
-
 		if not self.item_type.table_exists():
 			self.create()
 
 		result = self.item_type(**fields).save()
-		print(f"=> {result}")
 		return result
 	
 	def getById(self, id):

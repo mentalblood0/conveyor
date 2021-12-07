@@ -40,8 +40,6 @@ class ItemInputProvider(InputProvider):
 		if item == None:
 			return None
 
-		print(f"get {status} => {item}")
-
 		return ComplexDataProvider({
 			'status': StatusProvider(self.db_item_type_interface, item['id']),
 			'text': FileInputProvider(item['file_path']),
