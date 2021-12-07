@@ -1,4 +1,3 @@
-from lxml import etree
 from conveyor import Transformer
 from structure_mapper import findByYPath
 
@@ -15,7 +14,7 @@ class Typer(Transformer):
 
 	def transform(self, data):
 
-		text = data['file'].get()
+		text = data['text'].get()
 		type = findByYPath('Body/0', text, content_type='tag')
 		
 		if type in self.possible_output_statuses:

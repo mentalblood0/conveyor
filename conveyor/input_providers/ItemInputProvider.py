@@ -20,7 +20,7 @@ class StatusProvider(InputProvider, OutputProvider):
 		self.id = id
 
 	def get(self):
-		return self.db_item_type_interface.get(self.id)
+		return self.db_item_type_interface.getStatus(self.id)
 	
 	def set(self, new_value):
 		return self.db_item_type_interface.setStatus(self.id, new_value)
@@ -40,9 +40,11 @@ class ItemInputProvider(InputProvider):
 		if item == None:
 			return None
 
+		print(f"get {status} => {item}")
+
 		return ComplexDataProvider({
 			'status': StatusProvider(self.db_item_type_interface, item['id']),
-			'file': FileInputProvider(item['file_path']),
+			'text': FileInputProvider(item['file_path']),
 			'metadata': MetadataInputProvider(self.db_item_type_interface, item['id'])
 		})
 

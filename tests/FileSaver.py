@@ -10,7 +10,7 @@ class FileSaver(Creator):
 	def create(self, text):
 		return {
 			'text': text,
-			'fields': {}
+			'metadata': {}
 		}
 
 

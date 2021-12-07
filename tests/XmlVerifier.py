@@ -15,7 +15,7 @@ class XmlVerifier(Transformer):
 
 	def transform(self, data):
 
-		file_content = data['file'].get()
+		file_content = data['text'].get()
 		
 		try:
 			etree.fromstring(file_content)

@@ -5,6 +5,9 @@ class ComplexDataProvider:
 	
 	def __getitem__(self, key):
 		return self.sub_data_providers[key]
+	
+	def items(self):
+		return self.sub_data_providers.items()
 
 
 

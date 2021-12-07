@@ -7,6 +7,7 @@ class DbItemTypeInterface:
 	def __init__(self, db, item_type_name, data_fields):
 		self.db = db
 		self.item_type = DbItemType(db, item_type_name, data_fields)
+		self.item_type_name = item_type_name
 	
 	def drop(self):
 		return self.db.drop_tables([self.item_type])
@@ -15,11 +16,15 @@ class DbItemTypeInterface:
 		return self.db.create_tables([self.item_type])
 	
 	def add(self, fields):
-		
+
+		print(f"add {self.item_type} {fields}")
+
 		if not self.item_type.table_exists():
 			self.create()
 
-		return self.item_type(**fields).save()
+		result = self.item_type(**fields).save()
+		print(f"=> {result}")
+		return result
 	
 	def getById(self, id):
 

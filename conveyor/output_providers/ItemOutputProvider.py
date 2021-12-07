@@ -22,15 +22,21 @@ class ItemOutputProvider(OutputProvider):
 		self.dir_tree_root_path = dir_tree_root_path
 		self.id = None
 	
-	def create(self, status, text, fields):
+	def create(self, status, text, metadata):
 
 		file_path = saveToDirTree(
 			text, 
 			self.dir_tree_root_path,
-			base_file_name='undefined.xml'
+			base_file_name=f'{self.db_item_type_interface.item_type_name}.xml'
 		)
 
-		return self.db_item_type_interface.add(fields | {
+		filtered_metadata = {
+			k: v
+			for k, v in metadata.items()
+			if not k in ['id']
+		}
+
+		return self.db_item_type_interface.add(filtered_metadata | {
 			'status': status,
 			'file_path': file_path
 		})
