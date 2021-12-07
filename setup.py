@@ -11,12 +11,19 @@ if __name__ == '__main__':
 			long_description = f.read()
 
 	setup(
-		name='conveyor',
+		name='conveyor-mentalblood',
 		version='0.1.0',
 		description='Library for creating conveyor-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
 		author='mentalblood',
-		install_requires=[],
-		packages=['conveyor', 'conveyor.input_providers']
+		install_requires=[
+			'peewee',
+			'growing-tree-base-mentalblood'
+		],
+		packages=[
+			'conveyor', 
+			'conveyor.input_providers',
+			'conveyor.output_providers'
+		]
 	)

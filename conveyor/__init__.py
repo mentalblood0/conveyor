@@ -4,5 +4,7 @@ __all__ = [
 	'OutputProvider',
 	'output_providers',
 	'ComplexDataProvider',
-	'Transformer'
+	'Creator',
+	'Transformer',
+	'Mover'
 ]

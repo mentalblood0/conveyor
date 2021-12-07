@@ -19,10 +19,13 @@ class Mover(metaclass=ABCMeta):
 		if data == None:
 			return None
 		
-		return self.output_provider.create(**{
+		result = self.output_provider.create(**{
 			k: v.get()
 			for k, v in data.items()
 		})
+		data['status'].set('end')
+
+		return result
 
 
 
