@@ -40,7 +40,10 @@ class Mover(metaclass=ABCMeta):
 
 		result = []
 		for d in new_data:
-			d['metadata']['status'] = self.output_status
+			d['metadata'] |= {
+				'status': self.output_status,
+				'chain_id': extracted_data['metadata']['chain_id']
+			}
 			result.append(self.output_provider.create(**d))
 
 		data['metadata'].get()['status'].set(self.moved_status)

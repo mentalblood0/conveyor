@@ -33,11 +33,8 @@ def test_add():
 	items.add({
 		'message_id': 'lalala'
 	})
-	assert items.get('created') == {
-		'id': 1,
-		'status': 'created',
-		'message_id': 'lalala'
-	}
+	assert items.get('created')['status'] == 'created'
+	assert items.get('created')['message_id'] == 'lalala'
 
 
 def test_set():
