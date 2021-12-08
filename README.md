@@ -12,17 +12,17 @@ Library for creating conveyor-oriented systems
 
 ### Abstract
 
-* InputProvider
-* OutputProvider
-* ComplexDataProvider
+* `InputProvider`
+* `OutputProvider`
+* `ComplexDataProvider`
 
 ### Concrete
 
 #### InputProvider inherited
 
-* FileInputProvider
-* ItemInputProvider
+* `FileInputProvider`
+* `ItemInputProvider`
 
 #### OutputProvider inherited
 
-* ItemOutputProvider
+* `ItemOutputProvider`
