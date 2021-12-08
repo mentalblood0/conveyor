@@ -42,7 +42,7 @@ class ItemInputProvider(InputProvider):
 	def __init__(self, *args, **kwargs):
 		self.db_item_type_interface = DbItemTypeInterface(*args, **kwargs)
 
-	def get(self, status):
+	def get(self, status=None, chain_id=None):
 
 		id = self.db_item_type_interface.getId(status)
 		if id == None:
