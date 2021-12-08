@@ -22,13 +22,27 @@ class Transformer(metaclass=ABCMeta):
 		if data == None:
 			return None
 
-		new_status = self.transform(data)
-		if (new_status == None) or (not new_status in self.possible_output_statuses):
-			return None
+		new_data = self.transform(data)
+		if type(new_data) == str:
+			new_data = {
+				'status': new_data
+			}
+		elif type(new_data) == dict:
+			new_data = {
+				k: v
+				for k, v in new_data.items()
+				if not k in ['id']
+			}
 		else:
-			data['status'].set(new_status)
+			return None
 
-		return new_status
+		if (new_data['status'] == None) or (not new_data['status'] in self.possible_output_statuses):
+			return None
+
+		for k, v in new_data.items():
+			data['metadata'].get()[k].set(v)
+
+		return new_data['status']
 
 
 

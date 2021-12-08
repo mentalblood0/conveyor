@@ -23,7 +23,8 @@ def test_example():
 		db,
 		'undefined',
 		{
-			'file_path': CharField()
+			'file_path': CharField(),
+			'message_id': CharField(default='')
 		}
 	]
 
@@ -35,7 +36,8 @@ def test_example():
 		db, 
 		'PersonalizationRequest', 
 		{
-			'file_path': CharField()
+			'file_path': CharField(),
+			'message_id': CharField()
 		}
 	)
 

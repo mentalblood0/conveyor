@@ -18,12 +18,18 @@ class Mover(metaclass=ABCMeta):
 		data = self.input_provider.get(self.input_status)
 		if data == None:
 			return None
-		
-		result = self.output_provider.create(**{
+
+		result = self.output_provider.create(**({
 			k: v.get()
 			for k, v in data.items()
-		})
-		data['status'].set('end')
+			if k != 'metadata'
+		} | {
+			'metadata': {
+				k: v.get()
+				for k, v in data['metadata'].get().items()
+			}
+		}))
+		data['metadata'].get()['status'].set('end')
 
 		return result
 

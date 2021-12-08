@@ -1,6 +1,27 @@
+import json
+
 from .. import InputProvider, OutputProvider, DbItemTypeInterface, ComplexDataProvider
 from . import FileInputProvider
 
+
+
+class MetadataFieldProvider(InputProvider, OutputProvider):
+
+	def __init__(self, db_item_type_interface, id, field_name):
+		self.db_item_type_interface = db_item_type_interface
+		self.id = id
+		self.field_name = field_name
+	
+	def get(self):
+		return self.db_item_type_interface.getField(self.id, self.field_name)
+
+	def set(self, new_value):
+		return self.db_item_type_interface.setById(self.id, {
+			self.field_name: new_value
+		})
+	
+	def create(self):
+		raise NotImplemented
 
 
 class MetadataInputProvider(InputProvider):
@@ -8,25 +29,12 @@ class MetadataInputProvider(InputProvider):
 	def __init__(self, db_item_type_interface, id):
 		self.db_item_type_interface = db_item_type_interface
 		self.id = id
-
-	def get(self):
-		return self.db_item_type_interface.getById(self.id)
-
-
-class StatusProvider(InputProvider, OutputProvider):
-
-	def __init__(self, db_item_type_interface, id):
-		self.db_item_type_interface = db_item_type_interface
-		self.id = id
-
-	def get(self):
-		return self.db_item_type_interface.getStatus(self.id)
 	
-	def set(self, new_value):
-		return self.db_item_type_interface.setStatus(self.id, new_value)
-	
-	def create(self):
-		raise NotImplementedError
+	def get(self):
+		return {
+			k: MetadataFieldProvider(self.db_item_type_interface, self.id, k)
+			for k in self.db_item_type_interface.getFieldsNames() - {'file_path'}
+		}
 
 
 class ItemInputProvider(InputProvider):
@@ -36,14 +44,14 @@ class ItemInputProvider(InputProvider):
 
 	def get(self, status):
 
-		item = self.db_item_type_interface.get(status)
-		if item == None:
+		id = self.db_item_type_interface.getId(status)
+		if id == None:
 			return None
+		file_path = self.db_item_type_interface.getField(id, 'file_path')
 
 		return ComplexDataProvider({
-			'status': StatusProvider(self.db_item_type_interface, item['id']),
-			'text': FileInputProvider(item['file_path']),
-			'metadata': MetadataInputProvider(self.db_item_type_interface, item['id'])
+			'text': FileInputProvider(file_path),
+			'metadata': MetadataInputProvider(self.db_item_type_interface, id)
 		})
 
 

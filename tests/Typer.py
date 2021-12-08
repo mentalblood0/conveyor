@@ -18,7 +18,10 @@ class Typer(Transformer):
 		type = findByYPath('Body/0', text, content_type='tag')
 		
 		if type in self.possible_output_statuses:
-			return type
+			return {
+				'status': type,
+				'message_id': findByYPath('MessageID', text)
+			}
 		else:
 			return None
 

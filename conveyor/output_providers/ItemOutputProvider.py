@@ -22,7 +22,7 @@ class ItemOutputProvider(OutputProvider):
 		self.dir_tree_root_path = dir_tree_root_path
 		self.id = None
 	
-	def create(self, status, text, metadata):
+	def create(self, text, metadata):
 
 		file_path = saveToDirTree(
 			text, 
@@ -37,7 +37,7 @@ class ItemOutputProvider(OutputProvider):
 		}
 
 		return self.db_item_type_interface.add(filtered_metadata | {
-			'status': status,
+			'status': metadata['status'],
 			'file_path': file_path
 		})
 

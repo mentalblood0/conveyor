@@ -33,7 +33,7 @@ class DbItemTypeInterface:
 	
 	def setById(self, id, new_fields):
 		return self.item_type.update(**new_fields).where(self.item_type.id==id).execute()
-	
+
 	def getStatus(self, id):
 
 		item = self.item_type.select(self.item_type.status).where(self.item_type.id==id).first()
@@ -42,9 +42,28 @@ class DbItemTypeInterface:
 		
 		return item.__data__
 	
+	def getField(self, id, field_name):
+
+		item = self.item_type.select(getattr(self.item_type, field_name)).where(self.item_type.id==id).first()
+		if item == None:
+			return None
+		
+		return item.__data__[field_name]
+	
 	def setStatus(self, id, new_status):
 		return self.item_type.update(status=new_status).where(self.item_type.id==id).execute()
-	
+
+	def getId(self, status):
+
+		if not self.item_type.table_exists():
+			return None
+		
+		first_item = self.item_type.select(self.item_type.id).where(self.item_type.status==status).first()
+		if first_item == None:
+			return None
+		
+		return first_item.__data__['id']
+
 	def get(self, status):
 
 		if not self.item_type.table_exists():
@@ -55,7 +74,10 @@ class DbItemTypeInterface:
 			return None
 		
 		return first_item.__data__
-	
+
+	def getFieldsNames(self):
+		return self.item_type._meta.fields.keys() - {'id'}
+
 	def delete(self, id):
 		return self.item_type.delete().where(self.item_type.id==id).execute()
 

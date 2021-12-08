@@ -19,8 +19,9 @@ class Creator(metaclass=ABCMeta):
 	def __call__(self, *args, **kwargs) -> None:
 
 		output_data = self.create(*args, **kwargs)
+		output_data['metadata']['status'] = self.output_status
 
-		return self.output_provider.create(self.output_status, **output_data)
+		return self.output_provider.create(**output_data)
 
 
 
