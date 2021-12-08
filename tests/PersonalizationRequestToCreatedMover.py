@@ -9,6 +9,9 @@ class PersonalizationRequestToCreatedMover(Mover):
 
 	output_status = 'created'
 
+	def transform(self, data):
+		return [data, data]
+
 
 
 import sys

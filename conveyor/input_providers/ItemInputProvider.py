@@ -33,7 +33,7 @@ class MetadataInputProvider(InputProvider):
 	def get(self):
 		return {
 			k: MetadataFieldProvider(self.db_item_type_interface, self.id, k)
-			for k in self.db_item_type_interface.getFieldsNames() - {'file_path'}
+			for k in self.db_item_type_interface.getFieldsNames()
 		}
 
 

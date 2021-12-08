@@ -15,7 +15,7 @@ class Mover(metaclass=ABCMeta):
 		self.input_provider = input_provider
 		self.output_provider = output_provider
 	
-	def transform(self, data: dict) -> dict:
+	def transform(self, data: dict):
 		return data
 
 	def __call__(self) -> dict:
@@ -32,13 +32,17 @@ class Mover(metaclass=ABCMeta):
 			'metadata': {
 				k: v.get()
 				for k, v in data['metadata'].get().items()
-			} | {
-				'status': self.output_status
 			}
 		}
 		new_data = self.transform(extracted_data)
+		if type(new_data) != list:
+			new_data = [new_data]
 
-		result = self.output_provider.create(**new_data)
+		result = []
+		for d in new_data:
+			d['metadata']['status'] = self.output_status
+			result.append(self.output_provider.create(**d))
+
 		data['metadata'].get()['status'].set(self.moved_status)
 
 		return result
