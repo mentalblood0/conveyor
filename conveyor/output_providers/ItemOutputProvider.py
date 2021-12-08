@@ -1,7 +1,6 @@
 from growing_tree_base import *
 
-from .. import OutputProvider, DbItemTypeInterface, ComplexDataProvider
-from . import FileOutputProvider
+from .. import OutputProvider, DbItemTypeInterface
 
 
 
