@@ -1,8 +1,9 @@
 import shutil
 from peewee import PostgresqlDatabase, CharField
 
+from conveyor.workers.factories import DestroyerFactory
 from conveyor.providers import ItemInputProvider, ItemOutputProvider
-from tests import config, XmlVerifier, Typer, FileSaver, PersonalizationRequestToCreatedMover, ItemDestroyer
+from tests import config, XmlVerifier, Typer, FileSaver, PersonalizationRequestToCreatedMover
 
 
 
@@ -50,7 +51,7 @@ def test_example():
 		undefined_item_input_provider,
 		personalization_request_item_output_provider
 	)
-	undefined_destroyer = ItemDestroyer(undefined_item_input_provider)
+	undefined_destroyer = DestroyerFactory('end')(undefined_item_input_provider)
 
 	undefined_item_input_provider.db_item_type_interface.drop()
 	personalization_request_item_output_provider.db_item_type_interface.drop()
