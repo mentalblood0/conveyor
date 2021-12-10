@@ -15,18 +15,16 @@ class Creator(metaclass=ABCMeta):
 		self.repository = repository
 
 	@abstractmethod
-	def create(self, *args, **kwargs) -> dict:
+	def create(self, *args, **kwargs) -> Item:
 		pass
 
 	def __call__(self, *args, **kwargs) -> None:
 
-		item_args = self.create(*args, **kwargs) | {
-			'chain_id': ' '.join([
-				str(datetime.now()),
-				uuid.uuid4().hex
-			])
-		}
-		item = Item(**item_args)
+		item = self.create(*args, **kwargs)
+		item.chain_id = ' '.join([
+			str(datetime.now()),
+			uuid.uuid4().hex
+		])
 
 		return self.repository.save(item)
 
