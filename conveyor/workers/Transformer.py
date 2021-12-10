@@ -1,48 +1,35 @@
 from abc import ABCMeta, abstractmethod
 
-from .. import InputProvider, ComplexDataProvider
+from .. import Item, ItemRepository
 
 
 
 class Transformer(metaclass=ABCMeta):
 
+	input_type: str
 	input_status: str
+
+	output_type: str
 	possible_output_statuses: list
 
-	def __init__(self, input_provider: InputProvider) -> None:
-		self.input_provider = input_provider
+	def __init__(self, repository: ItemRepository) -> None:
+		self.repository = repository
 
 	@abstractmethod
-	def transform(self, data: ComplexDataProvider) -> dict:
+	def transform(self, item: Item) -> Item:
 		pass
 
-	def __call__(self) -> dict:
+	def __call__(self) -> Item:
 
-		data = self.input_provider.get(self.input_status)
-		if data == None:
+		input_item = self.repository.get(self.input_type, self.input_status)
+		if input_item == None:
 			return None
+		
+		output_item = self.transform(input_item)
+		output_item.type = self.output_type
+		output_item.status = self.output_status
 
-		new_data = self.transform(data)
-		if type(new_data) == str:
-			new_data = {
-				'status': new_data
-			}
-		elif type(new_data) == dict:
-			new_data = {
-				k: v
-				for k, v in new_data.items()
-				if not k in ['id']
-			}
-		else:
-			return None
-
-		if (new_data['status'] == None) or (not new_data['status'] in self.possible_output_statuses):
-			return None
-
-		for k, v in new_data.items():
-			data['metadata'].get()[k].set(v)
-
-		return new_data['status']
+		return output_item
 
 
 

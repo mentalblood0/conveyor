@@ -1,26 +1,22 @@
 from abc import ABCMeta
 
-from .. import InputProvider
+from .. import ItemRepository
 
 
 
 class Destroyer(metaclass=ABCMeta):
 
+	input_type: str
 	input_status: str
 
-	def __init__(self, inpute_provider: InputProvider) -> None:
-		self.inpute_provider = inpute_provider
+	def __init__(self, repository: ItemRepository) -> None:
+		self.repository = repository
 
-	def __call__(self) -> set:
+	def __call__(self) -> int:
 
-		data = self.inpute_provider.get(self.input_status)
-		if data == None:
-			return None
+		item = self.repository.get(self.input_type, self.input_status)
 
-		for sub_data in data.values():
-			sub_data.delete()
-
-		return data.keys()
+		return self.repository.delete(self.input_type, item.id)
 
 
 

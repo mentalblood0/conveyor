@@ -1,54 +1,35 @@
 from abc import ABCMeta
 
-from .. import InputProvider, OutputProvider
+from .. import Item, ItemRepository
 
 
 
 class Mover(metaclass=ABCMeta):
 
+	input_type: str
 	input_status: str
 	moved_status: str
 
+	output_type: str
 	output_status: str
 
-	def __init__(self, input_provider: InputProvider, output_provider: OutputProvider) -> None:
-		self.input_provider = input_provider
-		self.output_provider = output_provider
+	def __init__(self, repository: ItemRepository) -> None:
+		self.repository = repository
 	
-	def transform(self, data: dict):
-		return data
+	def transform(self, item: Item) -> list[Item]:
+		return [item]
 
-	def __call__(self) -> dict:
+	def __call__(self) -> Item:
 
-		data = self.input_provider.get(self.input_status)
-		if data == None:
-			return None
+		input_item = self.repository.get(self.input_type, self.input_status)
+		output_items = self.transform(input_item)
+
+		for i in output_items:
+			i.type = self.output_type
+			i.status = self.output_status
+			self.repository.save(i)
 		
-		extracted_data = {
-			k: v.get()
-			for k, v in data.items()
-			if k != 'metadata'
-		} | {
-			'metadata': {
-				k: v.get()
-				for k, v in data['metadata'].get().items()
-			}
-		}
-		new_data = self.transform(extracted_data)
-		if type(new_data) != list:
-			new_data = [new_data]
-
-		result = []
-		for d in new_data:
-			d['metadata'] |= {
-				'status': self.output_status,
-				'chain_id': extracted_data['metadata']['chain_id']
-			}
-			result.append(self.output_provider.create(**d))
-
-		data['metadata'].get()['status'].set(self.moved_status)
-
-		return result
+		return output_items
 
 
 
