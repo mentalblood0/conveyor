@@ -1,11 +1,9 @@
-from conveyor import Transformer
+from conveyor.workers import Transformer
 from structure_mapper import findByYPath
 
 
 
 class Typer(Transformer):
-
-	item_type = 'undefined'
 
 	input_status = 'xml'
 	possible_output_statuses = [

@@ -1,5 +1,4 @@
-from conveyor import Creator
-from growing_tree_base import *
+from conveyor.workers import Creator
 
 
 

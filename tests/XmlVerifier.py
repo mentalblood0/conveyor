@@ -1,11 +1,9 @@
 from lxml import etree
-from conveyor import Transformer
+from conveyor.workers import Transformer
 
 
 
 class XmlVerifier(Transformer):
-
-	item_type = 'undefined'
 
 	input_status = 'created'
 	possible_output_statuses = [

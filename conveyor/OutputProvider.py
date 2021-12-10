@@ -12,6 +12,10 @@ class OutputProvider(metaclass=ABCMeta):
 	def create(self, *args, **kwargs):
 		pass
 
+	@abstractmethod
+	def delete(self):
+		pass
+
 
 
 import sys

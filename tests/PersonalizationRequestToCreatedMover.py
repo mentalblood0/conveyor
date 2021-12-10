@@ -1,4 +1,4 @@
-from conveyor import Mover
+from conveyor.workers import Mover
 
 
 

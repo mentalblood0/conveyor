@@ -42,6 +42,9 @@ class ItemOutputProvider(OutputProvider):
 
 	def set(self, new_fields):
 		return self.db_item_type_interface.setById(self.id, new_fields)
+	
+	def delete(self):
+		raise NotImplemented
 
 
 

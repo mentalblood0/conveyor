@@ -1,9 +1,8 @@
 import shutil
 from peewee import PostgresqlDatabase, CharField
 
-from tests import config, XmlVerifier, Typer, FileSaver, PersonalizationRequestToCreatedMover
-from conveyor.input_providers import ItemInputProvider
-from conveyor.output_providers import ItemOutputProvider
+from conveyor.providers import ItemInputProvider, ItemOutputProvider
+from tests import config, XmlVerifier, Typer, FileSaver, PersonalizationRequestToCreatedMover, ItemDestroyer
 
 
 
@@ -51,6 +50,7 @@ def test_example():
 		undefined_item_input_provider,
 		personalization_request_item_output_provider
 	)
+	undefined_destroyer = ItemDestroyer(undefined_item_input_provider)
 
 	undefined_item_input_provider.db_item_type_interface.drop()
 	personalization_request_item_output_provider.db_item_type_interface.drop()
@@ -58,6 +58,7 @@ def test_example():
 	assert is_xml_transformer() == 'xml'
 	assert get_type_transformer() == 'PersonalizationRequest'
 	assert undefined_to_personalization_request_mover()
+	assert undefined_destroyer()
 
 	assert is_xml_transformer() == None
 	assert get_type_transformer() == None
@@ -66,5 +67,6 @@ def test_example():
 	assert is_xml_transformer() == 'xml'
 	assert get_type_transformer() == 'PersonalizationRequest'
 	assert undefined_to_personalization_request_mover()
+	assert undefined_destroyer()
 
 	shutil.rmtree('./dir_tree')

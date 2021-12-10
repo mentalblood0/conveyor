@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
-from . import OutputProvider
+from .. import OutputProvider
 
 
 

@@ -23,7 +23,7 @@ if __name__ == '__main__':
 		],
 		packages=[
 			'conveyor', 
-			'conveyor.input_providers',
-			'conveyor.output_providers'
+			'conveyor.providers',
+			'conveyor.workers'
 		]
 	)

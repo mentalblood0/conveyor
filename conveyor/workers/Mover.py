@@ -1,6 +1,6 @@
 from abc import ABCMeta
 
-from . import InputProvider, OutputProvider
+from .. import InputProvider, OutputProvider
 
 
 

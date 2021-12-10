@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from . import InputProvider, ComplexDataProvider
+from .. import InputProvider, ComplexDataProvider
 
 
 
