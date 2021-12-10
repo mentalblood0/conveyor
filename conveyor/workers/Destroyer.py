@@ -15,6 +15,8 @@ class Destroyer(metaclass=ABCMeta):
 	def __call__(self) -> int:
 
 		item = self.repository.get(self.input_type, self.input_status)
+		if not item:
+			return None
 
 		return self.repository.delete(self.input_type, item.id)
 

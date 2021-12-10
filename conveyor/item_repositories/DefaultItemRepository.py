@@ -1,3 +1,4 @@
+import os
 from functools import cache
 from growing_tree_base import *
 from peewee import CharField, IntegerField, FloatField
@@ -28,7 +29,7 @@ def getModel(db, item):
 
 	model = Model(db, item.type, columns)
 	if not model.table_exists():
-		model.create()
+		db.create_tables([model])
 
 	return model
 
@@ -41,10 +42,12 @@ class DefaultItemRepository(ItemRepository):
 
 	def save(self, item):
 
+		print('save', item.type)
+
 		item.metadata['file_path'] = saveToDirTree(
-			bytes(item.data, encoding='utf8'), 
-			self.dir_tree_root_path,
-			base_file_name=f'{item.type}.xml'
+			item.data, 
+			os.path.join(self.dir_tree_root_path, item.type),
+			base_file_name='.xml'
 		)
 
 		return getModel(self.db, item)(**getFields(item)).save()
@@ -77,18 +80,13 @@ class DefaultItemRepository(ItemRepository):
 			}
 		)
 	
-	def setStatus(self, type, id, status):
+	def set(self, type, id, item):
 
-		model = Model(type, status)
+		model = Model(self.db, type)
 		if not model:
 			return None
-		
-		query_result = model.select().where(model.id==id).first()
-		if not query_result:
-			return None
-		id = query_result.__data__['id']
 
-		return model.update(status=status).where(model.id==id)
+		return model.update(**getFields(item)).where(model.id==id).execute()
 
 	def delete(self, type, id):
 		
@@ -105,6 +103,14 @@ class DefaultItemRepository(ItemRepository):
 			return None
 		
 		return model.delete().execute()
+	
+	def drop(self, type):
+
+		model = Model(self.db, type)
+		if not model:
+			return None
+		
+		return self.db.drop_tables([model])
 
 
 
