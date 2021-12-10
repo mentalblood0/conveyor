@@ -22,8 +22,10 @@ class Mover(metaclass=ABCMeta):
 	def __call__(self) -> Item:
 
 		input_item = self.repository.get(self.input_type, self.input_status)
-		output_items = self.transform(input_item)
+		if input_item == None:
+			return None
 
+		output_items = self.transform(input_item)
 		for i in output_items:
 			i.type = self.output_type
 			i.status = self.output_status

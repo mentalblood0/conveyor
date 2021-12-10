@@ -40,4 +40,15 @@ def test_example():
 	assert mover()
 	assert destroyer()
 
+	assert not xml_verifier()
+	assert not typer()
+	assert not mover()
+	assert not destroyer()
+
+	assert file_saver(text)
+	assert xml_verifier()
+	assert typer()
+	assert mover()
+	assert destroyer()
+
 	shutil.rmtree('./dir_tree')
