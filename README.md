@@ -1,28 +1,14 @@
 # Conveyor
 
-Library for creating conveyor-oriented systems
+Library for creating cold-pipeline-oriented systems
 
-## Main classes
+## Workers classes
 
 * `Creator`
 * `Transformer`
 * `Mover`
+* `Destroyer`
 
-## Providers classes
+## Item repositories classes
 
-### Abstract
-
-* `InputProvider`
-* `OutputProvider`
-* `ComplexDataProvider`
-
-### Concrete
-
-#### InputProvider inherited
-
-* `FileInputProvider`
-* `ItemInputProvider`
-
-#### OutputProvider inherited
-
-* `ItemOutputProvider`
+* `DefaultItemRepository` -- uses PostgreSQL database for storing metadata and dir tree for storing files
