@@ -1,6 +1,7 @@
 import shutil
 from peewee import PostgresqlDatabase
-from conveyor import DefaultItemRepository, Item
+from conveyor import Item
+from conveyor.item_repositories import DefaultItemRepository
 
 from . import config
 

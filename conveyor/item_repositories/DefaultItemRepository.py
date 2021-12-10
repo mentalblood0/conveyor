@@ -2,7 +2,7 @@ from functools import cache
 from growing_tree_base import *
 from peewee import CharField, IntegerField, FloatField
 
-from . import Item, ItemRepository, Model
+from .. import Item, ItemRepository, Model
 
 
 
@@ -76,6 +76,19 @@ class DefaultItemRepository(ItemRepository):
 				if not k in ['status', 'type', 'data', 'chain_id', 'id']
 			}
 		)
+	
+	def setStatus(self, type, id, status):
+
+		model = Model(type, status)
+		if not model:
+			return None
+		
+		query_result = model.select().where(model.id==id).first()
+		if not query_result:
+			return None
+		id = query_result.__data__['id']
+
+		return model.update(status=status).where(model.id==id)
 
 	def delete(self, type, id):
 		

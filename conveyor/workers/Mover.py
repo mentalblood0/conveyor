@@ -24,6 +24,8 @@ class Mover(metaclass=ABCMeta):
 		input_item = self.repository.get(self.input_type, self.input_status)
 		output_items = self.transform(input_item)
 
+		self.repository.setStatus(self.input_type, input_item.id, self.moved_status)
+
 		for i in output_items:
 			i.type = self.output_type
 			i.status = self.output_status

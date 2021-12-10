@@ -5,18 +5,18 @@ from conveyor.workers import Transformer
 
 class XmlVerifier(Transformer):
 
+	input_type = 'undefined'
 	input_status = 'created'
+
 	possible_output_statuses = [
 		'xml',
 		'not xml'
 	]
 
-	def transform(self, data):
+	def transform(self, item):
 
-		file_content = data['text'].get()
-		
 		try:
-			etree.fromstring(file_content)
+			etree.fromstring(item.data)
 			return 'xml'
 		except etree.XMLSyntaxError:
 			return 'not xml'

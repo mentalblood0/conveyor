@@ -12,6 +12,9 @@ class ItemRepository(metaclass=ABCMeta):
 	def get(self, type, status):
 		pass
 
+	def setStatus(self, type, id, status):
+		pass
+
 	@abstractmethod
 	def delete(self, id):
 		pass

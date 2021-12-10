@@ -9,27 +9,26 @@ class Transformer(metaclass=ABCMeta):
 	input_type: str
 	input_status: str
 
-	output_type: str
-	possible_output_statuses: list
+	possible_output_statuses: list[str]
 
 	def __init__(self, repository: ItemRepository) -> None:
 		self.repository = repository
 
 	@abstractmethod
-	def transform(self, item: Item) -> Item:
+	def transform(self, item: Item) -> str:
 		pass
 
-	def __call__(self) -> Item:
+	def __call__(self) -> str:
 
 		input_item = self.repository.get(self.input_type, self.input_status)
 		if input_item == None:
 			return None
 		
-		output_item = self.transform(input_item)
-		output_item.type = self.output_type
-		output_item.status = self.output_status
-
-		return output_item
+		output_status = self.transform(input_item)
+		if not output_status in self.possible_output_statuses:
+			return None
+		
+		return self.repository.setStatus(self.input_type, input_item.id, output_status)
 
 
 

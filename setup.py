@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
 	setup(
 		name='conveyor-mentalblood',
-		version='0.2.0',
-		description='Library for creating conveyor-oriented systems',
+		version='0.3.0',
+		description='Library for creating cold-pipeline-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
 		author='mentalblood',
@@ -23,7 +23,7 @@ if __name__ == '__main__':
 		],
 		packages=[
 			'conveyor', 
-			'conveyor.providers',
+			'conveyor.item_repositories',
 			'conveyor.workers',
 			'conveyor.workers.factories'
 		]
