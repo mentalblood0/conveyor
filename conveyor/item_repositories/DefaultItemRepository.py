@@ -42,8 +42,6 @@ class DefaultItemRepository(ItemRepository):
 
 	def save(self, item):
 
-		print('save', item.type)
-
 		item.metadata['file_path'] = saveToDirTree(
 			item.data, 
 			os.path.join(self.dir_tree_root_path, item.type),

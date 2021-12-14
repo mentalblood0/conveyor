@@ -5,9 +5,12 @@ from playhouse.reflection import generate_models
 
 def Model(db, name, columns=None):
 
+	name = name.lower()
+
 	if not columns:
 		models = generate_models(db, table_names=[name])
-		return models[name] if models else None
+		if models:
+			return models[name]
 
 	else:
 		return type(
