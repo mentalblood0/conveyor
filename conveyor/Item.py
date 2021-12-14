@@ -22,7 +22,7 @@ class Item:
 		return hash('_'.join([
 			self.type,
 			self.status,
-			self.data,
+			self.data if type(self.data) == str else self.data.decode(),
 			str(self.metadata)
 		]))
 

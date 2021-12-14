@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 	setup(
 		name='conveyor-mentalblood',
-		version='0.4.1',
+		version='0.5.0',
 		description='Library for creating cold-pipeline-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
