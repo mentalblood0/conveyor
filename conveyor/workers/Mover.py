@@ -26,6 +26,8 @@ class Mover(metaclass=ABCMeta):
 			return None
 
 		output_items = self.transform(input_item)
+		if type(output_items) != list:
+			output_items = [output_items]
 		for i in output_items:
 			i.type = self.output_type
 			i.status = self.output_status
