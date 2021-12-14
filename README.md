@@ -2,17 +2,21 @@
 
 Library for creating cold-pipeline-oriented systems
 
+Cold pipeline is a pipeline which state stored in external database
+
 ## Workers classes
 
-* `Creator`
-* `Transformer`
-* `Mover`
-* `Destroyer`
+* [Creator](conveyor/workers/Creator.py)
+* [Transformer](conveyor/workers/Transformer.py)
+* [Mover](conveyor/workers/Mover.py)
+* [Destroyer](conveyor/workers/Destroyer.py)
 
 ## Item repositories classes
 
-* `DefaultItemRepository` -- uses PostgreSQL database for storing metadata and dir tree for storing files
+* [DefaultItemRepository](conveyor/item_repositories/DefaultItemRepository.py) -- uses PostgreSQL database for storing metadata and directories tree for storing files
 
 ## Example
 
-See `tests/example_workers.py` and `tests/test_pipeline.py`
+* [Workers description](tests/example_workers.py)
+* [Pipeline description](tests/test_pipeline.py)
+
