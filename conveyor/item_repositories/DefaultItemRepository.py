@@ -56,27 +56,33 @@ class DefaultItemRepository(ItemRepository):
 		if not model:
 			return None
 
-		query_result = model.select().where(model.status==status).first()
-		if not query_result:
-			return None
-		item_db_dict = query_result.__data__
+		query_result = model.select().where(model.status==status)
+		result = []
 
-		file_path = item_db_dict['file_path']
-		with open(file_path, 'r', encoding='utf8') as f:
-			file_content = f.read()
+		for r in query_result:
+
+			item_db_dict = r.__data__
+
+			file_path = item_db_dict['file_path']
+			with open(file_path, 'r', encoding='utf8') as f:
+				file_content = f.read()
 		
-		return Item(
-			id=item_db_dict['id'],
-			type=type,
-			status=status,
-			data=file_content,
-			chain_id=item_db_dict['chain_id'],
-			metadata={
-				k: v
-				for k, v in item_db_dict.items()
-				if not k in ['status', 'type', 'data', 'chain_id', 'id']
-			}
-		)
+			result.append(
+				Item(
+					id=item_db_dict['id'],
+					type=type,
+					status=status,
+					data=file_content,
+					chain_id=item_db_dict['chain_id'],
+					metadata={
+						k: v
+						for k, v in item_db_dict.items()
+						if not k in ['status', 'type', 'data', 'chain_id', 'id']
+					}
+				)
+			)
+		
+		return result
 	
 	def set(self, type, id, item):
 

@@ -18,12 +18,8 @@ class Mover(metaclass=ABCMeta):
 	
 	def transform(self, item: Item) -> list[Item]:
 		return [item]
-
-	def __call__(self) -> Item:
-
-		input_item = self.repository.get(self.input_type, self.input_status)
-		if input_item == None:
-			return None
+	
+	def processItem(self, input_item: Item) -> list[Item]:
 
 		output_items = self.transform(input_item)
 		if type(output_items) != list:
@@ -38,6 +34,12 @@ class Mover(metaclass=ABCMeta):
 		self.repository.set(self.input_type, input_item.id, input_item)
 		
 		return output_items
+
+	def __call__(self) -> list[list[Item]]:
+
+		input_items = self.repository.get(self.input_type, self.input_status)
+		
+		return [self.processItem(i) for i in input_items]
 
 
 

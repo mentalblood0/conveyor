@@ -35,10 +35,10 @@ def test_example():
 		text = f.read()
 	
 	assert file_saver(text)
-	assert xml_verifier()
-	assert typer()
-	assert mover()
-	assert destroyer()
+	assert len(xml_verifier()) == 1
+	assert len(typer()) == 1
+	assert len(mover()) == 1
+	assert len(destroyer()) == 1
 
 	assert not xml_verifier()
 	assert not typer()
@@ -46,9 +46,10 @@ def test_example():
 	assert not destroyer()
 
 	assert file_saver(text)
-	assert xml_verifier()
-	assert typer()
-	assert mover()
-	assert destroyer()
+	assert file_saver(text)
+	assert len(xml_verifier()) == 2
+	assert len(typer()) == 2
+	assert len(mover()) == 2
+	assert len(destroyer()) == 2
 
 	shutil.rmtree('./dir_tree')

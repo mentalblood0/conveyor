@@ -17,13 +17,9 @@ class Transformer(metaclass=ABCMeta):
 	@abstractmethod
 	def transform(self, item: Item) -> Item:
 		pass
+	
+	def processItem(self, input_item: Item) -> int:
 
-	def __call__(self) -> int:
-
-		input_item = self.repository.get(self.input_type, self.input_status)
-		if input_item == None:
-			return None
-		
 		output_item = self.transform(input_item)
 		if type(output_item) == str:
 			output_status = output_item
@@ -34,6 +30,12 @@ class Transformer(metaclass=ABCMeta):
 			return None
 		
 		return self.repository.set(self.input_type, input_item.id, output_item)
+
+	def __call__(self) -> list[int]:
+
+		input_items = self.repository.get(self.input_type, self.input_status)
+		
+		return [self.processItem(i) for i in input_items]
 
 
 
