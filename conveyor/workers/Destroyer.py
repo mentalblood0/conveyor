@@ -1,25 +1,16 @@
 from abc import ABCMeta
 
-from .. import Item, ItemRepository
+from .. import Item, ItemsProcessor
 
 
 
-class Destroyer(metaclass=ABCMeta):
+class Destroyer(ItemsProcessor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str
-
-	def __init__(self, repository: ItemRepository) -> None:
-		self.repository = repository
 	
 	def processItem(self, item: Item) -> int:
 		return self.repository.delete(self.input_type, item.id)
-
-	def __call__(self) -> list[int]:
-
-		items = self.repository.get(self.input_type, self.input_status)
-
-		return [self.processItem(i) for i in items]
 
 
 

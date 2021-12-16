@@ -1,10 +1,10 @@
 from abc import ABCMeta
 
-from .. import Item, ItemRepository
+from .. import Item, ItemsProcessor
 
 
 
-class Mover(metaclass=ABCMeta):
+class Mover(ItemsProcessor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str
@@ -12,9 +12,6 @@ class Mover(metaclass=ABCMeta):
 
 	output_type: str
 	output_status: str
-
-	def __init__(self, repository: ItemRepository) -> None:
-		self.repository = repository
 	
 	def transform(self, item: Item) -> list[Item]:
 		return [item]
@@ -34,12 +31,6 @@ class Mover(metaclass=ABCMeta):
 		self.repository.set(self.input_type, input_item.id, input_item)
 		
 		return output_items
-
-	def __call__(self) -> list[list[Item]]:
-
-		input_items = self.repository.get(self.input_type, self.input_status)
-		
-		return [self.processItem(i) for i in input_items]
 
 
 

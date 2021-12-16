@@ -50,13 +50,13 @@ class DefaultItemRepository(ItemRepository):
 
 		return getModel(self.db, item)(**getFields(item)).save()
 
-	def get(self, type, status):
+	def get(self, type, status, limit=None):
 
 		model = Model(self.db, type)
 		if not model:
 			return None
 
-		query_result = model.select().where(model.status==status)
+		query_result = model.select().where(model.status==status).limit(limit)
 		result = []
 
 		for r in query_result:

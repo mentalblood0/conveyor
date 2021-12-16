@@ -11,7 +11,7 @@ class ItemRepository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, status: Item) -> list[Item]:
+	def get(self, type: str, status: Item, limit=None) -> list[Item]:
 		pass
 
 	@abstractmethod

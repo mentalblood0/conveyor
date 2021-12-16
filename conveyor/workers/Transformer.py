@@ -1,18 +1,15 @@
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, ItemRepository
+from .. import Item, ItemsProcessor
 
 
 
-class Transformer(metaclass=ABCMeta):
+class Transformer(ItemsProcessor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str
 
 	possible_output_statuses: list[str]
-
-	def __init__(self, repository: ItemRepository) -> None:
-		self.repository = repository
 
 	@abstractmethod
 	def transform(self, item: Item) -> Item:
@@ -30,12 +27,6 @@ class Transformer(metaclass=ABCMeta):
 			return None
 		
 		return self.repository.set(self.input_type, input_item.id, output_item)
-
-	def __call__(self) -> list[int]:
-
-		input_items = self.repository.get(self.input_type, self.input_status)
-		
-		return [self.processItem(i) for i in input_items]
 
 
 
