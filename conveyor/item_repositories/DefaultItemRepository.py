@@ -100,6 +100,18 @@ class DefaultItemRepository(ItemRepository):
 		
 		return model.delete().where(model.id==id).execute()
 	
+	@property
+	def atomic(self):
+
+		def decorator(f):
+			def new_f(*args, **kwargs):
+				with self.db.atomic():
+					result = f(*args, **kwargs)
+				return result
+			return new_f
+
+		return decorator
+	
 	def deleteAll(self, type):
 
 		model = Model(self.db, type)

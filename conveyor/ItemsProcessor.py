@@ -11,7 +11,10 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 		pass
 
 	def __call__(self) -> list:
-		return [self.processItem(i) for i in self.receiveItems()]
+		return [
+			self.repository.atomic(self.processItem)(i) 
+			for i in self.receiveItems()
+		]
 
 
 

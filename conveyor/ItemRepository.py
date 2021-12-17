@@ -21,6 +21,11 @@ class ItemRepository(metaclass=ABCMeta):
 	@abstractmethod
 	def delete(self, id: str):
 		pass
+	
+	# property that should return decorator
+	@abstractmethod
+	def atomic(self):
+		pass
 
 
 
