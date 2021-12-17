@@ -112,14 +112,6 @@ class DefaultItemRepository(ItemRepository):
 
 		return decorator
 	
-	def deleteAll(self, type):
-
-		model = Model(self.db, type)
-		if not model:
-			return None
-		
-		return model.delete().execute()
-	
 	def drop(self, type):
 
 		model = Model(self.db, type)

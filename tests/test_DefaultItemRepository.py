@@ -22,7 +22,7 @@ def test_save():
 
 	type = 'undefined'
 
-	repository.deleteAll(type)
+	repository.drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -42,7 +42,7 @@ def test_get():
 	type = 'undefined'
 	status = 'created'
 
-	repository.deleteAll(type)
+	repository.drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -63,7 +63,7 @@ def test_delete():
 	type = 'undefined'
 	status = 'created'
 
-	repository.deleteAll(type)
+	repository.drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	assert repository.save(Item(
