@@ -54,7 +54,7 @@ class DefaultItemRepository(ItemRepository):
 
 		model = Model(self.db, type)
 		if not model:
-			return None
+			return []
 
 		query_result = model.select().where(model.status==status).limit(limit)
 		result = []
