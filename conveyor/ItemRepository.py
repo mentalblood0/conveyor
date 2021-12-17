@@ -7,7 +7,7 @@ from . import Item
 class ItemRepository(metaclass=ABCMeta):
 
 	@abstractmethod
-	def save(self, item: Item):
+	def save(self, item: Item) -> int:
 		pass
 
 	@abstractmethod
@@ -15,11 +15,11 @@ class ItemRepository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def set(self, type: str, id: str, item: Item):
+	def set(self, type: str, id: str, item: Item) -> int:
 		pass
 
 	@abstractmethod
-	def delete(self, id: str):
+	def delete(self, id: str) -> int:
 		pass
 	
 	# property that should return decorator
