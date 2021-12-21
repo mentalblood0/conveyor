@@ -7,3 +7,4 @@ build.sh
 .vscode
 config.py
 dir_tree
+test.py

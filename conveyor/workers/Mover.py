@@ -1,4 +1,5 @@
 from abc import ABCMeta
+from copy import deepcopy
 
 from .. import Item, ItemsProcessor
 
@@ -18,7 +19,7 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 	
 	def processItem(self, input_item: Item) -> list[Item]:
 
-		output_items = self.transform(input_item)
+		output_items = self.transform(deepcopy(input_item))
 		if type(output_items) != list:
 			output_items = [output_items]
 		for i in output_items:
