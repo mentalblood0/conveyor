@@ -20,8 +20,8 @@ repository = DefaultItemRepository(db, 'dir_tree')
 
 def test_example():
 
-	repository.drop('undefined')
-	repository.drop('PersonalizationRequest')
+	repository._drop('undefined')
+	repository._drop('PersonalizationRequest')
 
 	shutil.rmtree('dir_tree', ignore_errors=True)
 

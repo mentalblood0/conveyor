@@ -28,4 +28,4 @@ class Creator(metaclass=ABCMeta):
 			uuid.uuid4().hex
 		])
 
-		return self.repository.save(item)
+		return self.repository.create(item)

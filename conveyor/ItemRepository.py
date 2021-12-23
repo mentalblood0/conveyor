@@ -7,7 +7,7 @@ from . import Item
 class ItemRepository(metaclass=ABCMeta):
 
 	@abstractmethod
-	def save(self, item: Item) -> int:
+	def create(self, item: Item) -> int:
 		pass
 
 	@abstractmethod
@@ -15,7 +15,7 @@ class ItemRepository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def set(self, type: str, id: str, item: Item) -> int:
+	def update(self, type: str, id: str, item: Item) -> int:
 		pass
 
 	@abstractmethod

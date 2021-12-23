@@ -26,9 +26,9 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 			i.type = self.output_type
 			i.status = self.output_status
 			i.chain_id = input_item.chain_id
-			self.repository.save(i)
+			self.repository.create(i)
 		
 		input_item.status = self.moved_status
-		self.repository.set(self.input_type, input_item.id, input_item)
+		self.repository.update(self.input_type, input_item.id, input_item)
 		
 		return output_items

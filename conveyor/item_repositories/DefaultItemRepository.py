@@ -40,7 +40,7 @@ class DefaultItemRepository(ItemRepository):
 		self.db = db
 		self.dir_tree_root_path = dir_tree_root_path
 
-	def save(self, item):
+	def create(self, item):
 
 		item.metadata['file_path'] = saveToDirTree(
 			item.data, 
@@ -84,7 +84,7 @@ class DefaultItemRepository(ItemRepository):
 		
 		return result
 	
-	def set(self, type, id, item):
+	def update(self, type, id, item):
 
 		model = Model(self.db, type)
 		if not model:
@@ -112,7 +112,7 @@ class DefaultItemRepository(ItemRepository):
 
 		return decorator
 	
-	def drop(self, type):
+	def _drop(self, type):
 
 		model = Model(self.db, type)
 		if not model:

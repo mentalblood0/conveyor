@@ -18,11 +18,11 @@ dir_tree_root_path = 'dir_tree'
 repository = DefaultItemRepository(db, dir_tree_root_path)
 
 
-def test_save():
+def test_create():
 
 	type = 'undefined'
 
-	repository.drop(type)
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -34,7 +34,7 @@ def test_save():
 		}
 	)
 
-	assert repository.save(item)
+	assert repository.create(item)
 
 
 def test_get():
@@ -42,7 +42,7 @@ def test_get():
 	type = 'undefined'
 	status = 'created'
 
-	repository.drop(type)
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -54,7 +54,7 @@ def test_get():
 		}
 	)
 
-	assert repository.save(item)
+	assert repository.create(item)
 	assert repository.get(type, status)[0].metadata['message_id'] == item.metadata['message_id']
 
 
@@ -63,10 +63,10 @@ def test_delete():
 	type = 'undefined'
 	status = 'created'
 
-	repository.drop(type)
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	assert repository.save(Item(
+	assert repository.create(Item(
 		type=type,
 		status=status,
 		data='lalala',
