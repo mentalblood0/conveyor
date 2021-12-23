@@ -1,6 +1,6 @@
 import os
-from functools import cache
 from growing_tree_base import *
+from functools import cache, lru_cache
 from peewee import CharField, IntegerField, FloatField
 
 from .. import Item, ItemRepository, Model
@@ -34,11 +34,20 @@ def getModel(db, item):
 	return model
 
 
+def getFileContent(path):
+
+	with open(path, 'r', encoding='utf8') as f:
+		file_content = f.read()
+
+	return file_content
+
+
 class DefaultItemRepository(ItemRepository):
 
-	def __init__(self, db, dir_tree_root_path):
+	def __init__(self, db, dir_tree_root_path, cache_max_size=1024):
 		self.db = db
 		self.dir_tree_root_path = dir_tree_root_path
+		self.getFileContent = lru_cache(maxsize=cache_max_size)(getFileContent)
 
 	def create(self, item):
 
@@ -63,9 +72,7 @@ class DefaultItemRepository(ItemRepository):
 
 			item_db_dict = r.__data__
 
-			file_path = item_db_dict['file_path']
-			with open(file_path, 'r', encoding='utf8') as f:
-				file_content = f.read()
+			file_content = self.getFileContent(item_db_dict['file_path'])
 		
 			result.append(
 				Item(
@@ -97,9 +104,18 @@ class DefaultItemRepository(ItemRepository):
 		model = Model(self.db, type)
 		if not model:
 			return None
+
+		file_path = model.select().where(model.id==id).get().__data__['file_path']
+
+		result = model.delete().where(model.id==id).execute()
+
+		try:
+			os.remove(file_path)
+		except FileNotFoundError:
+			pass
 		
-		return model.delete().where(model.id==id).execute()
-	
+		return result
+
 	@property
 	def atomic(self):
 
