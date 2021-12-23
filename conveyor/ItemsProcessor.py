@@ -15,8 +15,3 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 			self.repository.atomic(self.processItem)(i) 
 			for i in self.receiveItems()
 		]
-
-
-
-import sys
-sys.modules[__name__] = ItemsProcessor

@@ -25,8 +25,3 @@ class Item:
 			self.data if type(self.data) == str else self.data.decode(),
 			str(self.metadata)
 		]))
-
-
-
-import sys
-sys.modules[__name__] = Item

@@ -1,4 +1,4 @@
-from .. import Destroyer
+from ..Destroyer import Destroyer
 
 
 
@@ -18,8 +18,3 @@ class DestroyerFactory:
 				'input_status': input_status
 			}
 		)
-
-
-
-import sys
-sys.modules[__name__] = DestroyerFactory

@@ -11,8 +11,3 @@ class Destroyer(ItemsProcessor, metaclass=ABCMeta):
 	
 	def processItem(self, item: Item) -> int:
 		return self.repository.delete(self.input_type, item.id)
-
-
-
-import sys
-sys.modules[__name__] = Destroyer

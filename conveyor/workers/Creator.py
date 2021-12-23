@@ -29,8 +29,3 @@ class Creator(metaclass=ABCMeta):
 		])
 
 		return self.repository.save(item)
-
-
-
-import sys
-sys.modules[__name__] = Creator

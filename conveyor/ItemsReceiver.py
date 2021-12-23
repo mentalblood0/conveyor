@@ -15,8 +15,3 @@ class ItemsReceiver(metaclass=ABCMeta):
 
 	def receiveItems(self) -> list[Item]:
 		return self.repository.get(self.input_type, self.input_status, limit=self.one_call_items_limit)
-
-
-
-import sys
-sys.modules[__name__] = ItemsReceiver

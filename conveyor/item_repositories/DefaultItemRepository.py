@@ -119,8 +119,3 @@ class DefaultItemRepository(ItemRepository):
 			return None
 		
 		return self.db.drop_tables([model])
-
-
-
-import sys
-sys.modules[__name__] = DefaultItemRepository

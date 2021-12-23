@@ -26,8 +26,3 @@ class ItemRepository(metaclass=ABCMeta):
 	@abstractmethod
 	def atomic(self):
 		pass
-
-
-
-import sys
-sys.modules[__name__] = ItemRepository

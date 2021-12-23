@@ -27,8 +27,3 @@ class Transformer(ItemsProcessor, metaclass=ABCMeta):
 			return None
 		
 		return self.repository.set(self.input_type, input_item.id, output_item)
-
-
-
-import sys
-sys.modules[__name__] = Transformer

@@ -20,8 +20,3 @@ def Model(db, name, columns=None):
 				'Meta': type('Meta', (), {'database': db})
 			} | columns
 		)
-
-
-
-import sys
-sys.modules[__name__] = Model

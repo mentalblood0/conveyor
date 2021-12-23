@@ -32,8 +32,3 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 		self.repository.set(self.input_type, input_item.id, input_item)
 		
 		return output_items
-
-
-
-import sys
-sys.modules[__name__] = Mover
