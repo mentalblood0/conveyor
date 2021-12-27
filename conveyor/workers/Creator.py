@@ -22,13 +22,11 @@ class Creator(metaclass=ABCMeta):
 
 		def f():
 
-			print(f'in f: {saveToDirTreeRollbackable}')
-
 			item = self.create(*args, **kwargs)
 			item.type = self.output_type
 			item.status = self.output_status
 			item.chain_id = ' '.join([
-				str(datetime.now()),
+				str(datetime.utcnow()),
 				uuid.uuid4().hex
 			])
 			

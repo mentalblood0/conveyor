@@ -52,7 +52,7 @@ class DefaultItemRepository(ItemRepository):
 
 	def create(self, item):
 
-		item.metadata['file_path'] = saveToDirTreeRollbackable(
+		item.metadata['file_path'] = saveToDirTree(
 			item.data, 
 			os.path.join(self.dir_tree_root_path, item.type),
 			base_file_name='.xml'
@@ -122,11 +122,8 @@ class DefaultItemRepository(ItemRepository):
 
 		def decorator(f):
 			def new_f(*args, **kwargs):
-				with Rollbackable(saveToDirTree, os.remove) as saveToDirTreeRollbackable:
-					# f.__globals__['saveToDirTreeRollbackable'] = saveToDirTreeRollbackable
-					print('with')
-					with self.db.atomic():
-						result = f(*args, **kwargs)
+				with self.db.atomic():
+					result = f(*args, **kwargs)
 				return result
 			return new_f
 
