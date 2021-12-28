@@ -1,9 +1,9 @@
 import os
+from functools import cache
 from growing_tree_base import *
-from functools import cache, lru_cache
 from peewee import CharField, IntegerField, FloatField
 
-from .. import Item, ItemRepository, Model
+from .. import Command, Item, ItemRepository, Model
 
 
 
@@ -42,51 +42,71 @@ def getFileContent(path):
 	return file_content
 
 
-def create(item, db, dir_tree_root_path, getFileContent):
+class create(Command):
 
-	item.metadata['file_path'] = saveToDirTree(
-			item.data, 
-			os.path.join(dir_tree_root_path, item.type),
-			base_file_name='.xml'
-		)
+	def __call__(self, item, db, dir_tree_root_path):
 
-	return getModel(db, item)(**getFields(item)).save()
+		item.metadata['file_path'] = saveToDirTree(
+				item.data, 
+				os.path.join(dir_tree_root_path, item.type),
+				base_file_name='.xml'
+			)
 
-
-def update(type, id, item, db, dir_tree_root_path, getFileContent):
-
-	model = Model(db, type)
-	if not model:
-		return None
-
-	return model.update(**getFields(item)).where(model.id==id).execute()
-
-
-def delete(type, id, db, dir_tree_root_path, getFileContent):
-
-	model = Model(db, type)
-	if not model:
-		return None
-
-	file_path = model.select().where(model.id==id).get().__data__['file_path']
-
-	result = model.delete().where(model.id==id).execute()
-
-	try:
-		os.remove(file_path)
-	except FileNotFoundError:
+		return getModel(db, item)(**getFields(item)).save()
+	
+	def revert(self):
 		pass
+
+
+class update(Command):
+
+	def __call__(self, type, id, item, db, dir_tree_root_path):
+
+		model = Model(db, type)
+		if not model:
+			return None
+
+		return model.update(**getFields(item)).where(model.id==id).execute()
 	
-	return result
+	def revert(self):
+		pass
 
 
-def drop(type, db, dir_tree_root_path, getFileContent):
+class delete(Command):
 
-	model = Model(db, type)
-	if not model:
-		return None
+	def __call__(type, id, db, dir_tree_root_path):
+
+		model = Model(db, type)
+		if not model:
+			return None
+
+		file_path = model.select().where(model.id==id).get().__data__['file_path']
+
+		result = model.delete().where(model.id==id).execute()
+
+		try:
+			os.remove(file_path)
+		except FileNotFoundError:
+			pass
+		
+		return result
 	
-	return db.drop_tables([model])
+	def revert(self):
+		pass
+
+
+class drop(Command):
+
+	def __call__(type, db, dir_tree_root_path):
+
+		model = Model(db, type)
+		if not model:
+			return None
+		
+		return db.drop_tables([model])
+	
+	def revert(self):
+		pass
 
 
 class DefaultItemRepository(ItemRepository):
