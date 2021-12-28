@@ -1,7 +1,6 @@
 import os
 from growing_tree_base import *
 from functools import cache, lru_cache
-from rollbackable import Rollbackable
 from peewee import CharField, IntegerField, FloatField
 
 from .. import Item, ItemRepository, Model
