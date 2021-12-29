@@ -1,3 +1,4 @@
+from typing import Any
 from abc import ABCMeta, abstractmethod
 
 
@@ -6,11 +7,12 @@ class Command(metaclass=ABCMeta):
 
 	args: list
 	kwargs: dict
-	result = None
+	result: Any
 
 	def __init__(self):
 		self.args = []
 		self.kwargs = {}
+		self.result = None
 	
 	def __call__(self, *args, **kwargs):
 
@@ -25,7 +27,7 @@ class Command(metaclass=ABCMeta):
 		pass
 
 	def revert(self):
-		return self.revert(*self.args, result=self.result, **self.kwargs)
+		return self._revert(*self.args, **self.kwargs, result=self.result)
 
 	@abstractmethod
 	def _revert(self, *args, **kwargs):

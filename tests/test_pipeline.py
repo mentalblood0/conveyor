@@ -1,5 +1,7 @@
+import os
 import shutil
-from peewee import PostgresqlDatabase
+import pytest
+from peewee import PostgresqlDatabase, OperationalError
 
 from tests import config
 from tests.example_workers import *
@@ -8,23 +10,49 @@ from conveyor.item_repositories import DefaultItemRepository
 
 
 
-db = PostgresqlDatabase(
-	config.db['db'], 
-	user=config.db['user'], 
-	password=config.db['password'], 
-	host=config.db['host'], 
-	port=config.db['port']
-)
+
 dir_tree_root_path = 'dir_tree'
-repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
 
 
-def test_example():
+def test_incorrect():
+
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+
+	db = PostgresqlDatabase(
+		config.db['db'], 
+		user=config.db['user'], 
+		password='', 
+		host=config.db['host'], 
+		port=config.db['port']
+	)
+	repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)	
+
+	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
+		text = f.read()
+	
+	with pytest.raises(OperationalError):
+		FileSaver(repository)(text)
+	
+	assert not os.listdir(os.path.join(dir_tree_root_path, 'undefined', '0'))
+
+	shutil.rmtree(dir_tree_root_path)
+
+
+def test_correct():
+
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+
+	db = PostgresqlDatabase(
+		config.db['db'], 
+		user=config.db['user'], 
+		password=config.db['password'], 
+		host=config.db['host'], 
+		port=config.db['port']
+	)
+	repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
 
 	repository.transaction().drop('undefined').execute()
 	repository.transaction().drop('PersonalizationRequest').execute()
-
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository)

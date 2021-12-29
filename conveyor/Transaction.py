@@ -36,8 +36,8 @@ class Transaction:
 			
 			except Exception as e:
 				
-				for executed in self.sequence[:i]:
-					executed.revert()
+				for executed in self.sequence[:i+1]:
+					executed.func.revert()
 				
 				raise e
 				return i

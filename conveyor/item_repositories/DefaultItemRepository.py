@@ -58,19 +58,23 @@ class Create(Command):
 		instance = model(**getFields(item))
 		instance.save()
 
-		item.id = instance.get_id()
-		return item
+		return instance.get_id()
 	
 	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: Item):
-		
-		model = Model(db, result.type)
-		if not model:
-			return None
-
-		model.delete().where(model.id==result.id).execute()
 
 		try:
-			os.remove(result.metadata['file_path'])
+		
+			model = Model(db, item.type)
+			if not model:
+				return None
+
+			model.delete().where(model.id==result).execute()
+		
+		except Exception:
+			pass
+
+		try:
+			os.remove(item.metadata['file_path'])
 		except FileNotFoundError:
 			pass
 
