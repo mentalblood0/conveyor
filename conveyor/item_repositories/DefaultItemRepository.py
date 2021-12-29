@@ -130,7 +130,7 @@ class Drop(Command):
 		pass
 
 
-def get(type: str, status: str, limit: int=None, db: Model_=None, dir_tree_root_path: str=None) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str) -> Item:
 
 	model = Model(db, type)
 	if not model:
