@@ -5,7 +5,7 @@ from .Command import Command
 from .Transaction import Transaction
 
 
-class ItemRepository(metaclass=ABCMeta):
+class Repository(metaclass=ABCMeta):
 
 	commands: dict[str, Command]
 	queries: dict[str, callable]

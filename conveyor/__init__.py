@@ -1,5 +1,5 @@
 from .Item import Item
-from .ItemRepository import ItemRepository
+from .Repository import Repository
 from .ItemsReceiver import ItemsReceiver
 from .ItemsProcessor import ItemsProcessor
 from .Model import Model
@@ -10,6 +10,6 @@ from .Transaction import Transaction
 
 __all__ = [
 	'Item',
-	'ItemRepository',
+	'Repository',
 	'ItemReceiver'
 ]

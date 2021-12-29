@@ -5,7 +5,7 @@ from growing_tree_base import *
 from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField
 
-from .. import Command, Item, ItemRepository, Model
+from .. import Command, Item, Repository, Model
 
 
 
@@ -163,7 +163,7 @@ def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str)
 	return result
 
 
-class DefaultItemRepository(ItemRepository):
+class DefaultItemRepository(Repository):
 
 	commands = {
 		'create': Create(),
