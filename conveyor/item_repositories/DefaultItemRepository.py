@@ -46,23 +46,38 @@ def getFileContent(path: str) -> str:
 
 class Create(Command):
 
-	def __call__(self, item: Item, db: Model_, dir_tree_root_path: str) -> int:
+	def execute(self, item: Item, db: Model_, dir_tree_root_path: str) -> int:
 
 		item.metadata['file_path'] = saveToDirTree(
-				item.data, 
-				os.path.join(dir_tree_root_path, item.type),
-				base_file_name='.xml'
-			)
+			item.data, 
+			os.path.join(dir_tree_root_path, item.type),
+			base_file_name='.xml'
+		)
 
-		return getModel(db, item)(**getFields(item)).save()
+		model = getModel(db, item)
+		instance = model(**getFields(item))
+		instance.save()
+
+		item.id = instance.get_id()
+		return item
 	
-	def revert(self):
-		pass
+	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: Item):
+		
+		model = Model(db, result.type)
+		if not model:
+			return None
+
+		model.delete().where(model.id==result.id).execute()
+
+		try:
+			os.remove(result.metadata['file_path'])
+		except FileNotFoundError:
+			pass
 
 
 class Update(Command):
 
-	def __call__(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str) -> int:
+	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -70,13 +85,13 @@ class Update(Command):
 
 		return model.update(**getFields(item)).where(model.id==id).execute()
 	
-	def revert(self):
+	def _revert(self):
 		pass
 
 
 class Delete(Command):
 
-	def __call__(self, type: str, id: str, db: Model_, dir_tree_root_path: str) -> int:
+	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -93,13 +108,13 @@ class Delete(Command):
 		
 		return result
 	
-	def revert(self):
+	def _revert(self):
 		pass
 
 
 class Drop(Command):
 
-	def __call__(self, type: str, db: Model_, dir_tree_root_path: str) -> int:
+	def execute(self, type: str, db: Model_, dir_tree_root_path: str) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -107,7 +122,7 @@ class Drop(Command):
 		
 		return db.drop_tables([model])
 	
-	def revert(self):
+	def _revert(self):
 		pass
 
 
