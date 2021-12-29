@@ -27,7 +27,14 @@ class Command(metaclass=ABCMeta):
 		pass
 
 	def revert(self):
-		return self._revert(*self.args, **self.kwargs, result=self.result)
+
+		result = self._revert(*self.args, **self.kwargs, result=self.result)
+		
+		self.args = []
+		self.kwargs = {}
+		self.result = None
+
+		return result
 
 	@abstractmethod
 	def _revert(self, *args, **kwargs):
