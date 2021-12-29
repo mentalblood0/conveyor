@@ -1,4 +1,5 @@
 from __future__ import annotations
+from _typeshed import Self
 
 from functools import partial
 
@@ -13,16 +14,18 @@ class Transaction:
 		self.commands = commands or {}
 		self.sequence = sequence or []
 	
-	def __getattribute__(self, name: str) -> Transaction:
-		
-		if (not name in ['execute']) and (name in self.commands):
+	def append(self, name: str, *args, **kwargs):
 
-			return lambda *args, **kwargs: Transaction(
-				commands=self.commands,
-				sequence=self.sequence + [partial(self.commands[name], *args, **kwargs)]
-			)
-		
-		raise AttributeError(object=self, name=name)
+		self.sequence.append(partial(self.commands[name], *args, **kwargs))
+
+		return self
+	
+	def __getattribute__(self, name: str) -> Self:
+
+		if name in ['execute']:
+			return super().__getattribute__(name)
+
+		return lambda *args, **kwargs: self.append(name, *args, **kwargs)
 
 	def execute(self) -> int:
 		
