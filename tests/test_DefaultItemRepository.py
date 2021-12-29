@@ -15,14 +15,14 @@ db = PostgresqlDatabase(
 	port=config.db['port']
 )
 dir_tree_root_path = 'dir_tree'
-repository = DefaultItemRepository(db, dir_tree_root_path)
+repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
 
 
 def test_create():
 
 	type = 'undefined'
 
-	repository._drop(type)
+	repository.transaction().drop(type).execute()
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -34,7 +34,7 @@ def test_create():
 		}
 	)
 
-	assert repository.create(item)
+	assert repository.transaction().create(item).execute()
 
 
 def test_get():
@@ -42,7 +42,7 @@ def test_get():
 	type = 'undefined'
 	status = 'created'
 
-	repository._drop(type)
+	repository.transaction().drop(type).execute()
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -54,7 +54,7 @@ def test_get():
 		}
 	)
 
-	assert repository.create(item)
+	assert repository.transaction().create(item).execute()
 	assert repository.get(type, status)[0].metadata['message_id'] == item.metadata['message_id']
 
 
@@ -63,17 +63,17 @@ def test_delete():
 	type = 'undefined'
 	status = 'created'
 
-	repository._drop(type)
+	repository.transaction().drop(type).execute()
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	assert repository.create(Item(
+	assert repository.transaction().create(Item(
 		type=type,
 		status=status,
 		data='lalala',
 		metadata={
 			'message_id': 'lololo'
 		}
-	))
-	id = repository.get(type, status)[0].id
-	assert repository.delete(type, id)
+	)).execute()
+	id = repository.get(type, status, 1)[0].id
+	assert repository.transaction().delete(type, id).execute()
 	assert repository.get(type, status) == []

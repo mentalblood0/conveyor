@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
 from functools import partial
-from typing import Union, Self
 
 from . import Command
 
@@ -20,9 +20,9 @@ class Transaction:
 
 		return self
 	
-	def __getattribute__(self, name: str) -> Union[callable, Self]:
+	def __getattribute__(self, name: str) -> Union[callable, Transaction]:
 
-		if name in ['execute']:
+		if name in ['execute', 'append', 'sequence', 'commands']:
 			return super().__getattribute__(name)
 
 		return lambda *args, **kwargs: self.append(name, *args, **kwargs)

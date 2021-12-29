@@ -1,13 +1,15 @@
 import os
+from typing import Union
+from functools import cache
 from growing_tree_base import *
-from functools import cache, lru_cache
+from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField
 
-from .. import Item, ItemRepository, Model
+from .. import Command, Item, ItemRepository, Model
 
 
 
-def getFields(item):
+def getFields(item: Item) -> dict[str, Union[str, int, float]]:
 	return {
 		k: v
 		for k, v in (item.metadata | item.__dict__).items()
@@ -16,7 +18,7 @@ def getFields(item):
 
 
 @cache
-def getModel(db, item):
+def getModel(db: Model_, item: Item) -> Model_:
 
 	columns = {
 		k: {
@@ -34,7 +36,7 @@ def getModel(db, item):
 	return model
 
 
-def getFileContent(path):
+def getFileContent(path: str) -> str:
 
 	with open(path, 'r', encoding='utf8') as f:
 		file_content = f.read()
@@ -42,66 +44,41 @@ def getFileContent(path):
 	return file_content
 
 
-class DefaultItemRepository(ItemRepository):
+class Create(Command):
 
-	def __init__(self, db, dir_tree_root_path, cache_max_size=1024):
-		self.db = db
-		self.dir_tree_root_path = dir_tree_root_path
-		self.getFileContent = lru_cache(maxsize=cache_max_size)(getFileContent)
-
-	def create(self, item):
+	def __call__(self, item: Item, db: Model_, dir_tree_root_path: str) -> int:
 
 		item.metadata['file_path'] = saveToDirTree(
-			item.data, 
-			os.path.join(self.dir_tree_root_path, item.type),
-			base_file_name='.xml'
-		)
-
-		return getModel(self.db, item)(**getFields(item)).save()
-
-	def get(self, type, status, limit=None):
-
-		model = Model(self.db, type)
-		if not model:
-			return []
-
-		query_result = model.select().where(model.status==status).limit(limit)
-		result = []
-
-		for r in query_result:
-
-			item_db_dict = r.__data__
-
-			file_content = self.getFileContent(item_db_dict['file_path'])
-		
-			result.append(
-				Item(
-					id=item_db_dict['id'],
-					type=type,
-					status=status,
-					data=file_content,
-					chain_id=item_db_dict['chain_id'],
-					metadata={
-						k: v
-						for k, v in item_db_dict.items()
-						if not k in ['status', 'type', 'data', 'chain_id', 'id']
-					}
-				)
+				item.data, 
+				os.path.join(dir_tree_root_path, item.type),
+				base_file_name='.xml'
 			)
-		
-		return result
-	
-	def update(self, type, id, item):
 
-		model = Model(self.db, type)
+		return getModel(db, item)(**getFields(item)).save()
+	
+	def revert(self):
+		pass
+
+
+class Update(Command):
+
+	def __call__(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str) -> int:
+
+		model = Model(db, type)
 		if not model:
 			return None
 
 		return model.update(**getFields(item)).where(model.id==id).execute()
+	
+	def revert(self):
+		pass
 
-	def delete(self, type, id):
 
-		model = Model(self.db, type)
+class Delete(Command):
+
+	def __call__(self, type: str, id: str, db: Model_, dir_tree_root_path: str) -> int:
+
+		model = Model(db, type)
 		if not model:
 			return None
 
@@ -115,23 +92,67 @@ class DefaultItemRepository(ItemRepository):
 			pass
 		
 		return result
-
-	@property
-	def atomic(self):
-
-		def decorator(f):
-			def new_f(*args, **kwargs):
-				with self.db.atomic():
-					result = f(*args, **kwargs)
-				return result
-			return new_f
-
-		return decorator
 	
-	def _drop(self, type):
+	def revert(self):
+		pass
 
-		model = Model(self.db, type)
+
+class Drop(Command):
+
+	def __call__(self, type: str, db: Model_, dir_tree_root_path: str) -> int:
+
+		model = Model(db, type)
 		if not model:
 			return None
 		
-		return self.db.drop_tables([model])
+		return db.drop_tables([model])
+	
+	def revert(self):
+		pass
+
+
+def get(type: str, status: str, limit: int=None, db: Model_=None, dir_tree_root_path: str=None) -> Item:
+
+	model = Model(db, type)
+	if not model:
+		return []
+
+	query_result = model.select().where(model.status==status).limit(limit)
+	result = []
+
+	for r in query_result:
+
+		item_db_dict = r.__data__
+
+		file_content = getFileContent(item_db_dict['file_path'])
+	
+		result.append(
+			Item(
+				id=item_db_dict['id'],
+				type=type,
+				status=status,
+				data=file_content,
+				chain_id=item_db_dict['chain_id'],
+				metadata={
+					k: v
+					for k, v in item_db_dict.items()
+					if not k in ['status', 'type', 'data', 'chain_id', 'id']
+				}
+			)
+		)
+	
+	return result
+
+
+class DefaultItemRepository(ItemRepository):
+
+	commands = {
+		'create': Create(),
+		'update': Update(),
+		'delete': Delete(),
+		'drop': Drop()
+	}
+
+	queries = {
+		'get': get
+	}

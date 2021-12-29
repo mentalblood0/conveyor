@@ -19,6 +19,8 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 	
 	def processItem(self, input_item: Item) -> list[Item]:
 
+		t = self.repository.transaction()
+
 		output_items = self.transform(deepcopy(input_item))
 		if type(output_items) != list:
 			output_items = [output_items]
@@ -26,9 +28,7 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 			i.type = self.output_type
 			i.status = self.output_status
 			i.chain_id = input_item.chain_id
-			self.repository.create(i)
+			t.create(i)
 		
 		input_item.status = self.moved_status
-		self.repository.update(self.input_type, input_item.id, input_item)
-		
-		return output_items
+		return t.update(self.input_type, input_item.id, input_item)

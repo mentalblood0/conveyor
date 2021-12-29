@@ -20,16 +20,12 @@ class Creator(metaclass=ABCMeta):
 
 	def __call__(self, *args, **kwargs) -> int:
 
-		def f():
-
-			item = self.create(*args, **kwargs)
-			item.type = self.output_type
-			item.status = self.output_status
-			item.chain_id = ' '.join([
-				str(datetime.utcnow()),
-				uuid.uuid4().hex
-			])
-			
-			return self.repository.create(item)
-
-		return self.repository.atomic(f)()
+		item = self.create(*args, **kwargs)
+		item.type = self.output_type
+		item.status = self.output_status
+		item.chain_id = ' '.join([
+			str(datetime.utcnow()),
+			uuid.uuid4().hex
+		])
+		
+		return self.repository.transaction().create(item).execute()

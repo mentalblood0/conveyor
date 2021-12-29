@@ -15,15 +15,16 @@ db = PostgresqlDatabase(
 	host=config.db['host'], 
 	port=config.db['port']
 )
-repository = DefaultItemRepository(db, 'dir_tree')
+dir_tree_root_path = 'dir_tree'
+repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
 
 
 def test_example():
 
-	repository._drop('undefined')
-	repository._drop('PersonalizationRequest')
+	repository.transaction().drop('undefined').execute()
+	repository.transaction().drop('PersonalizationRequest').execute()
 
-	shutil.rmtree('dir_tree', ignore_errors=True)
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository)
@@ -52,4 +53,4 @@ def test_example():
 	assert len(mover()) == 2
 	assert len(destroyer()) == 2
 
-	shutil.rmtree('./dir_tree')
+	shutil.rmtree(dir_tree_root_path)

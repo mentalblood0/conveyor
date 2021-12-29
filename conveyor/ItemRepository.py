@@ -1,28 +1,29 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from functools import partial
 
-from . import Item
-
+from .Command import Command
+from .Transaction import Transaction
 
 
 class ItemRepository(metaclass=ABCMeta):
 
-	@abstractmethod
-	def create(self, item: Item) -> int:
-		pass
+	commands: dict[str, Command]
+	queries: dict[str, callable]
 
-	@abstractmethod
-	def get(self, type: str, status: Item, limit=None) -> list[Item]:
-		pass
+	def __init__(self, *args, **kwargs):
 
-	@abstractmethod
-	def update(self, type: str, id: str, item: Item) -> int:
-		pass
-
-	@abstractmethod
-	def delete(self, id: str) -> int:
-		pass
+		for k, v in self.commands.items():
+			self.commands[k] = partial(v, *args, **kwargs)
+		
+		for k, v in self.queries.items():
+			self.queries[k] = partial(v, *args, **kwargs)
 	
-	# property that should return decorator
-	@abstractmethod
-	def atomic(self):
-		pass
+	def __getattribute__(self, name: str):
+		
+		if name in ['transaction', 'queries', 'commands']:
+			return super().__getattribute__(name)
+		
+		return self.queries[name]
+	
+	def transaction(self):
+		return Transaction(self.commands, [])
