@@ -60,7 +60,7 @@ class Create(Command):
 
 		return instance.get_id()
 	
-	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: Item):
+	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: str):
 
 		try:
 		

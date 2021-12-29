@@ -5,10 +5,6 @@ from abc import ABCMeta, abstractmethod
 
 class Command(metaclass=ABCMeta):
 
-	args: list
-	kwargs: dict
-	result: Any
-
 	def __init__(self):
 		self.args = []
 		self.kwargs = {}
@@ -29,10 +25,7 @@ class Command(metaclass=ABCMeta):
 	def revert(self):
 
 		result = self._revert(*self.args, **self.kwargs, result=self.result)
-		
-		self.args = []
-		self.kwargs = {}
-		self.result = None
+		self.__init__()
 
 		return result
 
