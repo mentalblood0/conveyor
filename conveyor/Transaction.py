@@ -1,7 +1,7 @@
 from __future__ import annotations
-from _typeshed import Self
 
 from functools import partial
+from typing import Union, Self
 
 from . import Command
 
@@ -20,7 +20,7 @@ class Transaction:
 
 		return self
 	
-	def __getattribute__(self, name: str) -> Self:
+	def __getattribute__(self, name: str) -> Union[callable, Self]:
 
 		if name in ['execute']:
 			return super().__getattribute__(name)
