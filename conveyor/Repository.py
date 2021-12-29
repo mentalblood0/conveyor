@@ -14,14 +14,15 @@ class Repository(metaclass=ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 
-		self.commands = deepcopy(self.commands)
-		self.queries = deepcopy(self.queries)
+		self.commands = {
+			k: partial(deepcopy(v)(), *args, **kwargs)
+			for k, v in self.commands.items()
+		}
 
-		for k, v in self.commands.items():
-			self.commands[k] = partial(v(), *args, **kwargs)
-		
-		for k, v in self.queries.items():
-			self.queries[k] = partial(v, *args, **kwargs)
+		self.queries = {
+			k: partial(deepcopy(v), *args, **kwargs)
+			for k, v in self.queries.items()
+		}
 	
 	def __getattribute__(self, name: str):
 		

@@ -20,7 +20,7 @@ class Transaction:
 
 		return self
 	
-	def __getattribute__(self, name: str) -> Union[callable, Transaction]:
+	def __getattribute__(self, name: str):
 
 		if name in ['execute', 'append', 'sequence', 'commands']:
 			return super().__getattribute__(name)
