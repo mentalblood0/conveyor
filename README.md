@@ -13,7 +13,7 @@ Cold pipeline is a pipeline which state stored in external database
 
 ## Item repositories classes
 
-* [DefaultRepository](conveyor/item_repositories/DefaultRepository.py) -- uses PostgreSQL database for storing metadata and directories tree for storing files
+* [DefaultItemRepository](conveyor/item_repositories/DefaultItemRepository.py) -- uses PostgreSQL database for storing metadata and directories tree for storing files
 
 ## Example
 
