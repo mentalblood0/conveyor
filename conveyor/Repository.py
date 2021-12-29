@@ -1,8 +1,10 @@
 from abc import ABCMeta
+from copy import deepcopy
 from functools import partial
 
 from .Command import Command
 from .Transaction import Transaction
+
 
 
 class Repository(metaclass=ABCMeta):
@@ -12,8 +14,11 @@ class Repository(metaclass=ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 
+		self.commands = deepcopy(self.commands)
+		self.queries = deepcopy(self.queries)
+
 		for k, v in self.commands.items():
-			self.commands[k] = partial(v, *args, **kwargs)
+			self.commands[k] = partial(v(), *args, **kwargs)
 		
 		for k, v in self.queries.items():
 			self.queries[k] = partial(v, *args, **kwargs)

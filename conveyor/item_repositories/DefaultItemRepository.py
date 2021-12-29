@@ -166,10 +166,10 @@ def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str)
 class DefaultItemRepository(Repository):
 
 	commands = {
-		'create': Create(),
-		'update': Update(),
-		'delete': Delete(),
-		'drop': Drop()
+		'create': Create,
+		'update': Update,
+		'delete': Delete,
+		'drop': Drop
 	}
 
 	queries = {
