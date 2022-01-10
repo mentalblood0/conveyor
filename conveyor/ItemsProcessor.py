@@ -7,6 +7,12 @@ from . import Item, ItemsReceiver, Transaction
 
 class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 
+	def __init__(self, *args, logger=logger, **kwargs) -> None:
+
+		super().__init__(*args, **kwargs)
+		
+		self.logger = logger
+
 	@abstractmethod
 	def processItem(self, item: Item) -> Transaction:
 		pass
@@ -22,7 +28,7 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 				'id': i.id,
 				'chain_id': i.chain_id
 			}
-			logger.info(f'{self.__class__.__name__} {i_info} => {i_result}')
+			self.logger.info(f'{self.__class__.__name__} {i_info} => {i_result}')
 
 			result.append(i_result)
 
