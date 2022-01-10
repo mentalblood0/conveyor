@@ -43,3 +43,10 @@ class Transaction:
 				return i
 		
 		return len(self.sequence)
+	
+	def __repr__(self) -> str:
+
+		return str([
+			(e.func.__class__.__name__, e.func.args, e.func.kwargs)
+			for e in self.sequence
+		])

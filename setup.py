@@ -18,8 +18,7 @@ if __name__ == '__main__':
 		long_description_content_type='text/markdown',
 		author='mentalblood',
 		install_requires=[
-			'peewee',
-			'growing-tree-base-mentalblood'
+			'peewee'
 		],
 		packages=[
 			'conveyor', 
