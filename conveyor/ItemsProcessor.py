@@ -27,7 +27,7 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 		if not os.path.exists(file_path):
 			logger.add(
 				file_path, 
-				filter=lambda r: r['extra']['id'] == chain_id,
+				filter=lambda r: ('id' in r['extra']) and (r['extra']['id'] == chain_id),
 				format='{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>'
 			)
 
