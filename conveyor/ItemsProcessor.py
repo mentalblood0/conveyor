@@ -20,7 +20,7 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 	
 	def log(self, item, result):
 
-		chain_id = item.chain_id.replace(':', '_').replace(' ', '_')
+		chain_id = item.chain_id.replace(':', '_')
 
 		file_name = f'{chain_id}.log'
 		file_path = os.path.join(self.logs_dir, file_name)
