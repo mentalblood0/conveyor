@@ -14,6 +14,7 @@ class Item:
 	type: str = 'undefined'
 	status: str = 'created'
 	chain_id: str = ''
+	worker: str = ''
 
 	data: str = ''
 	metadata: dict = None

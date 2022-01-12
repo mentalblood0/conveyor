@@ -89,7 +89,7 @@ class Update(Command):
 
 		return model.update(**getFields(item)).where(model.id==id).execute()
 	
-	def _revert(self):
+	def _revert(self, *args, **kwargs):
 		pass
 
 
@@ -112,7 +112,7 @@ class Delete(Command):
 		
 		return result
 	
-	def _revert(self):
+	def _revert(self, *args, **kwargs):
 		pass
 
 
@@ -126,7 +126,7 @@ class Drop(Command):
 		
 		return db.drop_tables([model])
 	
-	def _revert(self):
+	def _revert(self, *args, **kwargs):
 		pass
 
 
@@ -155,7 +155,7 @@ def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str)
 				metadata={
 					k: v
 					for k, v in item_db_dict.items()
-					if not k in ['status', 'type', 'data', 'chain_id', 'id']
+					if not k in ['status', 'type', 'data', 'chain_id', 'id', 'worker']
 				}
 			)
 		)
