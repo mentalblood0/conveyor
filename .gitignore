@@ -8,3 +8,4 @@ build.sh
 config.py
 dir_tree
 test.py
+conveyor_log
