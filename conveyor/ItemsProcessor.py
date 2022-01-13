@@ -38,8 +38,14 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 		result = []
 
 		for i in self.receiveItems():
-			
-			i_result = self.processItem(i).execute()
+
+			try:
+				i_transaction = self.processItem(i)
+			except Exception as e:
+				logger.exception(e)
+				continue
+
+			i_result = i_transaction.execute()
 			self.log(i, i_result)
 
 			result.append(i_result)
