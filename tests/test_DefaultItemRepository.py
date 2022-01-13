@@ -15,7 +15,11 @@ db = PostgresqlDatabase(
 	port=config.db['port']
 )
 dir_tree_root_path = 'dir_tree'
-repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
+repository = DefaultItemRepository(
+	db=db,
+	dir_tree_root_path=dir_tree_root_path,
+	base_file_name='.xml'
+)
 
 
 def test_create():

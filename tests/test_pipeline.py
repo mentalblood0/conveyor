@@ -25,7 +25,11 @@ def test_incorrect():
 		host=config.db['host'], 
 		port=config.db['port']
 	)
-	repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)	
+	repository = DefaultItemRepository(
+		db=db,
+		dir_tree_root_path=dir_tree_root_path,
+		base_file_name='.xml'
+	)	
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
@@ -49,7 +53,11 @@ def test_correct():
 		host=config.db['host'], 
 		port=config.db['port']
 	)
-	repository = DefaultItemRepository(db=db, dir_tree_root_path=dir_tree_root_path)
+	repository = DefaultItemRepository(
+		db=db,
+		dir_tree_root_path=dir_tree_root_path,
+		base_file_name='.xml'
+	)
 
 	repository.transaction().drop('undefined').execute()
 	repository.transaction().drop('PersonalizationRequest').execute()
