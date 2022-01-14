@@ -51,60 +51,23 @@ def getModel(db: Model_, item: Item) -> Model_:
 				CREATE FUNCTION conveyor_log_change()
 				RETURNS trigger as $$
 				BEGIN
-					IF TG_OP = 'INSERT'
-					THEN
-						INSERT INTO conveyor_log (
-							date,
-							chain_id,
-							worker,
-							status_old,
-							status_new
-						)
-						VALUES (
-							NOW()::timestamp,
-							NEW.chain_id,
-							NEW.worker,
-							'',
-							NEW.status
-						);
-						RETURN NEW;
-					ELSIF TG_OP = 'UPDATE'
-					THEN
-						INSERT INTO conveyor_log (
-							date,
-							chain_id,
-							worker,
-							status_old,
-							status_new
-						)
-						VALUES (
-							NOW()::timestamp,
-							NEW.chain_id,
-							NEW.worker,
-							OLD.status,
-							NEW.status
-						);
-						RETURN NEW;
-					ELSIF TG_OP = 'DELETE'
-					THEN
-						INSERT INTO conveyor_log (
-							date,
-							chain_id,
-							worker,
-							status_old,
-							status_new
-						)
-						VALUES (
-							NOW()::timestamp,
-							OLD.chain_id,
-							'',
-							OLD.status,
-							''
-						);
-						RETURN OLD;
-					END IF;
-					END;
-					$$ LANGUAGE 'plpgsql';
+					INSERT INTO conveyor_log (
+						date,
+						chain_id,
+						worker,
+						status_old,
+						status_new
+					)
+					VALUES (
+						NOW()::timestamp,
+						NEW.chain_id,
+						NEW.worker,
+						'',
+						NEW.status
+					);
+					RETURN NEW;
+				END;
+				$$ LANGUAGE 'plpgsql';
 				'''
 			)
 
