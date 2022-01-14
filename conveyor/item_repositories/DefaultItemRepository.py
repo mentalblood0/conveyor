@@ -46,7 +46,7 @@ def getFileContent(path: str) -> str:
 
 class Create(Command):
 
-	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str) -> int:
+	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml') -> int:
 
 		item.metadata['file_path'] = saveToDirTree(
 			item.data, 
@@ -60,7 +60,7 @@ class Create(Command):
 
 		return instance.get_id()
 	
-	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str, result: str):
+	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: str, *args, **kwargs):
 
 		try:
 		
@@ -81,7 +81,7 @@ class Create(Command):
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str) -> int:
+	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -95,7 +95,7 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str, base_file_name: str) -> int:
+	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -118,7 +118,7 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, db: Model_, dir_tree_root_path: str, base_file_name: str) -> int:
+	def execute(self, type: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -130,7 +130,7 @@ class Drop(Command):
 		pass
 
 
-def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str, base_file_name: str) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> Item:
 
 	model = Model(db, type)
 	if not model:

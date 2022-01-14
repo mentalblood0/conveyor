@@ -27,8 +27,7 @@ def test_incorrect():
 	)
 	repository = DefaultItemRepository(
 		db=db,
-		dir_tree_root_path=dir_tree_root_path,
-		base_file_name='.xml'
+		dir_tree_root_path=dir_tree_root_path
 	)	
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:

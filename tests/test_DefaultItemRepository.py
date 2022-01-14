@@ -17,8 +17,7 @@ db = PostgresqlDatabase(
 dir_tree_root_path = 'dir_tree'
 repository = DefaultItemRepository(
 	db=db,
-	dir_tree_root_path=dir_tree_root_path,
-	base_file_name='.xml'
+	dir_tree_root_path=dir_tree_root_path
 )
 
 
