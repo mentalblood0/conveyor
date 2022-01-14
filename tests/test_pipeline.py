@@ -58,6 +58,7 @@ def test_correct():
 		base_file_name='.xml'
 	)
 
+	repository.transaction().drop('conveyor_log').execute()
 	repository.transaction().drop('undefined').execute()
 	repository.transaction().drop('PersonalizationRequest').execute()
 

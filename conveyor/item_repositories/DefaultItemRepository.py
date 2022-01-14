@@ -1,9 +1,11 @@
 import os
+import peewee
+import datetime
 from typing import Union
 from functools import cache
 from growing_tree_base import *
 from peewee import Model as Model_
-from peewee import CharField, IntegerField, FloatField
+from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
 
@@ -31,7 +33,96 @@ def getModel(db: Model_, item: Item) -> Model_:
 
 	model = Model(db, item.type, columns)
 	if not model.table_exists():
+
 		db.create_tables([model])
+
+		log_model = Model(db, 'conveyor_log', {
+			'date': DateTimeField(),
+			'chain_id': CharField(),
+			'worker': CharField(),
+			'status_old': CharField(),
+			'status_new': CharField()
+		})
+		if not log_model.table_exists():
+			db.create_tables([log_model])
+
+		try:
+			db.execute_sql('''
+				CREATE FUNCTION conveyor_log_change()
+				RETURNS trigger as $$
+				BEGIN
+					IF TG_OP = 'INSERT'
+					THEN
+						INSERT INTO conveyor_log (
+							date,
+							chain_id,
+							worker,
+							status_old,
+							status_new
+						)
+						VALUES (
+							NOW()::timestamp,
+							NEW.chain_id,
+							NEW.worker,
+							'',
+							NEW.status
+						);
+						RETURN NEW;
+					ELSIF TG_OP = 'UPDATE'
+					THEN
+						INSERT INTO conveyor_log (
+							date,
+							chain_id,
+							worker,
+							status_old,
+							status_new
+						)
+						VALUES (
+							NOW()::timestamp,
+							NEW.chain_id,
+							NEW.worker,
+							OLD.status,
+							NEW.status
+						);
+						RETURN NEW;
+					ELSIF TG_OP = 'DELETE'
+					THEN
+						INSERT INTO conveyor_log (
+							date,
+							chain_id,
+							worker,
+							status_old,
+							status_new
+						)
+						VALUES (
+							NOW()::timestamp,
+							OLD.chain_id,
+							'',
+							OLD.status,
+							''
+						);
+						RETURN OLD;
+					END IF;
+					END;
+					$$ LANGUAGE 'plpgsql';
+				'''
+			)
+
+		except peewee.ProgrammingError as e:
+			print(e)
+			db.rollback()
+
+		db.execute_sql(f'''
+			CREATE TRIGGER conveyor_log_trigger
+				AFTER 
+					INSERT OR 
+					UPDATE OR 
+					DELETE 
+				ON {model.__name__}
+				FOR EACH ROW
+				EXECUTE PROCEDURE conveyor_log_change();
+			'''
+		)
 
 	return model
 
