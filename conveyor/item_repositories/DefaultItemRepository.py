@@ -19,36 +19,21 @@ def getFields(item: Item) -> dict[str, Union[str, int, float]]:
 	}
 
 
-@cache
-def getModel(db: Model_, item: Item) -> Model_:
+def installLoggingCommon(db, log_table_name='conveyor_log'):
 
-	columns = {
-		k: {
-			str: CharField(default=''),
-			int: IntegerField(default=0),
-			float: FloatField(default=0.0)
-		}[type(v)]
-		for k, v in getFields(item).items()
-	}
+	log_model = Model(db, log_table_name, {
+		'date': DateTimeField(),
+		'chain_id': CharField(),
+		'worker': CharField(null=True),
+		'type': CharField(),
+		'status_old': CharField(null=True),
+		'status_new': CharField(null=True)
+	})
+	if not log_model.table_exists():
+		db.create_tables([log_model])
 
-	model = Model(db, item.type, columns)
-	if not model.table_exists():
-
-		db.create_tables([model])
-
-		log_model = Model(db, 'conveyor_log', {
-			'date': DateTimeField(),
-			'chain_id': CharField(),
-			'worker': CharField(null=True),
-			'type': CharField(),
-			'status_old': CharField(null=True),
-			'status_new': CharField(null=True)
-		})
-		if not log_model.table_exists():
-			db.create_tables([log_model])
-
-		db.execute_sql('''
-			CREATE OR REPLACE FUNCTION conveyor_log_change()
+	db.execute_sql('''
+		CREATE OR REPLACE FUNCTION conveyor_log_function()
 			RETURNS trigger as $$
 			BEGIN
 				INSERT INTO conveyor_log (
@@ -70,20 +55,42 @@ def getModel(db: Model_, item: Item) -> Model_:
 				RETURN NEW;
 			END;
 			$$ LANGUAGE 'plpgsql';
-			'''
-		)
+		'''
+	)
 
-		db.execute_sql(f'''
-			CREATE OR REPLACE TRIGGER conveyor_log_trigger
-				AFTER 
-					INSERT OR 
-					UPDATE OR 
-					DELETE 
-				ON {model.__name__}
-				FOR EACH ROW
-				EXECUTE PROCEDURE conveyor_log_change();
-			'''
-		)
+
+def installLoggingForTable(db, table_name):
+
+	db.execute_sql(f'''
+		CREATE OR REPLACE TRIGGER conveyor_log_trigger
+			AFTER 
+				INSERT OR 
+				UPDATE OR 
+				DELETE 
+			ON {table_name}
+			FOR EACH ROW
+			EXECUTE PROCEDURE conveyor_log_function();
+		'''
+	)
+
+
+@cache
+def getModel(db: Model_, item: Item) -> Model_:
+
+	columns = {
+		k: {
+			str: CharField(default=''),
+			int: IntegerField(default=0),
+			float: FloatField(default=0.0)
+		}[type(v)]
+		for k, v in getFields(item).items()
+	}
+
+	model = Model(db, item.type, columns)
+	if not model.table_exists():
+		db.create_tables([model])
+		installLoggingCommon(db)
+		installLoggingForTable(db, model.__name__)
 
 	return model
 
