@@ -39,44 +39,42 @@ def getModel(db: Model_, item: Item) -> Model_:
 		log_model = Model(db, 'conveyor_log', {
 			'date': DateTimeField(),
 			'chain_id': CharField(),
-			'worker': CharField(),
-			'status_old': CharField(),
-			'status_new': CharField()
+			'worker': CharField(null=True),
+			'type': CharField(),
+			'status_old': CharField(null=True),
+			'status_new': CharField(null=True)
 		})
 		if not log_model.table_exists():
 			db.create_tables([log_model])
 
-		try:
-			db.execute_sql('''
-				CREATE FUNCTION conveyor_log_change()
-				RETURNS trigger as $$
-				BEGIN
-					INSERT INTO conveyor_log (
-						date,
-						chain_id,
-						worker,
-						status_old,
-						status_new
-					)
-					VALUES (
-						NOW()::timestamp,
-						NEW.chain_id,
-						NEW.worker,
-						'',
-						NEW.status
-					);
-					RETURN NEW;
-				END;
-				$$ LANGUAGE 'plpgsql';
-				'''
-			)
-
-		except peewee.ProgrammingError as e:
-			print(e)
-			db.rollback()
+		db.execute_sql('''
+			CREATE OR REPLACE FUNCTION conveyor_log_change()
+			RETURNS trigger as $$
+			BEGIN
+				INSERT INTO conveyor_log (
+					date,
+					chain_id,
+					worker,
+					type,
+					status_old,
+					status_new
+				)
+				VALUES (
+					NOW()::timestamp,
+					GREATEST(OLD.chain_id, NEW.chain_id),
+					NEW.worker,
+					TG_TABLE_NAME,
+					OLD.status,
+					NEW.status
+				);
+				RETURN NEW;
+			END;
+			$$ LANGUAGE 'plpgsql';
+			'''
+		)
 
 		db.execute_sql(f'''
-			CREATE TRIGGER conveyor_log_trigger
+			CREATE OR REPLACE TRIGGER conveyor_log_trigger
 				AFTER 
 					INSERT OR 
 					UPDATE OR 
