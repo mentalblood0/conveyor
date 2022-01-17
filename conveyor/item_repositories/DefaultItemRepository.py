@@ -1,12 +1,11 @@
 import os
-import peewee
-import datetime
 from typing import Union
 from functools import cache
 from growing_tree_base import *
 from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
+from . import FileRepository
 from .. import Command, Item, Repository, Model
 
 
@@ -95,23 +94,14 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
-def getFileContent(path: str) -> str:
-
-	with open(path, 'r', encoding='utf8') as f:
-		file_content = f.read()
-
-	return file_content
-
-
 class Create(Command):
 
-	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml') -> int:
+	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, file_repository: FileRepository=None) -> int:
 
-		item.metadata['file_path'] = saveToDirTree(
-			item.data, 
-			os.path.join(dir_tree_root_path, item.type),
-			base_file_name=base_file_name
-		)
+		item.metadata['file_path'] = file_repository.transaction().create(
+			item.data,
+			os.path.join(dir_tree_root_path, item.type)
+		).execute()[0]
 
 		model = getModel(db, item)
 		instance = model(**getFields(item))
@@ -119,28 +109,18 @@ class Create(Command):
 
 		return instance.get_id()
 	
-	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: str, *args, **kwargs):
+	def _revert(self, item: Item, db: Model_, result: str, *args, **kwargs):
 
-		try:
-		
-			model = Model(db, item.type)
-			if not model:
-				return None
+		model = Model(db, item.type)
+		if not model:
+			return None
 
-			model.delete().where(model.id==result).execute()
-		
-		except Exception:
-			pass
-
-		try:
-			os.remove(item.metadata['file_path'])
-		except FileNotFoundError:
-			pass
+		model.delete().where(model.id==result).execute()
 
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, item: Item, db: Model_, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -154,21 +134,17 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, db: Model_, file_repository: FileRepository, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
 			return None
 
 		file_path = model.select().where(model.id==id).get().__data__['file_path']
-
 		result = model.delete().where(model.id==id).execute()
 
-		try:
-			os.remove(file_path)
-		except FileNotFoundError:
-			pass
-		
+		file_repository.transaction().delete(file_path).execute()
+
 		return result
 	
 	def _revert(self, *args, **kwargs):
@@ -177,7 +153,7 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, db: Model_, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -189,7 +165,7 @@ class Drop(Command):
 		pass
 
 
-def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, file_repository: FileRepository, *args, **kwargs) -> Item:
 
 	model = Model(db, type)
 	if not model:
@@ -202,7 +178,7 @@ def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str,
 
 		item_db_dict = r.__data__
 
-		file_content = getFileContent(item_db_dict['file_path'])
+		file_content = file_repository.get(item_db_dict['file_path'])
 	
 		result.append(
 			Item(

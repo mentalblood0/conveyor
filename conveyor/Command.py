@@ -24,7 +24,11 @@ class Command(metaclass=ABCMeta):
 
 	def revert(self):
 
-		result = self._revert(*self.args, **self.kwargs, result=self.result)
+		try:
+			result = self._revert(*self.args, **self.kwargs, result=self.result)
+		except Exception:
+			result = None
+
 		self.__init__()
 
 		return result

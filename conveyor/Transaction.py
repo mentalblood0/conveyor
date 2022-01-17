@@ -28,11 +28,13 @@ class Transaction:
 		return lambda *args, **kwargs: self.append(name, *args, **kwargs)
 
 	def execute(self) -> int:
-		
+
+		result = []
+
 		for i, c in enumerate(self.sequence):
 
 			try:
-				c()
+				result.append(c())
 			
 			except Exception as e:
 				
@@ -40,9 +42,8 @@ class Transaction:
 					executed.func.revert()
 				
 				raise e
-				return i
 		
-		return len(self.sequence)
+		return result
 	
 	def __repr__(self) -> str:
 
