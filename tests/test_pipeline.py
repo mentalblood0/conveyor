@@ -6,7 +6,7 @@ from peewee import PostgresqlDatabase, OperationalError
 from tests import config
 from tests.example_workers import *
 from conveyor.workers.factories import DestroyerFactory
-from conveyor.item_repositories import DefaultItemRepository, FileRepository
+from conveyor.item_repositories import DefaultItemRepository, FileRepository, MetadataRepository
 
 
 
@@ -54,9 +54,9 @@ def test_correct():
 		port=config.db['port']
 	)
 	repository = DefaultItemRepository(
-		db=db,
 		dir_tree_root_path=dir_tree_root_path,
-		file_repository=FileRepository()
+		file_repository=FileRepository(),
+		metadata_repository=MetadataRepository(db=db)
 	)
 
 	repository.transaction().drop('conveyor_log').execute()

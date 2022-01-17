@@ -1,13 +1,10 @@
-import os
 from typing import Union
 from functools import cache
 from growing_tree_base import *
-from importlib_metadata import metadata
 from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
-from . import FileRepository, MetadataRepository
 
 
 
@@ -97,23 +94,32 @@ def getModel(db: Model_, item: Item) -> Model_:
 
 class Create(Command):
 
-	def execute(self, item: Item, dir_tree_root_path: str, metadata_repository: MetadataRepository=None, file_repository: FileRepository=None) -> int:
+	def execute(self, item: Item, db: Model_) -> int:
 
-		item.metadata['file_path'] = file_repository.transaction().create(
-			text=item.data,
-			dir_tree_root_path=os.path.join(dir_tree_root_path, item.type)
-		).execute()[0]
+		model = getModel(db, item)
+		instance = model(**getFields(item))
+		instance.save()
 
-		metadata_repository.transaction().create(item).execute()
+		return instance.get_id()
 	
-	def _revert(self, *args, **kwargs):
-		pass
+	def _revert(self, item: Item, db: Model_, result: str, *args, **kwargs):
+
+		model = Model(db, item.type)
+		if not model:
+			return None
+
+		model.delete().where(model.id==result).execute()
 
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, metadata_repository: MetadataRepository, *args, **kwargs) -> int:
-		metadata_repository.transaction().update(type, id, item).execute()
+	def execute(self, type: str, id: str, item: Item, db: Model_, *args, **kwargs) -> int:
+
+		model = Model(db, type)
+		if not model:
+			return None
+
+		return model.update(**getFields(item)).where(model.id==id).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -121,12 +127,13 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, metadata_repository: MetadataRepository, file_repository: FileRepository, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, db: Model_, *args, **kwargs) -> int:
 
-		file_path = metadata_repository.getById(type, id)['file_path']
+		model = Model(db, type)
+		if not model:
+			return None
 
-		metadata_repository.transaction().delete(type, id).execute()
-		file_repository.transaction().delete(file_path).execute()
+		return model.delete().where(model.id==id).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -134,23 +141,59 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, metadata_repository: MetadataRepository, *args, **kwargs) -> int:
-		metadata_repository.transaction().drop(type).execute()
+	def execute(self, type: str, db: Model_, *args, **kwargs) -> int:
+
+		model = Model(db, type)
+		if not model:
+			return None
+		
+		return db.drop_tables([model])
 	
 	def _revert(self, *args, **kwargs):
 		pass
 
 
-def get(type: str, status: str, limit: int, metadata_repository: MetadataRepository, file_repository: FileRepository, *args, **kwargs) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, *args, **kwargs) -> Item:
 
-	result = metadata_repository.get(type, status, limit)
-	for i in result:
-		i.data = file_repository.get(i.data)
+	model = Model(db, type)
+	if not model:
+		return []
+
+	query_result = model.select().where(model.status==status).limit(limit)
+	result = []
+
+	for r in query_result:
+
+		item_db_dict = r.__data__
+	
+		result.append(
+			Item(
+				id=item_db_dict['id'],
+				type=type,
+				status=status,
+				data=item_db_dict['file_path'],
+				chain_id=item_db_dict['chain_id'],
+				metadata={
+					k: v
+					for k, v in item_db_dict.items()
+					if not k in ['status', 'type', 'data', 'chain_id', 'id', 'worker']
+				}
+			)
+		)
 	
 	return result
 
 
-class DefaultItemRepository(Repository):
+def getById(type: str, id: str, db: Model_, *args, **kwargs) -> Item:
+
+	model = Model(db, type)
+	if not model:
+		return None
+	
+	return [*model.select().where(model.id==id)][0].__data__
+
+
+class MetadataRepository(Repository):
 
 	commands = {
 		'create': Create,
@@ -160,5 +203,6 @@ class DefaultItemRepository(Repository):
 	}
 
 	queries = {
-		'get': get
+		'get': get,
+		'getById': getById
 	}
