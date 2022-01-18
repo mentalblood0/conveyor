@@ -17,8 +17,7 @@ db = PostgresqlDatabase(
 dir_tree_root_path = 'dir_tree'
 repository = DefaultItemRepository(
 	dir_tree_root_path=dir_tree_root_path,
-	file_repository=FileRepository(),
-	metadata_repository=MetadataRepository(db=db)
+	db=db
 )
 
 

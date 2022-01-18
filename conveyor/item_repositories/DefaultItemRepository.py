@@ -97,14 +97,14 @@ def getModel(db: Model_, item: Item) -> Model_:
 
 class Create(Command):
 
-	def execute(self, item: Item, dir_tree_root_path: str, metadata_repository: MetadataRepository=None, file_repository: FileRepository=None, *args, **kwargs) -> int:
+	def execute(self, item: Item, dir_tree_root_path: str, r: Repository, *args, **kwargs) -> int:
 
-		item.metadata['file_path'] = file_repository.transaction().create(
+		item.metadata['file_path'] = r.transaction().file_create(
 			text=item.data,
 			dir_tree_root_path=os.path.join(dir_tree_root_path, item.type)
 		).execute()[0]
 
-		metadata_repository.transaction().create(item).execute()
+		r.transaction().metadata_create(item).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -112,8 +112,8 @@ class Create(Command):
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, metadata_repository: MetadataRepository, *args, **kwargs) -> int:
-		metadata_repository.transaction().update(type, id, item).execute()
+	def execute(self, type: str, id: str, item: Item, r: Repository, *args, **kwargs) -> int:
+		r.transaction().metadata_update(type, id, item).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -121,12 +121,12 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, metadata_repository: MetadataRepository, file_repository: FileRepository, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, r: Repository, *args, **kwargs) -> int:
 
-		file_path = metadata_repository.getById(type, id)['file_path']
+		file_path = r.metadata_getById(type, id)['file_path']
 
-		metadata_repository.transaction().delete(type, id).execute()
-		file_repository.transaction().delete(file_path).execute()
+		r.transaction().metadata_delete(type, id).execute()
+		r.transaction().file_delete(file_path).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -134,18 +134,18 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, metadata_repository: MetadataRepository, *args, **kwargs) -> int:
-		metadata_repository.transaction().drop(type).execute()
+	def execute(self, type: str, r: Repository, *args, **kwargs) -> int:
+		r.transaction().metadata_drop(type).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
 
 
-def get(type: str, status: str, limit: int, metadata_repository: MetadataRepository, file_repository: FileRepository, *args, **kwargs) -> Item:
+def get(type: str, status: str, limit: int, r: Repository, *args, **kwargs) -> Item:
 
-	result = metadata_repository.get(type, status, limit)
+	result = r.metadata_get(type, status, limit)
 	for i in result:
-		i.data = file_repository.get(i.data)
+		i.data = r.file_get(i.data)
 	
 	return result
 

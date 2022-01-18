@@ -38,7 +38,7 @@ class Repository(metaclass=ABCMeta):
 				self.commands[f'{R_name}_{name}'] = c
 			
 			for name, q in r.queries.items():
-				self.commands[f'{R_name}_{name}'] = q
+				self.queries[f'{R_name}_{name}'] = q
 	
 	def __getattribute__(self, name: str):
 		
