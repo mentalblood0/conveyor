@@ -7,7 +7,7 @@ from .. import Command, Item, Repository
 
 class Create(Command):
 
-	def execute(self, text: str, dir_tree_root_path: str, base_file_name: str='.xml') -> str:
+	def execute(self, text: str, dir_tree_root_path: str, base_file_name: str='.xml', *args, **kwargs) -> str:
 		return saveToDirTree(
 			text, 
 			dir_tree_root_path,

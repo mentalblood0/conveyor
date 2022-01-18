@@ -94,7 +94,7 @@ def getModel(db: Model_, item: Item) -> Model_:
 
 class Create(Command):
 
-	def execute(self, item: Item, db: Model_) -> int:
+	def execute(self, item: Item, db: Model_, *args, **kwargs) -> int:
 
 		model = getModel(db, item)
 		instance = model(**getFields(item))

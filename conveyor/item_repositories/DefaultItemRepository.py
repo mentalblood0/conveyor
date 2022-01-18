@@ -6,7 +6,8 @@ from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
-from . import FileRepository, MetadataRepository
+from .FileRepository import FileRepository
+from .MetadataRepository import MetadataRepository
 
 
 
@@ -96,7 +97,7 @@ def getModel(db: Model_, item: Item) -> Model_:
 
 class Create(Command):
 
-	def execute(self, item: Item, dir_tree_root_path: str, metadata_repository: MetadataRepository=None, file_repository: FileRepository=None) -> int:
+	def execute(self, item: Item, dir_tree_root_path: str, metadata_repository: MetadataRepository=None, file_repository: FileRepository=None, *args, **kwargs) -> int:
 
 		item.metadata['file_path'] = file_repository.transaction().create(
 			text=item.data,
@@ -152,8 +153,8 @@ def get(type: str, status: str, limit: int, metadata_repository: MetadataReposit
 class DefaultItemRepository(Repository):
 
 	subrepositories = {
-		'metadata': MetadataRepository.MetadataRepository,
-		'file': FileRepository.FileRepository
+		'metadata': MetadataRepository,
+		'file': FileRepository
 	}
 
 	commands = {

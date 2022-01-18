@@ -18,6 +18,8 @@ class Repository(metaclass=ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 
+		kwargs['r'] = self
+
 		self.commands = {
 			k: partial(deepcopy(v)(), *args, **kwargs)
 			for k, v in self.commands.items()
