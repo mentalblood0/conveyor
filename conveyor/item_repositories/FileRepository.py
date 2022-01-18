@@ -15,7 +15,6 @@ class Create(Command):
 		)
 	
 	def _revert(self, result: str, *args, **kwargs):
-		print('FileRepository.Create._revert')
 		os.remove(result)
 
 

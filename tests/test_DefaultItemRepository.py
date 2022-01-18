@@ -1,7 +1,7 @@
 import shutil
 from peewee import PostgresqlDatabase
 from conveyor import Item
-from conveyor.item_repositories import DefaultItemRepository, FileRepository
+from conveyor.item_repositories import DefaultItemRepository, FileRepository, MetadataRepository
 
 from . import config
 
@@ -16,9 +16,9 @@ db = PostgresqlDatabase(
 )
 dir_tree_root_path = 'dir_tree'
 repository = DefaultItemRepository(
-	db=db,
 	dir_tree_root_path=dir_tree_root_path,
-	file_repository=FileRepository()
+	file_repository=FileRepository(),
+	metadata_repository=MetadataRepository(db=db)
 )
 
 

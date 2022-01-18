@@ -26,9 +26,9 @@ def test_incorrect():
 		port=config.db['port']
 	)
 	repository = DefaultItemRepository(
-		db=db,
 		dir_tree_root_path=dir_tree_root_path,
-	file_repository=FileRepository()
+		file_repository=FileRepository(),
+		metadata_repository=MetadataRepository(db=db)
 	)	
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
