@@ -2,7 +2,6 @@ import os
 from typing import Union
 from functools import cache
 from growing_tree_base import *
-from importlib_metadata import metadata
 from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
@@ -151,6 +150,11 @@ def get(type: str, status: str, limit: int, metadata_repository: MetadataReposit
 
 
 class DefaultItemRepository(Repository):
+
+	subrepositories = {
+		'metadata': MetadataRepository.MetadataRepository,
+		'file': FileRepository.FileRepository
+	}
 
 	commands = {
 		'create': Create,

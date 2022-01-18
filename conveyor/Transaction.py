@@ -29,20 +29,27 @@ class Transaction:
 
 	def execute(self) -> int:
 
+		print('start executing', [e.func for e in self.sequence])
+
 		result = []
 
 		for i, c in enumerate(self.sequence):
 
 			try:
+				print('execute', c.func)
 				result.append(c())
+				print('result:', result[-1])
 			
 			except Exception as e:
 				
 				for executed in reversed(self.sequence[:i+1]):
+					print('revert', executed.func)
 					executed.func.revert()
 				
+				print('end executing', [e.func for e in self.sequence])
 				raise e
 		
+		print('end executing', [e.func for e in self.sequence])
 		return result
 	
 	def __repr__(self) -> str:

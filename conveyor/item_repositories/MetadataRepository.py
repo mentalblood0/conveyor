@@ -195,6 +195,8 @@ def getById(type: str, id: str, db: Model_, *args, **kwargs) -> Item:
 
 class MetadataRepository(Repository):
 
+	subrepositories = {}
+
 	commands = {
 		'create': Create,
 		'update': Update,

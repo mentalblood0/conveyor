@@ -38,6 +38,8 @@ def get(file_path: str, *args, **kwargs) -> Item:
 
 class FileRepository(Repository):
 
+	subrepositories = {}
+
 	commands = {
 		'create': Create,
 		'delete': Delete
