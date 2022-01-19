@@ -6,7 +6,7 @@ from peewee import PostgresqlDatabase, OperationalError
 from tests import config
 from tests.example_workers import *
 from conveyor.workers.factories import DestroyerFactory
-from conveyor.item_repositories import DefaultItemRepository, FileRepository, MetadataRepository
+from conveyor.item_repositories import DefaultItemRepository
 
 
 
@@ -26,9 +26,9 @@ def test_incorrect():
 		port=config.db['port']
 	)
 	repository = DefaultItemRepository(
-		dir_tree_root_path=dir_tree_root_path,
-		db=db
-	)
+		db=db,
+		dir_tree_root_path=dir_tree_root_path
+	)	
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
@@ -53,8 +53,9 @@ def test_correct():
 		port=config.db['port']
 	)
 	repository = DefaultItemRepository(
+		db=db,
 		dir_tree_root_path=dir_tree_root_path,
-		db=db
+		base_file_name='.xml'
 	)
 
 	repository.transaction().drop('conveyor_log').execute()

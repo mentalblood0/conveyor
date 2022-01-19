@@ -1,4 +1,6 @@
 import os
+import peewee
+import datetime
 from typing import Union
 from functools import cache
 from growing_tree_base import *
@@ -6,8 +8,6 @@ from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
-from .FileRepository import FileRepository
-from .MetadataRepository import MetadataRepository
 
 
 
@@ -95,25 +95,58 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
+def getFileContent(path: str) -> str:
+
+	with open(path, 'r', encoding='utf8') as f:
+		file_content = f.read()
+
+	return file_content
+
+
 class Create(Command):
 
-	def execute(self, item: Item, dir_tree_root_path: str, r: Repository, *args, **kwargs) -> int:
+	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml') -> int:
 
-		item.metadata['file_path'] = r.transaction().file_create(
-			text=item.data,
-			dir_tree_root_path=os.path.join(dir_tree_root_path, item.type)
-		).execute()[0]
+		item.metadata['file_path'] = saveToDirTree(
+			item.data, 
+			os.path.join(dir_tree_root_path, item.type),
+			base_file_name=base_file_name
+		)
 
-		r.transaction().metadata_create(item).execute()
+		model = getModel(db, item)
+		instance = model(**getFields(item))
+		instance.save()
+
+		return instance.get_id()
 	
-	def _revert(self, *args, **kwargs):
-		pass
+	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: str, *args, **kwargs):
+
+		try:
+		
+			model = Model(db, item.type)
+			if not model:
+				return None
+
+			model.delete().where(model.id==result).execute()
+		
+		except Exception:
+			pass
+
+		try:
+			os.remove(item.metadata['file_path'])
+		except FileNotFoundError:
+			pass
 
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, r: Repository, *args, **kwargs) -> int:
-		r.transaction().metadata_update(type, id, item).execute()
+	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+
+		model = Model(db, type)
+		if not model:
+			return None
+
+		return model.update(**getFields(item)).where(model.id==id).execute()
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -121,12 +154,22 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, r: Repository, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
 
-		file_path = r.metadata_getById(type, id)['file_path']
+		model = Model(db, type)
+		if not model:
+			return None
 
-		r.transaction().metadata_delete(type, id).execute()
-		r.transaction().file_delete(file_path).execute()
+		file_path = model.select().where(model.id==id).get().__data__['file_path']
+
+		result = model.delete().where(model.id==id).execute()
+
+		try:
+			os.remove(file_path)
+		except FileNotFoundError:
+			pass
+		
+		return result
 	
 	def _revert(self, *args, **kwargs):
 		pass
@@ -134,28 +177,52 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, r: Repository, *args, **kwargs) -> int:
-		r.transaction().metadata_drop(type).execute()
+	def execute(self, type: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+
+		model = Model(db, type)
+		if not model:
+			return None
+		
+		return db.drop_tables([model])
 	
 	def _revert(self, *args, **kwargs):
 		pass
 
 
-def get(type: str, status: str, limit: int, r: Repository, *args, **kwargs) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> Item:
 
-	result = r.metadata_get(type, status, limit)
-	for i in result:
-		i.data = r.file_get(i.data)
+	model = Model(db, type)
+	if not model:
+		return []
+
+	query_result = model.select().where(model.status==status).limit(limit)
+	result = []
+
+	for r in query_result:
+
+		item_db_dict = r.__data__
+
+		file_content = getFileContent(item_db_dict['file_path'])
+	
+		result.append(
+			Item(
+				id=item_db_dict['id'],
+				type=type,
+				status=status,
+				data=file_content,
+				chain_id=item_db_dict['chain_id'],
+				metadata={
+					k: v
+					for k, v in item_db_dict.items()
+					if not k in ['status', 'type', 'data', 'chain_id', 'id', 'worker']
+				}
+			)
+		)
 	
 	return result
 
 
 class DefaultItemRepository(Repository):
-
-	subrepositories = {
-		'metadata': MetadataRepository,
-		'file': FileRepository
-	}
 
 	commands = {
 		'create': Create,
