@@ -9,7 +9,7 @@ class ItemsReceiver(metaclass=ABCMeta):
 	input_type: str = 'undefined'
 	input_status: str = 'created'
 
-	def __init__(self, repository: Repository, one_call_items_limit: int = None) -> None:
+	def __init__(self, repository: Repository, one_call_items_limit: int = 64) -> None:
 		self.repository = repository
 		self.one_call_items_limit = one_call_items_limit
 
