@@ -1,10 +1,8 @@
 import os
-import peewee
-import datetime
 from typing import Union
-from functools import cache
 from growing_tree_base import *
 from peewee import Model as Model_
+from functools import cache, lru_cache
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
@@ -105,7 +103,7 @@ def getFileContent(path: str) -> str:
 
 class Create(Command):
 
-	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml') -> int:
+	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml', *args, **kwargs) -> int:
 
 		item.metadata['file_path'] = saveToDirTree(
 			item.data, 
@@ -119,7 +117,7 @@ class Create(Command):
 
 		return instance.get_id()
 	
-	def _revert(self, item: Item, db: Model_, dir_tree_root_path: str, result: str, *args, **kwargs):
+	def _revert(self, item: Item, db: Model_, result: str, *args, **kwargs):
 
 		try:
 		
@@ -140,7 +138,7 @@ class Create(Command):
 
 class Update(Command):
 
-	def execute(self, type: str, id: str, item: Item, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, item: Item, db: Model_, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -154,7 +152,7 @@ class Update(Command):
 
 class Delete(Command):
 
-	def execute(self, type: str, id: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, id: str, db: Model_, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -177,7 +175,7 @@ class Delete(Command):
 
 class Drop(Command):
 
-	def execute(self, type: str, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> int:
+	def execute(self, type: str, db: Model_, *args, **kwargs) -> int:
 
 		model = Model(db, type)
 		if not model:
@@ -189,7 +187,7 @@ class Drop(Command):
 		pass
 
 
-def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str, *args, **kwargs) -> Item:
+def get(type: str, status: str, limit: int, db: Model_, getFileContentCached: None, *args, **kwargs) -> Item:
 
 	model = Model(db, type)
 	if not model:
@@ -202,7 +200,7 @@ def get(type: str, status: str, limit: int, db: Model_, dir_tree_root_path: str,
 
 		item_db_dict = r.__data__
 
-		file_content = getFileContent(item_db_dict['file_path'])
+		file_content = getFileContentCached(item_db_dict['file_path'])
 	
 		result.append(
 			Item(
@@ -234,3 +232,11 @@ class DefaultItemRepository(Repository):
 	queries = {
 		'get': get
 	}
+
+	def __init__(self, *args, cache_size=2**10, **kwargs):
+
+		kwargs |= {
+			'getFileContentCached': lru_cache(maxsize=cache_size)(getFileContent)
+		}
+
+		super().__init__(*args, **kwargs)

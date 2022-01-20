@@ -55,7 +55,8 @@ def test_correct():
 	repository = DefaultItemRepository(
 		db=db,
 		dir_tree_root_path=dir_tree_root_path,
-		base_file_name='.xml'
+		base_file_name='.xml',
+		cache_size=1000
 	)
 
 	repository.transaction().drop('conveyor_log').execute()
