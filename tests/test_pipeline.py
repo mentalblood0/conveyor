@@ -55,8 +55,7 @@ def test_correct():
 	repository = DefaultItemRepository(
 		db=db,
 		dir_tree_root_path=dir_tree_root_path,
-		base_file_name='.xml',
-		cache_size=1000
+		base_file_name='.xml'
 	)
 
 	repository.transaction().drop('conveyor_log').execute()
@@ -64,10 +63,10 @@ def test_correct():
 	repository.transaction().drop('PersonalizationRequest').execute()
 
 	file_saver = FileSaver(repository)
-	xml_verifier = XmlVerifier(repository)
-	typer = Typer(repository)
-	mover = PersonalizationRequestToCreatedMover(repository)
-	destroyer = DestroyerFactory('undefined', 'end')(repository)
+	xml_verifier = XmlVerifier(repository, one_call_items_limit=10)
+	typer = Typer(repository, one_call_items_limit=10)
+	mover = PersonalizationRequestToCreatedMover(repository, one_call_items_limit=10)
+	destroyer = DestroyerFactory('undefined', 'end')(repository, one_call_items_limit=10)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
