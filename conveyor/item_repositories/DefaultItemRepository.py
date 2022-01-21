@@ -2,7 +2,7 @@ import os
 from typing import Union
 from growing_tree_base import *
 from peewee import Model as Model_
-from functools import cache, lru_cache
+from functools import lru_cache
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
 from .. import Command, Item, Repository, Model
@@ -72,7 +72,6 @@ def installLoggingForTable(db, table_name):
 	)
 
 
-@cache
 def getModel(db: Model_, item: Item) -> Model_:
 
 	columns = {

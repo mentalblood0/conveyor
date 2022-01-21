@@ -18,6 +18,9 @@ class Transformer(ItemsProcessor, metaclass=ABCMeta):
 	def processItem(self, input_item: Item) -> int:
 
 		output_item = self.transform(input_item)
+		if output_item == None:
+			return None
+		
 		if type(output_item) == str:
 			output_status = output_item
 			output_item = input_item

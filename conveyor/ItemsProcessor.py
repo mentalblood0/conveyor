@@ -28,9 +28,12 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 			except Exception as e:
 				logger.exception(e)
 				continue
-
-			i_result = i_transaction.execute()
-			logger.info(f'{self.__class__.__name__} => {i_result}')
+			
+			if i_transaction != None:
+				i_result = i_transaction.execute()
+				logger.info(f'{self.__class__.__name__} => {i_result}')
+			else:
+				i_result = None
 
 			result.append(i_result)
 
