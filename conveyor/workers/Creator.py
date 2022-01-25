@@ -1,4 +1,5 @@
 import uuid
+from loguru import logger
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
@@ -29,4 +30,7 @@ class Creator(metaclass=ABCMeta):
 		])
 		item.worker = self.__class__.__name__
 		
-		return self.repository.transaction().create(item).execute()
+		result = self.repository.transaction().create(item).execute()
+		logger.info(f'{self.__class__.__name__} => {result}')
+
+		return result
