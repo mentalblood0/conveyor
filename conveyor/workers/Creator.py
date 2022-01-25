@@ -21,7 +21,11 @@ class Creator(metaclass=ABCMeta):
 
 	def __call__(self, *args, **kwargs) -> int:
 
-		item = self.create(*args, **kwargs)
+		try:
+			item = self.create(*args, **kwargs)
+		except Exception:
+			return 0
+		
 		item.type = self.output_type
 		item.status = self.output_status
 		item.chain_id = ' '.join([
