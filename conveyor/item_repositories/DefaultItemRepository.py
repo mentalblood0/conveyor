@@ -94,15 +94,18 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
-def getFileContent(path: str) -> str:
+def getFileContent(path: str) -> bytes:
 
-	with open(path, 'r', encoding='utf8') as f:
+	with open(path, 'rb') as f:
 		file_content = f.read()
 
 	return file_content
 
 
-def getDataDigest(data: bytes):
+def getDataDigest(data: bytes | str):
+	
+	data = data if type(data) == bytes else data.encode('utf8')
+	
 	d = blake3(data).digest()
 	return base64.b64encode(d).decode('ascii')
 
@@ -111,36 +114,21 @@ class Create(Command):
 
 	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml', *args, **kwargs) -> int:
 
-		item.metadata['file_path'] = saveToDirTree(
-			item.data, 
-			os.path.join(dir_tree_root_path, item.type),
-			base_file_name=base_file_name
-		)
-		item.metadata['data_digest'] = getDataDigest(item.data.encode('utf8'))
+		item.metadata |= {
+			'file_path': saveToDirTree(
+				item.data,
+				os.path.join(dir_tree_root_path, item.type),
+				base_file_name=base_file_name
+			),
+			'data_digest': getDataDigest(item.data)
+		}
 
 		model = getModel(db, item)
 		instance = model(**getFields(item))
 		instance.save()
-
-		return instance.get_id()
 	
-	def _revert(self, item: Item, db: Model_, result: str, *args, **kwargs):
-
-		try:
-		
-			model = Model(db, item.type)
-			if not model:
-				return None
-
-			model.delete().where(model.id==result).execute()
-		
-		except Exception:
-			pass
-
-		try:
-			os.remove(item.metadata['file_path'])
-		except FileNotFoundError:
-			pass
+	def _revert(self, item: Item, *args, **kwargs):
+		os.remove(item.metadata['file_path'])
 
 
 class Update(Command):
@@ -208,8 +196,7 @@ def get(type: str, status: str, limit: int, db: Model_, getFileContentCached: No
 		item_db_dict = r.__data__
 
 		data = getFileContentCached(item_db_dict['file_path'])
-		data_bytes = data.encode('utf8')
-		if getDataDigest(data_bytes) != item_db_dict['data_digest']:
+		if getDataDigest(data) != item_db_dict['data_digest']:
 			item_info = {
 				'type': type,
 				'status': status,
@@ -221,7 +208,7 @@ def get(type: str, status: str, limit: int, db: Model_, getFileContentCached: No
 			id=item_db_dict['id'],
 			type=type,
 			status=status,
-			data=data,
+			data=data.decode('utf8'),
 			chain_id=item_db_dict['chain_id']
 		)
 		item.metadata = {
