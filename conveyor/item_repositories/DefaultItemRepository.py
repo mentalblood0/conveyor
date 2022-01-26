@@ -223,6 +223,5 @@ class DefaultItemRepository(Repository):
 		kwargs |= {
 			'getFileContentCached': lru_cache(maxsize=cache_size)(getFileContent)
 		}
-		self.transaction_context_manager = kwargs['db']
 
 		super().__init__(*args, transaction_context_manager=kwargs['db'].transaction, **kwargs)
