@@ -36,9 +36,9 @@ def test_incorrect():
 	with pytest.raises(OperationalError):
 		FileSaver(repository)(text)
 	
-	assert not os.listdir(os.path.join(dir_tree_root_path, 'undefined', '0'))
+	assert not os.path.exists(os.path.join(dir_tree_root_path, 'undefined', '0', '1.xml'))
 
-	shutil.rmtree(dir_tree_root_path)
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 
 def test_correct():
@@ -89,4 +89,4 @@ def test_correct():
 	assert len(mover()) == 2
 	assert len(destroyer()) == 2
 
-	shutil.rmtree(dir_tree_root_path)
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)

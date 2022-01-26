@@ -8,10 +8,11 @@ from . import Command
 
 class Transaction:
 
-	def __init__(self, commands: dict[str, Command]=None, sequence: list[Command]=None):
+	def __init__(self, commands: dict[str, Command]=None, sequence: list[Command]=None, transaction_context_manager=None):
 
 		self.commands = commands or {}
 		self.sequence = sequence or []
+		self.transaction_context_manager = transaction_context_manager
 	
 	def append(self, name: str, *args, **kwargs):
 
@@ -21,27 +22,31 @@ class Transaction:
 	
 	def __getattribute__(self, name: str):
 
-		if name in ['execute', 'append', 'sequence', 'commands']:
+		if name in ['execute', 'append', 'sequence', 'commands', 'transaction_context_manager']:
 			return super().__getattribute__(name)
 
 		return lambda *args, **kwargs: self.append(name, *args, **kwargs)
 
 	def execute(self) -> int:
 		
-		for i, c in enumerate(self.sequence):
+		with self.transaction_context_manager() as t:
 
-			try:
-				c()
-			
-			except Exception as e:
+			for i, c in enumerate(self.sequence):
+
+				try:
+					c()
 				
-				for executed in reversed(self.sequence[:i+1]):
-					try:
-						executed.func.revert()
-					except Exception:
-						pass
-				
-				raise e
+				except Exception as e:
+
+					for executed in reversed(self.sequence[:i+1]):
+						try:
+							executed.func.revert()
+						except Exception:
+							pass
+					
+					t.rollback()
+					
+					raise e
 		
 		return len(self.sequence)
 	

@@ -12,7 +12,7 @@ class Repository(metaclass=ABCMeta):
 	commands: dict[str, Command]
 	queries: dict[str, callable]
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, transaction_context_manager, **kwargs):
 
 		self.commands = {
 			k: partial(deepcopy(v)(), *args, **kwargs)
@@ -23,13 +23,15 @@ class Repository(metaclass=ABCMeta):
 			k: partial(deepcopy(v), *args, **kwargs)
 			for k, v in self.queries.items()
 		}
+		
+		self.transaction_context_manager = transaction_context_manager
 	
 	def __getattribute__(self, name: str):
 		
-		if name in ['transaction', 'queries', 'commands']:
+		if name in ['transaction', 'queries', 'commands', 'transaction_context_manager']:
 			return super().__getattribute__(name)
 		
 		return self.queries[name]
 	
 	def transaction(self):
-		return Transaction(self.commands, [])
+		return Transaction(self.commands, [], self.transaction_context_manager)
