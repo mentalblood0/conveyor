@@ -4,7 +4,7 @@ from growing_tree_base import *
 from functools import lru_cache
 from peewee import CharField, IntegerField, FloatField, DateTimeField, Model as Model_
 
-from .. import Item, ItemRepository, Model
+from .. import Item, ItemRepository, Model, Data
 
 
 
@@ -132,22 +132,23 @@ class DefaultItemRepository(ItemRepository):
 
 			item_db_dict = r.__data__
 
-			file_content = self.getFileContent(item_db_dict['file_path'])
-		
-			result.append(
-				Item(
-					id=item_db_dict['id'],
-					type=type,
-					status=status,
-					data=file_content,
-					chain_id=item_db_dict['chain_id'],
-					metadata={
-						k: v
-						for k, v in item_db_dict.items()
-						if not k in ['status', 'type', 'data', 'chain_id', 'id']
-					}
-				)
+			item = Item(
+				id=item_db_dict['id'],
+				type=type,
+				status=status,
+				data=Data(
+					self.getFileContent(item_db_dict['file_path']),
+					digest=item_db_dict['data_digest']
+				),
+				chain_id=item_db_dict['chain_id']
 			)
+			item.metadata = {
+				k: v
+				for k, v in item_db_dict.items()
+				if not k in [*item.__dict__.keys()] + ['worker', 'data_digest']
+			}
+
+			result.append(item)
 		
 		return result
 	
