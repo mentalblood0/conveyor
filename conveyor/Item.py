@@ -9,7 +9,7 @@ class _Data(str):
 
 	@cached_property
 	def digest(self):
-		d = blake3(self.encode('utf8')).digest()
+		d = blake3(self.encode('utf8'), max_threads=blake3.AUTO).digest()
 		return base64.b64encode(d).decode('ascii')
 
 
