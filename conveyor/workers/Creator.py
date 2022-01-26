@@ -3,7 +3,7 @@ from loguru import logger
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, Repository
+from .. import Item, ItemRepository
 
 
 
@@ -12,7 +12,7 @@ class Creator(metaclass=ABCMeta):
 	output_type: str = 'undefined'
 	output_status: str = 'created'
 
-	def __init__(self, repository: Repository) -> None:
+	def __init__(self, repository: ItemRepository) -> None:
 		self.repository = repository
 
 	@abstractmethod
@@ -34,7 +34,7 @@ class Creator(metaclass=ABCMeta):
 		])
 		item.worker = self.__class__.__name__
 		
-		result = self.repository.transaction().create(item).execute()
+		result = self.repository.create(item)
 		logger.info(f'{self.__class__.__name__} => {result}')
 
 		return result

@@ -14,31 +14,31 @@ from conveyor.item_repositories import DefaultItemRepository
 dir_tree_root_path = 'dir_tree'
 
 
-def test_incorrect():
+# def test_incorrect():
 
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+# 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	db = PostgresqlDatabase(
-		config.db['db'], 
-		user=config.db['user'], 
-		password='', 
-		host=config.db['host'], 
-		port=config.db['port']
-	)
-	repository = DefaultItemRepository(
-		db=db,
-		dir_tree_root_path=dir_tree_root_path
-	)	
+# 	db = PostgresqlDatabase(
+# 		config.db['db'], 
+# 		user=config.db['user'], 
+# 		password='', 
+# 		host=config.db['host'], 
+# 		port=config.db['port']
+# 	)
+# 	repository = DefaultItemRepository(
+# 		db=db,
+# 		dir_tree_root_path=dir_tree_root_path
+# 	)	
 
-	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
-		text = f.read()
+# 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
+# 		text = f.read()
 	
-	with pytest.raises(OperationalError):
-		FileSaver(repository)(text)
+# 	with pytest.raises(OperationalError):
+# 		FileSaver(repository)(text)
 	
-	assert not os.path.exists(os.path.join(dir_tree_root_path, 'undefined', '0', '1.xml'))
+# 	assert not os.listdir(os.path.join(dir_tree_root_path, 'undefined', '0'))
 
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+# 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 
 def test_correct():
@@ -54,13 +54,12 @@ def test_correct():
 	)
 	repository = DefaultItemRepository(
 		db=db,
-		dir_tree_root_path=dir_tree_root_path,
-		base_file_name='.xml'
+		dir_tree_root_path=dir_tree_root_path
 	)
 
-	repository.transaction().drop('conveyor_log').execute()
-	repository.transaction().drop('undefined').execute()
-	repository.transaction().drop('PersonalizationRequest').execute()
+	repository._drop('conveyor_log')
+	repository._drop('undefined')
+	repository._drop('PersonalizationRequest')
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository, one_call_items_limit=10)

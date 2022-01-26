@@ -25,7 +25,7 @@ def test_create():
 
 	type = 'undefined'
 
-	repository.transaction().drop(type).execute()
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -37,7 +37,7 @@ def test_create():
 		}
 	)
 
-	assert repository.transaction().create(item).execute()
+	assert repository.create(item)
 
 
 def test_get():
@@ -45,7 +45,7 @@ def test_get():
 	type = 'undefined'
 	status = 'created'
 
-	repository.transaction().drop(type).execute()
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 	item = Item(
@@ -57,7 +57,7 @@ def test_get():
 		}
 	)
 
-	assert repository.transaction().create(item).execute()
+	assert repository.create(item)
 	assert repository.get(type, status, None)[0].metadata['message_id'] == item.metadata['message_id']
 
 
@@ -66,17 +66,17 @@ def test_delete():
 	type = 'undefined'
 	status = 'created'
 
-	repository.transaction().drop(type).execute()
+	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	assert repository.transaction().create(Item(
+	assert repository.create(Item(
 		type=type,
 		status=status,
 		data='lalala',
 		metadata={
 			'message_id': 'lololo'
 		}
-	)).execute()
+	))
 	id = repository.get(type, status, 1)[0].id
-	assert repository.transaction().delete(type, id).execute()
+	assert repository.delete(type, id)
 	assert repository.get(type, status, None) == []

@@ -2,10 +2,9 @@ import os
 from typing import Union
 from growing_tree_base import *
 from functools import lru_cache
-from peewee import Model as Model_
-from peewee import CharField, IntegerField, FloatField, DateTimeField
+from peewee import CharField, IntegerField, FloatField, DateTimeField, Model as Model_
 
-from .. import Command, Item, Data, Repository, Model
+from .. import Item, ItemRepository, Model
 
 
 
@@ -94,7 +93,7 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
-def getFileContent(path: str) -> str:
+def getFileContent(path):
 
 	with open(path, 'r', encoding='utf8') as f:
 		file_content = f.read()
@@ -102,43 +101,67 @@ def getFileContent(path: str) -> str:
 	return file_content
 
 
-class Create(Command):
+class DefaultItemRepository(ItemRepository):
 
-	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml', *args, **kwargs) -> int:
+	def __init__(self, db, dir_tree_root_path, base_file_name='.xml', cache_max_size=1024):
+		self.db = db
+		self.base_file_name = base_file_name
+		self.dir_tree_root_path = dir_tree_root_path
+		self.getFileContent = lru_cache(maxsize=cache_max_size)(getFileContent)
+
+	def create(self, item):
 
 		item.metadata['file_path'] = saveToDirTree(
-			item.data,
-			os.path.join(dir_tree_root_path, item.type),
-			base_file_name=base_file_name
+			item.data, 
+			os.path.join(self.dir_tree_root_path, item.type),
+			base_file_name=self.base_file_name
 		)
 
-		model = getModel(db, item)
-		instance = model(**getFields(item))
-		instance.save()
+		return getModel(self.db, item)(**getFields(item)).save()
+
+	def get(self, type, status, limit=None):
+
+		model = Model(self.db, type)
+		if not model:
+			return []
+
+		query_result = model.select().where(model.status==status).limit(limit)
+		result = []
+
+		for r in query_result:
+
+			item_db_dict = r.__data__
+
+			file_content = self.getFileContent(item_db_dict['file_path'])
+		
+			result.append(
+				Item(
+					id=item_db_dict['id'],
+					type=type,
+					status=status,
+					data=file_content,
+					chain_id=item_db_dict['chain_id'],
+					metadata={
+						k: v
+						for k, v in item_db_dict.items()
+						if not k in ['status', 'type', 'data', 'chain_id', 'id']
+					}
+				)
+			)
+		
+		return result
 	
-	def _revert(self, item: Item, *args, **kwargs):
-		os.remove(item.metadata['file_path'])
+	def update(self, type, id, item):
 
-
-class Update(Command):
-
-	def execute(self, type: str, id: str, item: Item, db: Model_, *args, **kwargs) -> int:
-
-		model = Model(db, type)
+		model = Model(self.db, type)
 		if not model:
 			return None
 
 		return model.update(**getFields(item)).where(model.id==id).execute()
-	
-	def _revert(self, *args, **kwargs):
-		pass
 
+	def delete(self, type, id):
 
-class Delete(Command):
-
-	def execute(self, type: str, id: str, db: Model_, *args, **kwargs) -> int:
-
-		model = Model(db, type)
+		model = Model(self.db, type)
 		if not model:
 			return None
 
@@ -152,76 +175,23 @@ class Delete(Command):
 			pass
 		
 		return result
+
+	@property
+	def atomic(self):
+
+		def decorator(f):
+			def new_f(*args, **kwargs):
+				with self.db.transaction():
+					result = f(*args, **kwargs)
+				return result
+			return new_f
+
+		return decorator
 	
-	def _revert(self, *args, **kwargs):
-		pass
+	def _drop(self, type):
 
-
-class Drop(Command):
-
-	def execute(self, type: str, db: Model_, *args, **kwargs) -> int:
-
-		model = Model(db, type)
+		model = Model(self.db, type)
 		if not model:
 			return None
 		
-		return db.drop_tables([model])
-	
-	def _revert(self, *args, **kwargs):
-		pass
-
-
-def get(type: str, status: str, limit: int, db: Model_, getFileContentCached: None, *args, **kwargs) -> Item:
-
-	model = Model(db, type)
-	if not model:
-		return []
-
-	query_result = model.select().where(model.status==status).limit(limit)
-	result = []
-
-	for r in query_result:
-
-		item_db_dict = r.__data__
-
-		item = Item(
-			id=item_db_dict['id'],
-			type=type,
-			status=status,
-			data=Data(
-				getFileContentCached(item_db_dict['file_path']),
-				digest=item_db_dict['data_digest']
-			),
-			chain_id=item_db_dict['chain_id']
-		)
-		item.metadata = {
-			k: v
-			for k, v in item_db_dict.items()
-			if not k in [*item.__dict__.keys()] + ['worker', 'data_digest']
-		}
-
-		result.append(item)
-	
-	return result
-
-
-class DefaultItemRepository(Repository):
-
-	commands = {
-		'create': Create,
-		'update': Update,
-		'delete': Delete,
-		'drop': Drop
-	}
-
-	queries = {
-		'get': get
-	}
-
-	def __init__(self, *args, cache_size=2**10, **kwargs):
-
-		kwargs |= {
-			'getFileContentCached': lru_cache(maxsize=cache_size)(getFileContent)
-		}
-
-		super().__init__(*args, transaction_context_manager=kwargs['db'].transaction, **kwargs)
+		return self.db.drop_tables([model])

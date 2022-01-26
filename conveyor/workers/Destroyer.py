@@ -10,4 +10,4 @@ class Destroyer(ItemsProcessor, metaclass=ABCMeta):
 	input_status: str
 	
 	def processItem(self, item: Item) -> int:
-		return self.repository.transaction().delete(self.input_type, item.id)
+		return self.repository.delete(self.input_type, item.id)
