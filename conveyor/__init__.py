@@ -1,4 +1,4 @@
-from .Item import Item
+from .Item import Item, Data
 from .Repository import Repository
 from .ItemsReceiver import ItemsReceiver
 from .ItemsProcessor import ItemsProcessor

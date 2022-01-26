@@ -1,22 +1,12 @@
 import os
-import base64
 from typing import Union
-from blake3 import blake3
 from growing_tree_base import *
-from peewee import Model as Model_
 from functools import lru_cache
+from peewee import Model as Model_
 from peewee import CharField, IntegerField, FloatField, DateTimeField
 
-from .. import Command, Item, Repository, Model
+from .. import Command, Item, Data, Repository, Model
 
-
-
-def getFields(item: Item) -> dict[str, Union[str, int, float]]:
-	return {
-		k: v
-		for k, v in (item.metadata | item.__dict__).items()
-		if not k in ['data', 'metadata', 'type', 'id']
-	}
 
 
 def installLoggingCommon(db, log_table_name='conveyor_log'):
@@ -74,6 +64,16 @@ def installLoggingForTable(db, table_name):
 	)
 
 
+def getFields(item: Item) -> dict[str, Union[str, int, float]]:
+	return {
+		k: v
+		for k, v in (item.metadata | item.__dict__).items()
+		if not k in ['data', 'metadata', 'type', 'id']
+	} | {
+		'data_digest': item.data.digest
+	}
+
+
 def getModel(db: Model_, item: Item) -> Model_:
 
 	columns = {
@@ -94,34 +94,23 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
-def getFileContent(path: str) -> bytes:
+def getFileContent(path: str) -> str:
 
-	with open(path, 'rb') as f:
+	with open(path, 'r', encoding='utf8') as f:
 		file_content = f.read()
 
 	return file_content
-
-
-def getDataDigest(data: bytes | str):
-	
-	data = data if type(data) == bytes else data.encode('utf8')
-	
-	d = blake3(data).digest()
-	return base64.b64encode(d).decode('ascii')
 
 
 class Create(Command):
 
 	def execute(self, item: Item, db: Model_, dir_tree_root_path: str, base_file_name: str='.xml', *args, **kwargs) -> int:
 
-		item.metadata |= {
-			'file_path': saveToDirTree(
-				item.data,
-				os.path.join(dir_tree_root_path, item.type),
-				base_file_name=base_file_name
-			),
-			'data_digest': getDataDigest(item.data)
-		}
+		item.metadata['file_path'] = saveToDirTree(
+			item.data,
+			os.path.join(dir_tree_root_path, item.type),
+			base_file_name=base_file_name
+		)
 
 		model = getModel(db, item)
 		instance = model(**getFields(item))
@@ -195,20 +184,14 @@ def get(type: str, status: str, limit: int, db: Model_, getFileContentCached: No
 
 		item_db_dict = r.__data__
 
-		data = getFileContentCached(item_db_dict['file_path'])
-		if getDataDigest(data) != item_db_dict['data_digest']:
-			item_info = {
-				'type': type,
-				'status': status,
-				'chain_id': item_db_dict['chain_id']
-			}
-			raise Exception(f"Error geting item {item_info}: data corrupted")
-
 		item = Item(
 			id=item_db_dict['id'],
 			type=type,
 			status=status,
-			data=data.decode('utf8'),
+			data=Data(
+				getFileContentCached(item_db_dict['file_path']),
+				digest=item_db_dict['data_digest']
+			),
 			chain_id=item_db_dict['chain_id']
 		)
 		item.metadata = {

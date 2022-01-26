@@ -1,10 +1,26 @@
-from dataclasses import dataclass
+import base64
+from blake3 import blake3
+from functools import cached_property
+from dataclasses import dataclass, field
 
 
 
-@dataclass
-class Metadata:
-	pass
+class _Data(str):
+
+	@cached_property
+	def digest(self):
+		d = blake3(self.encode('utf8')).digest()
+		return base64.b64encode(d).decode('ascii')
+
+
+def Data(s: str, digest: str=None):
+	
+	result = _Data(s)
+	if digest:
+		if result.digest != digest:
+			raise Exception(f"Cannot create data: digest invalid: '{result.digest}' != '{digest}'")
+	
+	return result
 
 
 @dataclass
@@ -16,13 +32,9 @@ class Item:
 	chain_id: str = ''
 	worker: str = ''
 
-	data: str = ''
+	data: _Data = field(default_factory=Data)
 	metadata: dict = None
 
-	def __hash__(self):
-		return hash('_'.join([
-			self.type,
-			self.status,
-			self.data if type(self.data) == str else self.data.decode(),
-			str(self.metadata)
-		]))
+	def __post_init__(self):
+		if type(self.data) != _Data:
+			self.data = Data(self.data)

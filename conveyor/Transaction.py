@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Union
 from functools import partial
 
 from . import Command
