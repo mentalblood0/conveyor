@@ -40,7 +40,6 @@ class Transaction:
 					executed.func.revert()
 				
 				raise e
-				return i
 		
 		return len(self.sequence)
 	
