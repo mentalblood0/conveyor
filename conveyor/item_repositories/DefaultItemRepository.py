@@ -103,11 +103,11 @@ def getFileContent(path):
 
 class DefaultItemRepository(ItemRepository):
 
-	def __init__(self, db, dir_tree_root_path, base_file_name='.xml', cache_max_size=1024):
+	def __init__(self, db, dir_tree_root_path, base_file_name='.xml', cache_size=1024):
 		self.db = db
 		self.base_file_name = base_file_name
 		self.dir_tree_root_path = dir_tree_root_path
-		self.getFileContent = lru_cache(maxsize=cache_max_size)(getFileContent)
+		self.getFileContent = lru_cache(maxsize=cache_size)(getFileContent)
 
 	def create(self, item):
 
