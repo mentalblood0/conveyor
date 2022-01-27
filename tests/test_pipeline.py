@@ -89,3 +89,44 @@ def test_correct():
 	assert len(destroyer()) == 2
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+
+
+def test_mover_transaction():
+
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+
+	db = PostgresqlDatabase(
+		config.db['db'], 
+		user=config.db['user'], 
+		password=config.db['password'], 
+		host=config.db['host'], 
+		port=config.db['port']
+	)
+	repository = DefaultItemRepository(
+		db=db,
+		dir_tree_root_path=dir_tree_root_path
+	)
+
+	repository._drop('conveyor_log')
+	repository._drop('undefined')
+	repository._drop('PersonalizationRequest')
+
+	file_saver = FileSaver(repository)
+	xml_verifier = XmlVerifier(repository)
+	typer = Typer(repository)
+	mover = PersonalizationRequestToCreatedMover(repository)
+
+	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
+		text = f.read()
+	
+	assert file_saver(text)
+	assert len(xml_verifier()) == 1
+	assert len(typer()) == 1
+
+	def crash(*args, **kwargs):
+		raise Exception
+	repository.update = crash
+	assert len(mover()) == 0
+	assert len(repository.get(mover.output_type, mover.output_status)) == 0
+
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
