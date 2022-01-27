@@ -1,4 +1,5 @@
 import os
+import lzma
 from typing import Union
 from growing_tree_base import *
 from functools import lru_cache
@@ -93,12 +94,17 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
+filters = [
+	{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
+]
+
+
 def getFileContent(path):
 
-	with open(path, 'r', encoding='utf8') as f:
+	with lzma.open(path) as f:
 		file_content = f.read()
 
-	return file_content
+	return file_content.decode()
 
 
 class DefaultItemRepository(ItemRepository):
@@ -111,8 +117,10 @@ class DefaultItemRepository(ItemRepository):
 
 	def create(self, item):
 
+		data = lzma.compress(item.data.encode('utf8'), filters=filters)
+
 		item.metadata['file_path'] = saveToDirTree(
-			item.data, 
+			data, 
 			os.path.join(self.dir_tree_root_path, item.type),
 			base_file_name=self.base_file_name
 		)

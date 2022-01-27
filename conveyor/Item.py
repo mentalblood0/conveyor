@@ -36,5 +36,9 @@ class Item:
 	metadata: dict = None
 
 	def __post_init__(self):
+
+		if type(self.data) == bytes:
+			self.data = self.data.decode('utf8')
+		
 		if type(self.data) != _Data:
 			self.data = Data(self.data)

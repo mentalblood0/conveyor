@@ -17,9 +17,9 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 
 		for i in self.receiveItems():
 			try:
-				result.append(
-					self.repository.atomic(self.processItem)(i)
-				)
+				i_result = self.repository.atomic(self.processItem)(i)
+				result.append(i_result)
+				logger.info(f'{self.__class__.__name__} => {i_result}')
 			except Exception as e:
 				logger.error(e)
 				continue
