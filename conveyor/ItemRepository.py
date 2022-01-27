@@ -24,5 +24,5 @@ class ItemRepository(metaclass=ABCMeta):
 	
 	# property that should return decorator
 	@abstractmethod
-	def atomic(self):
+	def transaction(self):
 		pass

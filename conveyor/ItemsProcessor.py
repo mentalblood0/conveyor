@@ -7,6 +7,10 @@ from . import Item, ItemsReceiver
 
 class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.processItem = self.repository.transaction(self.processItem)
+
 	@abstractmethod
 	def processItem(self, item: Item):
 		pass
@@ -17,7 +21,7 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 
 		for i in self.receiveItems():
 			try:
-				i_result = self.repository.atomic(self.processItem)(i)
+				i_result = self.processItem(i)
 				result.append(i_result)
 				logger.info(f'{self.__class__.__name__} => {i_result}')
 			except Exception as e:

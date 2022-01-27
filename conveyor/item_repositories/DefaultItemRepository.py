@@ -186,7 +186,7 @@ class DefaultItemRepository(ItemRepository):
 		return result
 
 	@property
-	def atomic(self):
+	def transaction(self):
 
 		def decorator(f):
 			def new_f(*args, **kwargs):
