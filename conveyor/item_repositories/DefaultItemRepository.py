@@ -17,11 +17,11 @@ def installLoggingCommon(db: Database, log_table_name: str='conveyor_log') -> No
 
 	log_model = Model(db, log_table_name, {
 		'date': DateTimeField(),
-		'chain_id': FixedCharField(max_length=64),
-		'worker': FixedCharField(max_length=64, null=True),
-		'type': FixedCharField(max_length=64),
-		'status_old': FixedCharField(max_length=64, null=True),
-		'status_new': FixedCharField(max_length=64, null=True)
+		'chain_id': FixedCharField(max_length=63),
+		'worker': FixedCharField(max_length=63, null=True),
+		'type': FixedCharField(max_length=63),
+		'status_old': FixedCharField(max_length=63, null=True),
+		'status_new': FixedCharField(max_length=63, null=True)
 	})
 	if not log_model.table_exists():
 		db.create_tables([log_model])
@@ -88,10 +88,10 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns = {
 		k: {
-			'chain_id': FixedCharField(max_length=64),
-			'status': FixedCharField(max_length=64),
-			'worker': FixedCharField(max_length=64),
-			'data_digest': FixedCharField(max_length=64)
+			'chain_id': FixedCharField(max_length=63),
+			'status': FixedCharField(max_length=63),
+			'worker': FixedCharField(max_length=63),
+			'data_digest': FixedCharField(max_length=63)
 		}[k]
 		for k in item.__dict__
 		if not k in ['data', 'metadata', 'type', 'id']
