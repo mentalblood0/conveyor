@@ -157,21 +157,20 @@ class DefaultItemRepository(ItemRepository):
 
 		for r in query_result:
 
-			item_db_dict = r.__data__
-			file_path = Path(os.path.join(self.dir_tree_root_path, type, item_db_dict['file_path']))
+			file_path = Path(os.path.join(self.dir_tree_root_path, type, r.__data__['file_path']))
 
 			item = Item(
 				type=type,
 				status=status,
-				id=item_db_dict['id'],
-				chain_id=item_db_dict['chain_id'],
-				data_digest = item_db_dict['data_digest'],
-				data=self.getFileContent(file_path, item_db_dict['data_digest'])
+				id=r.__data__['id'],
+				chain_id=r.__data__['chain_id'],
+				data_digest = r.__data__['data_digest'],
+				data=self.getFileContent(file_path, r.__data__['data_digest'])
 			)
 			item.metadata = {
 				k: v
-				for k, v in item_db_dict.items()
-				if not k in [*item.__dict__.keys()] + ['worker', 'data_digest']
+				for k, v in r.__data__.items()
+				if not k in [*item.__dict__.keys()]
 			}
 
 			result.append(item)
