@@ -17,11 +17,11 @@ def installLoggingCommon(db: Database, log_table_name: str='conveyor_log') -> No
 
 	log_model = Model(db, log_table_name, {
 		'date': DateTimeField(),
-		'chain_id': CharField(),
-		'worker': CharField(null=True),
-		'type': CharField(),
-		'status_old': CharField(null=True),
-		'status_new': CharField(null=True)
+		'chain_id': FixedCharField(max_length=64),
+		'worker': FixedCharField(max_length=64, null=True),
+		'type': FixedCharField(max_length=64),
+		'status_old': FixedCharField(max_length=64, null=True),
+		'status_new': FixedCharField(max_length=64, null=True)
 	})
 	if not log_model.table_exists():
 		db.create_tables([log_model])
