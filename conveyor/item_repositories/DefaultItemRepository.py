@@ -5,7 +5,7 @@ from typing import Union
 from blake3 import blake3
 from growing_tree_base import *
 from functools import lru_cache
-from peewee import CharField, IntegerField, FloatField, DateTimeField, Model as Model_
+from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTimeField, Model as Model_
 
 from .. import Item, ItemRepository, Model
 
@@ -66,6 +66,14 @@ def installLoggingForTable(db, table_name):
 	)
 
 
+class Path(str):
+	def __new__(C, value):
+		return super().__new__(
+			C,
+			os.path.normpath(os.path.normcase(value))
+		)
+
+
 def getFields(item: Item) -> dict[str, Union[str, int, float]]:
 	return {
 		k: v
@@ -80,7 +88,8 @@ def getModel(db: Model_, item: Item) -> Model_:
 		k: {
 			str: CharField(default=''),
 			int: IntegerField(default=0),
-			float: FloatField(default=0.0)
+			float: FloatField(default=0.0),
+			Path: FixedCharField(max_length=64)
 		}[type(v)]
 		for k, v in getFields(item).items()
 	}
@@ -123,14 +132,17 @@ class DefaultItemRepository(ItemRepository):
 
 		item_data_bytes = item.data.encode('utf8')
 		item.data_digest = getDigest(item_data_bytes)
+		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
 
-		item.metadata['file_path'] = saveToDirTree(
+		file_absolute_path = saveToDirTree(
 			file_content=lzma.compress(item_data_bytes, filters=[
 				{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
 			]), 
-			root_dir=os.path.join(self.dir_tree_root_path, item.type),
+			root_dir=type_dir_path,
 			base_file_name=self.base_file_name
 		)
+
+		item.metadata['file_path'] = Path(os.path.relpath(file_absolute_path, type_dir_path))
 
 		return getModel(self.db, item)(**getFields(item)).save()
 
@@ -146,6 +158,7 @@ class DefaultItemRepository(ItemRepository):
 		for r in query_result:
 
 			item_db_dict = r.__data__
+			file_path = Path(os.path.join(self.dir_tree_root_path, type, item_db_dict['file_path']))
 
 			item = Item(
 				type=type,
@@ -153,7 +166,7 @@ class DefaultItemRepository(ItemRepository):
 				id=item_db_dict['id'],
 				chain_id=item_db_dict['chain_id'],
 				data_digest = item_db_dict['data_digest'],
-				data=self.getFileContent(item_db_dict['file_path'], item_db_dict['data_digest'])
+				data=self.getFileContent(file_path, item_db_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
@@ -179,7 +192,7 @@ class DefaultItemRepository(ItemRepository):
 		if not model:
 			return None
 
-		file_path = model.select().where(model.id==id).get().__data__['file_path']
+		file_path = Path(model.select().where(model.id==id).get().__data__['file_path'])
 
 		result = model.delete().where(model.id==id).execute()
 
