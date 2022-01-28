@@ -1,9 +1,9 @@
 import os
 import lzma
 import base64
+import growing_tree_base
 from typing import Union
 from blake3 import blake3
-from growing_tree_base import *
 from functools import lru_cache
 from dataclasses import dataclass
 from peewee import Database, Model as Model_
@@ -84,7 +84,7 @@ def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	}
 
 
-def getModel(db: Model_, item: Item) -> Model_:
+def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns = {
 		k: {
@@ -136,12 +136,15 @@ class DefaultItemRepository(ItemRepository):
 	db: Database
 	dir_tree_root_path: str
 	cache_size: int=1024
-	max_dirs_on_level: int=8
-	max_files_on_level: int=8
 	base_file_name: str='.xz'
+	max_files_number: int=10**10
 
 	def __post_init__(self):
 		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
+		self.path_length = growing_tree_base.calc.getPathLengthForFilesNumber(
+			self.max_files_number,
+			len(self.base_file_name)
+		)
 
 	def create(self, item):
 
@@ -149,7 +152,7 @@ class DefaultItemRepository(ItemRepository):
 		item.data_digest = getDigest(item_data_bytes)
 		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
 
-		file_absolute_path = saveToDirTree(
+		file_absolute_path = growing_tree_base.saveToDirTree(
 			file_content=item_data_bytes, 
 			root_dir=type_dir_path,
 			base_file_name=self.base_file_name,
@@ -160,7 +163,7 @@ class DefaultItemRepository(ItemRepository):
 
 		item.metadata['file_path'] = Path(os.path.relpath(file_absolute_path, type_dir_path))
 
-		return getModel(self.db, item)(**getFields(item)).save()
+		return getModel(self.db, item, self.path_length)(**getFields(item)).save()
 
 	def get(self, type, status, limit=None):
 
