@@ -88,12 +88,23 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns = {
 		k: {
+			'chain_id': FixedCharField(max_length=64),
+			'status': FixedCharField(max_length=64),
+			'worker': FixedCharField(max_length=64),
+			'data_digest': FixedCharField(max_length=64)
+		}[k]
+		for k in item.__dict__
+		if not k in ['data', 'metadata', 'type', 'id']
+	}
+
+	columns |= {
+		k: {
 			str: CharField(default=''),
 			int: IntegerField(default=0),
 			float: FloatField(default=0.0),
-			Path: FixedCharField(max_length=16)
+			Path: FixedCharField(max_length=path_length)
 		}[type(v)]
-		for k, v in getFields(item).items()
+		for k, v in item.metadata.items()
 	}
 
 	model = Model(db, item.type, columns)
@@ -176,19 +187,24 @@ class DefaultItemRepository(ItemRepository):
 
 		for r in query_result:
 
-			file_path = Path(os.path.join(self.dir_tree_root_path, type, r.__data__['file_path']))
+			r_dict = {
+				k: v.rstrip() if v.__class__ == str else v
+				for k, v in r.__data__.items()
+			}
+
+			file_path = Path(os.path.join(self.dir_tree_root_path, type, r_dict['file_path']))
 
 			item = Item(
 				type=type,
 				status=status,
-				id=r.__data__['id'],
-				chain_id=r.__data__['chain_id'],
-				data_digest = r.__data__['data_digest'],
-				data=self.getFileContent(file_path, r.__data__['data_digest'])
+				id=r_dict['id'],
+				chain_id=r_dict['chain_id'],
+				data_digest = r_dict['data_digest'],
+				data=self.getFileContent(file_path, r_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
-				for k, v in r.__data__.items()
+				for k, v in r_dict.items()
 				if not k in [*item.__dict__.keys()]
 			}
 
