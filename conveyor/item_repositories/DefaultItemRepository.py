@@ -5,6 +5,7 @@ from typing import Union
 from blake3 import blake3
 from growing_tree_base import *
 from functools import lru_cache
+from dataclasses import dataclass
 from peewee import Database, Model as Model_
 from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTimeField
 
@@ -90,7 +91,7 @@ def getModel(db: Model_, item: Item) -> Model_:
 			str: CharField(default=''),
 			int: IntegerField(default=0),
 			float: FloatField(default=0.0),
-			Path: FixedCharField(max_length=64)
+			Path: FixedCharField(max_length=16)
 		}[type(v)]
 		for k, v in getFields(item).items()
 	}
@@ -129,13 +130,18 @@ def getFileContent(path: str, digest: str) -> str:
 	return file_content.decode()
 
 
+@dataclass
 class DefaultItemRepository(ItemRepository):
 
-	def __init__(self, db: Database, dir_tree_root_path: str, base_file_name: str='.xz', cache_size: int=1024):
-		self.db = db
-		self.base_file_name = base_file_name
-		self.dir_tree_root_path = dir_tree_root_path
-		self.getFileContent = lru_cache(maxsize=cache_size)(getFileContent)
+	db: Database
+	dir_tree_root_path: str
+	cache_size: int=1024
+	max_dirs_on_level: int=8
+	max_files_on_level: int=8
+	base_file_name: str='.xz'
+
+	def __post_init__(self):
+		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
 
 	def create(self, item):
 
@@ -147,7 +153,9 @@ class DefaultItemRepository(ItemRepository):
 			file_content=item_data_bytes, 
 			root_dir=type_dir_path,
 			base_file_name=self.base_file_name,
-			save_file_function=setFileContent
+			save_file_function=setFileContent,
+			max_files_on_level=8,
+			max_dirs_on_level=8
 		)
 
 		item.metadata['file_path'] = Path(os.path.relpath(file_absolute_path, type_dir_path))
