@@ -5,13 +5,14 @@ from typing import Union
 from blake3 import blake3
 from growing_tree_base import *
 from functools import lru_cache
-from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTimeField, Model as Model_
+from peewee import Database, Model as Model_
+from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTimeField
 
 from .. import Item, ItemRepository, Model
 
 
 
-def installLoggingCommon(db, log_table_name='conveyor_log'):
+def installLoggingCommon(db: Database, log_table_name: str='conveyor_log') -> None:
 
 	log_model = Model(db, log_table_name, {
 		'date': DateTimeField(),
@@ -51,7 +52,7 @@ def installLoggingCommon(db, log_table_name='conveyor_log'):
 	)
 
 
-def installLoggingForTable(db, table_name):
+def installLoggingForTable(db: Database, table_name: str) -> None:
 
 	db.execute_sql(f'''
 		CREATE OR REPLACE TRIGGER conveyor_log_trigger
@@ -74,7 +75,7 @@ class Path(str):
 		)
 
 
-def getFields(item: Item) -> dict[str, Union[str, int, float]]:
+def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	return {
 		k: v
 		for k, v in (item.metadata | item.__dict__).items()
@@ -108,9 +109,17 @@ def getDigest(data: bytes) -> str:
 	return base64.b64encode(d).decode('ascii')
 
 
+def setFileContent(path: str, content: bytes) -> None:
+
+	with lzma.open(path, 'wb', filters=[
+		{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
+	]) as f:
+		f.write(content)
+
+
 def getFileContent(path: str, digest: str) -> str:
 
-	with lzma.open(path) as f:
+	with lzma.open(path, 'rb') as f:
 		file_content = f.read()
 	
 	correct_digest = getDigest(file_content)
@@ -122,7 +131,7 @@ def getFileContent(path: str, digest: str) -> str:
 
 class DefaultItemRepository(ItemRepository):
 
-	def __init__(self, db, dir_tree_root_path, base_file_name='.xz', cache_size=1024):
+	def __init__(self, db: Database, dir_tree_root_path: str, base_file_name: str='.xz', cache_size: int=1024):
 		self.db = db
 		self.base_file_name = base_file_name
 		self.dir_tree_root_path = dir_tree_root_path
@@ -135,11 +144,10 @@ class DefaultItemRepository(ItemRepository):
 		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
 
 		file_absolute_path = saveToDirTree(
-			file_content=lzma.compress(item_data_bytes, filters=[
-				{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
-			]), 
+			file_content=item_data_bytes, 
 			root_dir=type_dir_path,
-			base_file_name=self.base_file_name
+			base_file_name=self.base_file_name,
+			save_file_function=setFileContent
 		)
 
 		item.metadata['file_path'] = Path(os.path.relpath(file_absolute_path, type_dir_path))
@@ -214,7 +222,7 @@ class DefaultItemRepository(ItemRepository):
 
 		return decorator
 	
-	def _drop(self, type):
+	def _drop(self, type: str) -> int:
 
 		model = Model(self.db, type)
 		if not model:

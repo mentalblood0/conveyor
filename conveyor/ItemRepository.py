@@ -1,3 +1,4 @@
+from typing import Callable
 from abc import ABCMeta, abstractmethod
 
 from . import Item
@@ -22,7 +23,6 @@ class ItemRepository(metaclass=ABCMeta):
 	def delete(self, id: str) -> int:
 		pass
 	
-	# property that should return decorator
 	@abstractmethod
-	def transaction(self):
+	def transaction(self) -> Callable[[Callable], Callable]:
 		pass
