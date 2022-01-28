@@ -27,6 +27,7 @@ class Mover(ItemsProcessor, metaclass=ABCMeta):
 			i.status = self.output_status
 			i.chain_id = input_item.chain_id
 			i.worker = self.__class__.__name__
+			i.data_digest = input_item.data_digest
 			self.repository.create(i)
 		
 		input_item.status = self.moved_status

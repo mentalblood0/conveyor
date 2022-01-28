@@ -29,4 +29,6 @@ class Transformer(ItemsProcessor, metaclass=ABCMeta):
 		if not output_item.status in self.possible_output_statuses:
 			return None
 		
+		output_item.data_digest = input_item.data_digest
+		
 		return self.repository.update(self.input_type, input_item.id, output_item)

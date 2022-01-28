@@ -1,11 +1,13 @@
 import os
 import lzma
+import base64
 from typing import Union
+from blake3 import blake3
 from growing_tree_base import *
 from functools import lru_cache
 from peewee import CharField, IntegerField, FloatField, DateTimeField, Model as Model_
 
-from .. import Item, ItemRepository, Model, Data
+from .. import Item, ItemRepository, Model
 
 
 
@@ -69,8 +71,6 @@ def getFields(item: Item) -> dict[str, Union[str, int, float]]:
 		k: v
 		for k, v in (item.metadata | item.__dict__).items()
 		if not k in ['data', 'metadata', 'type', 'id']
-	} | {
-		'data_digest': item.data.digest
 	}
 
 
@@ -94,15 +94,19 @@ def getModel(db: Model_, item: Item) -> Model_:
 	return model
 
 
-filters = [
-	{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
-]
+def getDigest(data: bytes) -> str:
+	d = blake3(data, max_threads=blake3.AUTO).digest()
+	return base64.b64encode(d).decode('ascii')
 
 
-def getFileContent(path):
+def getFileContent(path: str, digest: str) -> str:
 
 	with lzma.open(path) as f:
 		file_content = f.read()
+	
+	correct_digest = getDigest(file_content)
+	if correct_digest != digest:
+		raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{correct_digest}'")
 
 	return file_content.decode()
 
@@ -117,11 +121,14 @@ class DefaultItemRepository(ItemRepository):
 
 	def create(self, item):
 
-		data = lzma.compress(item.data.encode('utf8'), filters=filters)
+		item_data_bytes = item.data.encode('utf8')
+		item.data_digest = getDigest(item_data_bytes)
 
 		item.metadata['file_path'] = saveToDirTree(
-			data, 
-			os.path.join(self.dir_tree_root_path, item.type),
+			file_content=lzma.compress(item_data_bytes, filters=[
+				{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
+			]), 
+			root_dir=os.path.join(self.dir_tree_root_path, item.type),
 			base_file_name=self.base_file_name
 		)
 
@@ -141,14 +148,12 @@ class DefaultItemRepository(ItemRepository):
 			item_db_dict = r.__data__
 
 			item = Item(
-				id=item_db_dict['id'],
 				type=type,
 				status=status,
-				data=Data(
-					self.getFileContent(item_db_dict['file_path']),
-					digest=item_db_dict['data_digest']
-				),
-				chain_id=item_db_dict['chain_id']
+				id=item_db_dict['id'],
+				chain_id=item_db_dict['chain_id'],
+				data_digest = item_db_dict['data_digest'],
+				data=self.getFileContent(item_db_dict['file_path'], item_db_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
