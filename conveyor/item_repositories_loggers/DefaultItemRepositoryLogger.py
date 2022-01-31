@@ -1,4 +1,5 @@
 import sys
+import copy
 from loguru import logger
 from peewee import Database
 from datetime import datetime
@@ -9,21 +10,22 @@ from .. import Model, ItemRepositoryLogger
 
 
 
-logger.configure(
-	handlers=[
-		{
-			'sink': sys.stderr,
-			'format': '{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>'
-		}
-	],
-)
-
-
 class DefaultItemRepositoryLogger(ItemRepositoryLogger):
 
-	def __init__(self, db: Database, log_table_name: str='conveyor_log'):
+	def __init__(
+		self,
+		db: Database,
+		log_table_name: str='conveyor_log',
+		sink=sys.stderr,
+		format: str='{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>'
+	):
 
 		self.db = db
+		self.logger = copy.deepcopy(logger)
+		self.logger.configure(handlers=[{
+			'sink': sink,
+			'format': format
+		}])
 
 		self.model = Model(db, log_table_name, {
 			'date': DateTimeField(),
