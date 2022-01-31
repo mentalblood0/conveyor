@@ -1,5 +1,4 @@
 import sys
-import copy
 from loguru import logger
 from peewee import Database
 from datetime import datetime
@@ -8,6 +7,9 @@ from peewee import FixedCharField, DateTimeField
 from .. import Item
 from .. import Model, ItemRepositoryEffect
 
+
+
+logger.remove(0)
 
 
 class Logging(ItemRepositoryEffect):
@@ -21,12 +23,6 @@ class Logging(ItemRepositoryEffect):
 	):
 
 		self.db = db
-		self.logger = logger
-		self.logger.configure(handlers=[{
-			'sink': sink,
-			'format': format
-		}])
-
 		self.model = Model(db, log_table_name, {
 			'date': DateTimeField(),
 			'type': FixedCharField(max_length=63),
@@ -35,6 +31,12 @@ class Logging(ItemRepositoryEffect):
 			'status_old': FixedCharField(max_length=63, null=True),
 			'status_new': FixedCharField(max_length=63, null=True)
 		})
+
+		filter = lambda r: 'conveyor' in r['extra']
+		if all([h._filter.__code__.co_code != filter.__code__.co_code for h in logger._core.handlers.values()]):
+			logger.add(sink, format=format, filter=filter)
+		
+		self.logger = logger.bind(conveyor='')
 	
 	def _log_item(self, new_item: Item, old_item: Item=Item()) -> None:
 		self.model(
@@ -48,7 +50,7 @@ class Logging(ItemRepositoryEffect):
 
 	def create(self, item):
 		self._log_item(item)
-		logger.info(f'-> {item.type}::{item.status}')
+		self.logger.info(f'-> {item.type}::{item.status}')
 	
 	def update(self, type, id, item):
 		
@@ -62,7 +64,7 @@ class Logging(ItemRepositoryEffect):
 			old_item=Item(status=item_row.status)
 		)
 		
-		logger.info(f'{type}::{item_row.status.rstrip()}::{id} -> {type}::{item.status}')
+		self.logger.info(f'{type}::{item_row.status.rstrip()}::{id} -> {type}::{item.status}')
 
 	def delete(self, type, id):
 
@@ -81,4 +83,4 @@ class Logging(ItemRepositoryEffect):
 			)
 		)
 
-		logger.info(f'{type}::{item_row.status.rstrip()}::{id} ->')
+		self.logger.info(f'{type}::{item_row.status.rstrip()}::{id} ->')
