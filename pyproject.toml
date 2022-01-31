@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "conveyor"
+version = "1.0.0"
+description = "Library for creating cold-pipeline-oriented systems"
+authors = ["necheporenko_s_iu <neceporenkostepan@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+peewee = "^3.14.8"
+growing-tree-base-mentalblood = "^1.9"
+blake3 = "0.3.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "work"
+url = "http://10.8.5.172:8081/simple"
