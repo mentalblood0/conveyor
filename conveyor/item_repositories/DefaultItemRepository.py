@@ -4,11 +4,10 @@ import base64
 import growing_tree_base
 from typing import Union
 from blake3 import blake3
-from datetime import datetime
 from functools import lru_cache
 from dataclasses import dataclass
 from peewee import Database, Model as Model_
-from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTimeField
+from peewee import CharField, FixedCharField, IntegerField, FloatField
 
 from .. import Item, ItemRepository, Model
 

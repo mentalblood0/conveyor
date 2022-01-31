@@ -105,14 +105,16 @@ def test_mover_transaction():
 		host=config.db['host'], 
 		port=config.db['port']
 	)
+
 	repository = DefaultItemRepository(
 		db=db,
 		dir_tree_root_path=dir_tree_root_path
 	)
-
 	repository._drop('conveyor_log')
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
+
+	DefaultItemRepositoryLogger(db).install(repository)
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository)
@@ -122,13 +124,17 @@ def test_mover_transaction():
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
 	
+	print('-- file_saver')
 	assert file_saver(text)
+	print('-- xml_verifier')
 	assert len(xml_verifier()) == 1
+	print('-- typer')
 	assert len(typer()) == 1
 
 	def crash(*args, **kwargs):
 		raise Exception
 	repository.update = crash
+	print('-- mover')
 	assert len(mover()) == 0
 	assert len(repository.get(mover.output_type, mover.output_status)) == 0
 
