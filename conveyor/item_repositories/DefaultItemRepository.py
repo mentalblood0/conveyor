@@ -4,6 +4,7 @@ import base64
 import growing_tree_base
 from typing import Union
 from blake3 import blake3
+from datetime import datetime
 from functools import lru_cache
 from dataclasses import dataclass
 from peewee import Database, Model as Model_
@@ -11,61 +12,6 @@ from peewee import CharField, FixedCharField, IntegerField, FloatField, DateTime
 
 from .. import Item, ItemRepository, Model
 
-
-
-def installLoggingCommon(db: Database, log_table_name: str='conveyor_log') -> None:
-
-	log_model = Model(db, log_table_name, {
-		'date': DateTimeField(),
-		'chain_id': FixedCharField(max_length=63),
-		'worker': FixedCharField(max_length=63, null=True),
-		'type': FixedCharField(max_length=63),
-		'status_old': FixedCharField(max_length=63, null=True),
-		'status_new': FixedCharField(max_length=63, null=True)
-	})
-	if not log_model.table_exists():
-		db.create_tables([log_model])
-
-	db.execute_sql('''
-		CREATE OR REPLACE FUNCTION conveyor_log_function()
-			RETURNS trigger as $$
-			BEGIN
-				INSERT INTO conveyor_log (
-					date,
-					chain_id,
-					worker,
-					type,
-					status_old,
-					status_new
-				)
-				VALUES (
-					NOW()::timestamp,
-					GREATEST(OLD.chain_id, NEW.chain_id),
-					NEW.worker,
-					TG_TABLE_NAME,
-					OLD.status,
-					NEW.status
-				);
-				RETURN NEW;
-			END;
-			$$ LANGUAGE 'plpgsql';
-		'''
-	)
-
-
-def installLoggingForTable(db: Database, table_name: str) -> None:
-
-	db.execute_sql(f'''
-		CREATE OR REPLACE TRIGGER conveyor_log_trigger
-			AFTER 
-				INSERT OR 
-				UPDATE OR 
-				DELETE 
-			ON {table_name}
-			FOR EACH ROW
-			EXECUTE PROCEDURE conveyor_log_function();
-		'''
-	)
 
 
 class Path(str):
@@ -110,8 +56,6 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 	model = Model(db, item.type, columns)
 	if not model.table_exists():
 		db.create_tables([model])
-		installLoggingCommon(db)
-		installLoggingForTable(db, model.__name__)
 
 	return model
 
