@@ -33,8 +33,6 @@ class DefaultItemRepositoryLogger(ItemRepositoryLogger):
 			'status_old': FixedCharField(max_length=63, null=True),
 			'status_new': FixedCharField(max_length=63, null=True)
 		})
-		if not self.model.table_exists():
-			db.create_tables([self.model])
 	
 	def _log_item(self, new_item: Item, old_item: Item=Item()) -> None:
 		self.model(

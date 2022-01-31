@@ -15,10 +15,14 @@ class Model(Model_):
 				return models[name]
 
 		else:
-			return type(
+			result = type(
 				name,
 				(Model_,),
 				{
 					'Meta': type('Meta', (), {'database': db})
 				} | columns
 			)
+			if not result.table_exists():
+				db.create_tables([result])
+			
+			return result
