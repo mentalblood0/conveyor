@@ -16,7 +16,7 @@ def sequence(functions):
 	return new_f
 
 
-class ItemRepositoryLogger(metaclass=ABCMeta):
+class ItemRepositoryEffect(metaclass=ABCMeta):
 
 	def install(self, repository: ItemRepository, *args, **kwargs) -> ItemRepository:
 		

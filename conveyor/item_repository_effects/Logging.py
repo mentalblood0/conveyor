@@ -6,11 +6,11 @@ from datetime import datetime
 from peewee import FixedCharField, DateTimeField
 
 from .. import Item
-from .. import Model, ItemRepositoryLogger
+from .. import Model, ItemRepositoryEffect
 
 
 
-class DefaultItemRepositoryLogger(ItemRepositoryLogger):
+class Logging(ItemRepositoryEffect):
 
 	def __init__(
 		self,
@@ -21,7 +21,7 @@ class DefaultItemRepositoryLogger(ItemRepositoryLogger):
 	):
 
 		self.db = db
-		self.logger = copy.deepcopy(logger)
+		self.logger = logger
 		self.logger.configure(handlers=[{
 			'sink': sink,
 			'format': format
