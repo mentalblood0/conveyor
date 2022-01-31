@@ -23,7 +23,6 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 			try:
 				i_result = self.processItem(i)
 				result.append(i_result)
-				logger.info(f'{self.__class__.__name__} => {i_result}')
 			except Exception as e:
 				logger.error(e)
 				continue

@@ -6,8 +6,8 @@ class Item:
 
 	id: str = ''
 	chain_id: str = ''
-	type: str = 'undefined'
-	status: str = 'created'
+	type: str = ''
+	status: str = ''
 	worker: str = ''
 
 	data: str = ''
