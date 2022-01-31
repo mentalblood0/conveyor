@@ -9,9 +9,6 @@ from .. import Model, ItemRepositoryEffect
 
 
 
-logger.remove(0)
-
-
 class Logging(ItemRepositoryEffect):
 
 	def __init__(
@@ -19,7 +16,8 @@ class Logging(ItemRepositoryEffect):
 		db: Database,
 		log_table_name: str='conveyor_log',
 		sink=sys.stderr,
-		format: str='{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>'
+		format: str='{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>',
+		remove_default_handler=True
 	):
 
 		self.db = db
@@ -32,8 +30,18 @@ class Logging(ItemRepositoryEffect):
 			'status_new': FixedCharField(max_length=63, null=True)
 		})
 
+		if remove_default_handler:
+			try:
+				logger.remove(0)
+			except ValueError:
+				pass
+
 		filter = lambda r: 'conveyor' in r['extra']
-		if all([h._filter.__code__.co_code != filter.__code__.co_code for h in logger._core.handlers.values()]):
+		if all([
+			(not h._filter) or
+			(h._filter.__code__.co_code != filter.__code__.co_code)
+			for h in logger._core.handlers.values()
+		]):
 			logger.add(sink, format=format, filter=filter)
 		
 		self.logger = logger.bind(conveyor='')
