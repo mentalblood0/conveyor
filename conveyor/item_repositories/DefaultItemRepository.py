@@ -44,9 +44,9 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns |= {
 		k: {
-			str: CharField(default='', null=True),
-			int: IntegerField(default=0, null=True),
-			float: FloatField(default=0.0, null=True),
+			str: CharField(default=None, null=True),
+			int: IntegerField(default=None, null=True),
+			float: FloatField(default=None, null=True),
 			Path: FixedCharField(max_length=path_length)
 		}[type(v)]
 		for k, v in item.metadata.items()
