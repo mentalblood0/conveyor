@@ -29,10 +29,10 @@ class DbLogging(ItemRepositoryEffect):
 		self.model(
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
-			worker=new_item.worker,
+			worker=new_item.worker or None,
 			type=new_item.type,
-			status_old=old_item.status,
-			status_new=new_item.status
+			status_old=old_item.status or None,
+			status_new=new_item.status or None
 		).save()
 
 	def create(self, item):
