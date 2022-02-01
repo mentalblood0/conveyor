@@ -23,7 +23,7 @@ class Path(str):
 
 def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	return {
-		k: v
+		k: v or None
 		for k, v in (item.metadata | item.__dict__).items()
 		if not k in ['data', 'metadata', 'type', 'id']
 	}
@@ -44,9 +44,9 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns |= {
 		k: {
-			str: CharField(default=''),
-			int: IntegerField(default=0),
-			float: FloatField(default=0.0),
+			str: CharField(default='', null=True),
+			int: IntegerField(default=0, null=True),
+			float: FloatField(default=0.0, null=True),
 			Path: FixedCharField(max_length=path_length)
 		}[type(v)]
 		for k, v in item.metadata.items()
