@@ -20,15 +20,17 @@ class DbLogging(ItemRepositoryEffect):
 			'date': DateTimeField(),
 			'type': FixedCharField(max_length=63),
 			'chain_id': FixedCharField(max_length=63),
+			'action': FixedCharField(max_length=8),
 			'worker': FixedCharField(max_length=63, null=True),
 			'status_old': FixedCharField(max_length=63, null=True),
 			'status_new': FixedCharField(max_length=63, null=True)
 		})
 	
-	def _logItem(self, new_item: Item, old_item: Item=Item()) -> None:
+	def _logItem(self, action: str, new_item: Item, old_item: Item=Item()) -> None:
 		self.model(
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
+			action=action,
 			worker=new_item.worker or None,
 			type=new_item.type,
 			status_old=old_item.status or None,
@@ -36,7 +38,7 @@ class DbLogging(ItemRepositoryEffect):
 		).save()
 
 	def create(self, item):
-		self._logItem(item)
+		self._logItem('create', item)
 	
 	def update(self, type, id, item):
 		
@@ -46,6 +48,7 @@ class DbLogging(ItemRepositoryEffect):
 
 		item_row = model.select(model.status).where(model.id==id).get()
 		self._logItem(
+			action='update',
 			new_item=item,
 			old_item=Item(status=item_row.status)
 		)
@@ -58,6 +61,7 @@ class DbLogging(ItemRepositoryEffect):
 
 		item_row = model.select(model.status, model.chain_id).where(model.id==id).get()
 		self._logItem(
+			action='delete',
 			new_item=Item(
 				type=type,
 				chain_id=item_row.chain_id
