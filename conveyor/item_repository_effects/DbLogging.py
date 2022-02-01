@@ -1,5 +1,3 @@
-import sys
-from loguru import logger
 from peewee import Database
 from datetime import datetime
 from peewee import FixedCharField, DateTimeField
@@ -9,15 +7,12 @@ from .. import Model, ItemRepositoryEffect
 
 
 
-class Logging(ItemRepositoryEffect):
+class DbLogging(ItemRepositoryEffect):
 
 	def __init__(
 		self,
 		db: Database,
-		log_table_name: str='conveyor_log',
-		sink=sys.stderr,
-		format: str='{time:YYYY-MM-DD HH:mm:ss.SSS} | <level>{message}</level>',
-		remove_default_handler=True
+		log_table_name: str='conveyor_log'
 	):
 
 		self.db = db
@@ -29,24 +24,8 @@ class Logging(ItemRepositoryEffect):
 			'status_old': FixedCharField(max_length=63, null=True),
 			'status_new': FixedCharField(max_length=63, null=True)
 		})
-
-		if remove_default_handler:
-			try:
-				logger.remove(0)
-			except ValueError:
-				pass
-
-		filter = lambda r: 'conveyor' in r['extra']
-		if all([
-			(not h._filter) or
-			(h._filter.__code__.co_code != filter.__code__.co_code)
-			for h in logger._core.handlers.values()
-		]):
-			logger.add(sink, format=format, filter=filter)
-		
-		self.logger = logger.bind(conveyor='')
 	
-	def _log_item(self, new_item: Item, old_item: Item=Item()) -> None:
+	def _logItem(self, new_item: Item, old_item: Item=Item()) -> None:
 		self.model(
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
@@ -57,8 +36,7 @@ class Logging(ItemRepositoryEffect):
 		).save()
 
 	def create(self, item):
-		self._log_item(item)
-		self.logger.info(f'-> {item.type}::{item.status}')
+		self._logItem(item)
 	
 	def update(self, type, id, item):
 		
@@ -67,12 +45,10 @@ class Logging(ItemRepositoryEffect):
 			return None
 
 		item_row = model.select(model.status).where(model.id==id).get()
-		self._log_item(
+		self._logItem(
 			new_item=item,
 			old_item=Item(status=item_row.status)
 		)
-		
-		self.logger.info(f'{type}::{item_row.status.rstrip()}::{id} -> {type}::{item.status}')
 
 	def delete(self, type, id):
 
@@ -81,7 +57,7 @@ class Logging(ItemRepositoryEffect):
 			return None
 
 		item_row = model.select(model.status, model.chain_id).where(model.id==id).get()
-		self._log_item(
+		self._logItem(
 			new_item=Item(
 				type=type,
 				chain_id=item_row.chain_id
@@ -90,5 +66,3 @@ class Logging(ItemRepositoryEffect):
 				status=item_row.status
 			)
 		)
-
-		self.logger.info(f'{type}::{item_row.status.rstrip()}::{id} ->')

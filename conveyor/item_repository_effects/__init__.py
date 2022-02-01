@@ -1,6 +1,8 @@
-from .Logging import Logging
+from .SimpleLogging import SimpleLogging
+from .DbLogging import DbLogging
 
 
 all = [
-	'Logging'
+	'SimpleLogging',
+	'DbLogging'
 ]

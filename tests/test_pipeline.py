@@ -5,9 +5,9 @@ from peewee import PostgresqlDatabase, OperationalError
 
 from tests import config
 from tests.example_workers import *
-from conveyor.item_repository_effects import Logging
 from conveyor.workers.factories import DestroyerFactory
 from conveyor.item_repositories import DefaultItemRepository
+from conveyor.item_repository_effects import SimpleLogging, DbLogging
 
 
 
@@ -62,7 +62,8 @@ def test_correct():
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
 
-	Logging(db).install(repository)
+	DbLogging(db).install(repository)
+	SimpleLogging().install(repository)
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository, one_call_items_limit=10)
@@ -114,7 +115,8 @@ def test_mover_transaction():
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
 
-	Logging(db).install(repository)
+	DbLogging(db).install(repository)
+	SimpleLogging().install(repository)
 
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository)
