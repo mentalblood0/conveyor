@@ -1,6 +1,6 @@
 from peewee import Database
 from datetime import datetime
-from peewee import FixedCharField, DateTimeField
+from peewee import CharField, DateTimeField
 
 from .. import Item
 from .. import Model, ItemRepositoryEffect
@@ -18,12 +18,12 @@ class DbLogging(ItemRepositoryEffect):
 		self.db = db
 		self.model = Model(db, log_table_name, {
 			'date': DateTimeField(),
-			'type': FixedCharField(max_length=63),
-			'chain_id': FixedCharField(max_length=63),
-			'action': FixedCharField(max_length=8),
-			'worker': FixedCharField(max_length=63, null=True),
-			'status_old': FixedCharField(max_length=63, null=True),
-			'status_new': FixedCharField(max_length=63, null=True)
+			'type': CharField(max_length=63),
+			'chain_id': CharField(max_length=63),
+			'action': CharField(max_length=8),
+			'worker': CharField(max_length=63, null=True),
+			'status_old': CharField(max_length=63, null=True),
+			'status_new': CharField(max_length=63, null=True)
 		})
 	
 	def _logItem(self, action: str, new_item: Item, old_item: Item=Item()) -> None:

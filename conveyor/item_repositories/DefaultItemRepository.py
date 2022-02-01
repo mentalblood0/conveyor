@@ -7,7 +7,7 @@ from blake3 import blake3
 from functools import lru_cache
 from dataclasses import dataclass
 from peewee import Database, Model as Model_
-from peewee import CharField, FixedCharField, IntegerField, FloatField
+from peewee import CharField, CharField, IntegerField, FloatField
 
 from .. import Item, ItemRepository, Model
 
@@ -33,10 +33,10 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns = {
 		k: {
-			'chain_id': FixedCharField(max_length=63),
-			'status': FixedCharField(max_length=63),
-			'worker': FixedCharField(max_length=63),
-			'data_digest': FixedCharField(max_length=63)
+			'chain_id': CharField(max_length=63),
+			'status': CharField(max_length=63),
+			'worker': CharField(max_length=63),
+			'data_digest': CharField(max_length=63)
 		}[k]
 		for k in item.__dict__
 		if not k in ['data', 'metadata', 'type', 'id']
@@ -47,7 +47,7 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 			str: CharField(default=None, null=True),
 			int: IntegerField(default=None, null=True),
 			float: FloatField(default=None, null=True),
-			Path: FixedCharField(max_length=path_length)
+			Path: CharField(max_length=path_length)
 		}[type(v)]
 		for k, v in item.metadata.items()
 	}
@@ -131,7 +131,7 @@ class DefaultItemRepository(ItemRepository):
 		for r in query_result:
 
 			r_dict = {
-				k: v.rstrip() if v.__class__ == str else v
+				k: v if v.__class__ == str else v
 				for k, v in r.__data__.items()
 			}
 
