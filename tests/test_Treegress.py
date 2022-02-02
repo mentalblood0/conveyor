@@ -1,17 +1,17 @@
 import shutil
 from peewee import PostgresqlDatabase
 from conveyor import Item
-from conveyor.item_repositories import Treegres
+from conveyor.repositories import Treegres
 
 from . import config
 
 
 
 db = PostgresqlDatabase(
-	config.db['db'], 
-	user=config.db['user'], 
-	password=config.db['password'], 
-	host=config.db['host'], 
+	config.db['db'],
+	user=config.db['user'],
+	password=config.db['password'],
+	host=config.db['host'],
 	port=config.db['port']
 )
 dir_tree_root_path = 'dir_tree'

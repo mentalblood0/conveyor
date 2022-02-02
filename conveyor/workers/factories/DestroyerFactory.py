@@ -8,7 +8,7 @@ class DestroyerFactory:
 	def __call__(self, input_type, input_status):
 		return type(
 			'__'.join([
-				'Destoyer', 
+				'Destoyer',
 				input_type,
 				input_status
 			]),

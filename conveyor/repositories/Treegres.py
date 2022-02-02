@@ -105,7 +105,7 @@ class Treegres(Repository):
 		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
 
 		file_absolute_path = growing_tree_base.saveToDirTree(
-			file_content=item_data_bytes, 
+			file_content=item_data_bytes,
 			root_dir=type_dir_path,
 			base_file_name=self.base_file_name,
 			save_file_function=setFileContent,
