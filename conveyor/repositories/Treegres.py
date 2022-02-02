@@ -35,7 +35,6 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 		k: {
 			'chain_id': CharField(max_length=63),
 			'status': CharField(max_length=63),
-			'worker': CharField(max_length=63),
 			'data_digest': CharField(max_length=63)
 		}[k]
 		for k in item.__dict__
