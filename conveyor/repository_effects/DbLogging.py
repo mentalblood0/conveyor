@@ -21,7 +21,6 @@ class DbLogging(RepositoryEffect):
 			'type': CharField(max_length=63),
 			'chain_id': CharField(max_length=63),
 			'action': CharField(max_length=8),
-			'worker': CharField(max_length=63, null=True),
 			'status_old': CharField(max_length=63, null=True),
 			'status_new': CharField(max_length=63, null=True)
 		})
@@ -31,7 +30,6 @@ class DbLogging(RepositoryEffect):
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
 			action=action,
-			worker=new_item.worker or None,
 			type=new_item.type,
 			status_old=old_item.status or None,
 			status_new=new_item.status or None

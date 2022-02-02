@@ -31,6 +31,5 @@ class Creator(metaclass=ABCMeta):
 			str(datetime.utcnow()),
 			uuid.uuid4().hex
 		])
-		item.worker = self.__class__.__name__
 		
 		return self.repository.create(item)

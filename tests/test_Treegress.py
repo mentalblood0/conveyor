@@ -31,7 +31,6 @@ def test_create():
 	item = Item(
 		type=type,
 		status='created',
-		worker='wwworker',
 		chain_id='ideeee',
 		data='lalala',
 		data_digest='lololo',
@@ -54,7 +53,6 @@ def test_get():
 	item = Item(
 		type=type,
 		status=status,
-		worker='wwworker',
 		chain_id='ideeee',
 		data='lalala',
 		data_digest='lololo',
@@ -78,7 +76,6 @@ def test_delete():
 	assert repository.create(Item(
 		type=type,
 		status=status,
-		worker='wwworker',
 		chain_id='ideeee',
 		data='lalala',
 		data_digest='lololo',

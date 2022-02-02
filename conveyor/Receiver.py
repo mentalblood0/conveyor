@@ -14,9 +14,8 @@ class Receiver(metaclass=ABCMeta):
 		self.one_call_items_limit = one_call_items_limit
 
 	def receiveItems(self) -> list[Item]:
-		
-		result = self.repository.get(self.input_type, self.input_status, limit=self.one_call_items_limit)
-		for i in result:
-			i.worker = self.__class__.__name__
-		
-		return result
+		return self.repository.get(
+			self.input_type,
+			self.input_status,
+			self.one_call_items_limit
+		)
