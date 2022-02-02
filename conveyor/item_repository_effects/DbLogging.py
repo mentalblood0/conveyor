@@ -3,11 +3,11 @@ from datetime import datetime
 from peewee import CharField, DateTimeField
 
 from .. import Item
-from .. import Model, ItemRepositoryEffect
+from .. import Model, RepositoryEffect
 
 
 
-class DbLogging(ItemRepositoryEffect):
+class DbLogging(RepositoryEffect):
 
 	def __init__(
 		self,

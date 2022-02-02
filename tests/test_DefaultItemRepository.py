@@ -1,7 +1,7 @@
 import shutil
 from peewee import PostgresqlDatabase
 from conveyor import Item
-from conveyor.item_repositories import DefaultItemRepository
+from conveyor.item_repositories import Treegres
 
 from . import config
 
@@ -15,7 +15,7 @@ db = PostgresqlDatabase(
 	port=config.db['port']
 )
 dir_tree_root_path = 'dir_tree'
-repository = DefaultItemRepository(
+repository = Treegres(
 	db=db,
 	dir_tree_root_path=dir_tree_root_path
 )

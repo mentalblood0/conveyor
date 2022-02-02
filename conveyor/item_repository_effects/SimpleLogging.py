@@ -2,7 +2,7 @@ import sys
 from loguru import logger
 from threading import Lock
 
-from .. import ItemRepositoryEffect
+from .. import RepositoryEffect
 
 
 
@@ -16,7 +16,7 @@ class lock:
 		return self.lock
 
 
-class SimpleLogging(ItemRepositoryEffect):
+class SimpleLogging(RepositoryEffect):
 
 	def __init__(
 		self,

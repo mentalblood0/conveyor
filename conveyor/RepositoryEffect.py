@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from . import Item, ItemRepository
+from . import Item, Repository
 
 
 
@@ -16,9 +16,9 @@ def sequence(functions):
 	return new_f
 
 
-class ItemRepositoryEffect(metaclass=ABCMeta):
+class RepositoryEffect(metaclass=ABCMeta):
 
-	def install(self, repository: ItemRepository, *args, **kwargs) -> ItemRepository:
+	def install(self, repository: Repository, *args, **kwargs) -> Repository:
 		
 		for name in ['create', 'update', 'delete']:
 			setattr(repository, name, sequence([

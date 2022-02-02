@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from peewee import Database, Model as Model_
 from peewee import CharField, CharField, IntegerField, FloatField
 
-from .. import Item, ItemRepository, Model
+from .. import Item, Repository, Model
 
 
 
@@ -83,7 +83,7 @@ def getFileContent(path: str, digest: str) -> str:
 
 
 @dataclass
-class DefaultItemRepository(ItemRepository):
+class Treegres(Repository):
 
 	db: Database
 	dir_tree_root_path: str

@@ -1,11 +1,11 @@
 from loguru import logger
 from abc import ABCMeta, abstractmethod
 
-from . import Item, ItemsReceiver
+from . import Item, Receiver
 
 
 
-class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
+class Processor(Receiver, metaclass=ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

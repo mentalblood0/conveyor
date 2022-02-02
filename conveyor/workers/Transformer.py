@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, ItemsProcessor
+from .. import Item, Processor
 
 
 
-class Transformer(ItemsProcessor, metaclass=ABCMeta):
+class Transformer(Processor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str

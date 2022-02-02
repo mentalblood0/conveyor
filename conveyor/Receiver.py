@@ -1,15 +1,15 @@
 from abc import ABCMeta
 
-from . import Item, ItemRepository
+from . import Item, Repository
 
 
 
-class ItemsReceiver(metaclass=ABCMeta):
+class Receiver(metaclass=ABCMeta):
 
 	input_type: str = 'undefined'
 	input_status: str = 'created'
 
-	def __init__(self, repository: ItemRepository, one_call_items_limit: int = 64) -> None:
+	def __init__(self, repository: Repository, one_call_items_limit: int = 64) -> None:
 		self.repository = repository
 		self.one_call_items_limit = one_call_items_limit
 

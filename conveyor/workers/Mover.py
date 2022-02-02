@@ -1,11 +1,11 @@
 from abc import ABCMeta
 from copy import deepcopy
 
-from .. import Item, ItemsProcessor
+from .. import Item, Processor
 
 
 
-class Mover(ItemsProcessor, metaclass=ABCMeta):
+class Mover(Processor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str

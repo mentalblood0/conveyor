@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, ItemRepository
+from .. import Item, Repository
 
 
 
@@ -11,7 +11,7 @@ class Creator(metaclass=ABCMeta):
 	output_type: str = 'undefined'
 	output_status: str = 'created'
 
-	def __init__(self, repository: ItemRepository) -> None:
+	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
 
 	@abstractmethod

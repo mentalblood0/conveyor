@@ -6,7 +6,7 @@ from peewee import PostgresqlDatabase, OperationalError
 from tests import config
 from tests.example_workers import *
 from conveyor.workers.factories import DestroyerFactory
-from conveyor.item_repositories import DefaultItemRepository
+from conveyor.item_repositories import Treegres
 from conveyor.item_repository_effects import SimpleLogging, DbLogging
 
 
@@ -26,7 +26,7 @@ dir_tree_root_path = 'dir_tree'
 # 		host=config.db['host'], 
 # 		port=config.db['port']
 # 	)
-# 	repository = DefaultItemRepository(
+# 	repository = Treegres(
 # 		db=db,
 # 		dir_tree_root_path=dir_tree_root_path
 # 	)	
@@ -54,7 +54,7 @@ def test_correct():
 		port=config.db['port']
 	)
 
-	repository = DefaultItemRepository(
+	repository = Treegres(
 		db=db,
 		dir_tree_root_path=dir_tree_root_path
 	)
@@ -94,8 +94,6 @@ def test_correct():
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	assert False
-
 
 def test_mover_transaction():
 
@@ -109,7 +107,7 @@ def test_mover_transaction():
 		port=config.db['port']
 	)
 
-	repository = DefaultItemRepository(
+	repository = Treegres(
 		db=db,
 		dir_tree_root_path=dir_tree_root_path
 	)

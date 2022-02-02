@@ -1,6 +1,6 @@
-from .DefaultItemRepository import DefaultItemRepository
+from .Treegres import Treegres
 
 
 all = [
-	'DefaultItemRepository'
+	'Treegres'
 ]

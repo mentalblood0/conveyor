@@ -5,7 +5,7 @@ from . import Item
 
 
 
-class ItemRepository(metaclass=ABCMeta):
+class Repository(metaclass=ABCMeta):
 
 	@abstractmethod
 	def create(self, item: Item) -> int:
