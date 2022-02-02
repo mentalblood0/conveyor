@@ -23,7 +23,7 @@ class Path(str):
 
 def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	return {
-		k: v or None
+		k: v or (None if type(v) == str else v)
 		for k, v in (item.metadata | item.__dict__).items()
 		if not k in ['data', 'metadata', 'type', 'id']
 	}
@@ -53,8 +53,6 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 	}
 
 	model = Model(db, item.type, columns)
-	if not model.table_exists():
-		db.create_tables([model])
 
 	return model
 

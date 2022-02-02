@@ -19,7 +19,12 @@ class ItemsProcessor(ItemsReceiver, metaclass=ABCMeta):
 
 		result = []
 
-		for i in self.receiveItems():
+		try:
+			items = self.receiveItems()
+		except Exception as e:
+			return result
+
+		for i in items:
 			try:
 				i_result = self.processItem(i)
 				result.append(i_result)

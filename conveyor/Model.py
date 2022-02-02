@@ -23,6 +23,10 @@ class Model(Model_):
 				} | columns
 			)
 			if not result.table_exists():
-				db.create_tables([result])
+				with db.transaction():
+					try:
+						db.create_tables([result])
+					except Exception as e:
+						pass
 			
 			return result
