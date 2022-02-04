@@ -12,5 +12,5 @@ __all__ = [
 	'Item',
 	'Repository',
 	'RepositoryEffect',
-	'ItemReceiver'
+	'Receiver'
 ]

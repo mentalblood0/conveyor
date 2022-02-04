@@ -15,7 +15,7 @@ class Transformer(Processor, metaclass=ABCMeta):
 	def transform(self, item: Item) -> Item:
 		pass
 	
-	def processItem(self, input_item: Item) -> int:
+	def processItem(self, input_item: Item) -> int | None:
 
 		output_item = self.transform(input_item)
 		if output_item == None:

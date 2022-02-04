@@ -12,16 +12,17 @@ class Processor(Receiver, metaclass=ABCMeta):
 		self.processItem = self.repository.transaction(self.processItem)
 
 	@abstractmethod
-	def processItem(self, item: Item):
+	def processItem(self, item: Item) -> Item | str | None:
 		pass
 
-	def __call__(self) -> list:
+	def __call__(self) -> list[Item]:
 
 		result = []
 
 		try:
 			items = self.receiveItems()
 		except Exception as e:
+			logger.error(f'receiveItems: {e}')
 			return result
 
 		for i in items:
@@ -29,7 +30,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 				i_result = self.processItem(i)
 				result.append(i_result)
 			except Exception as e:
-				logger.error(e)
+				logger.error(f'processItem: {e}')
 				continue
 		
 		return result

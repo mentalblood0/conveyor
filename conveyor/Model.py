@@ -26,7 +26,7 @@ class Model(Model_):
 				with db.transaction():
 					try:
 						db.create_tables([result])
-					except Exception as e:
+					except Exception:
 						pass
 			
 			return result

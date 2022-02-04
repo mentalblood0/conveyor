@@ -7,7 +7,7 @@ from blake3 import blake3
 from functools import lru_cache
 from dataclasses import dataclass
 from peewee import Database, Model as Model_
-from peewee import CharField, CharField, IntegerField, FloatField
+from peewee import CharField, IntegerField, FloatField
 
 from .. import Item, Repository, Model
 

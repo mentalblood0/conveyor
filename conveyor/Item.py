@@ -13,4 +13,4 @@ class Item:
 	data: str = ''
 	data_digest: str = ''
 
-	metadata: dict = None
+	metadata: dict | None = None
