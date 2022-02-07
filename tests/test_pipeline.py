@@ -75,6 +75,7 @@ def test_correct():
 		text = f.read()
 	
 	assert file_saver(text)
+	# assert False
 	assert len(xml_verifier()) == 1
 	assert len(typer()) == 1
 	assert len(mover()) == 1

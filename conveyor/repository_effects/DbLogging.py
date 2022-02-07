@@ -17,12 +17,12 @@ class DbLogging(RepositoryEffect):
 
 		self.db = db
 		self.model = Model(db, log_table_name, {
-			'date': DateTimeField(),
-			'type': CharField(max_length=63),
-			'chain_id': CharField(max_length=63),
-			'action': CharField(max_length=8),
+			'date': DateTimeField(index=True),
+			'type': CharField(max_length=63, index=True),
+			'chain_id': CharField(max_length=63, index=True),
+			'action': CharField(max_length=8, index=True),
 			'status_old': CharField(max_length=63, null=True),
-			'status_new': CharField(max_length=63, null=True)
+			'status_new': CharField(max_length=63, null=True, index=True)
 		})
 	
 	def _logItem(self, action: str, new_item: Item, old_item: Item=Item()) -> None:

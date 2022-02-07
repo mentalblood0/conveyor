@@ -33,8 +33,8 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 
 	columns = {
 		k: {
-			'chain_id': CharField(max_length=63),
-			'status': CharField(max_length=63),
+			'chain_id': CharField(max_length=63, index=True),
+			'status': CharField(max_length=63, index=True),
 			'data_digest': CharField(max_length=63)
 		}[k]
 		for k in item.__dict__
@@ -52,6 +52,14 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 	}
 
 	model = Model(db, item.type, columns)
+
+	# print(model)
+	# print(dir(model))
+	# print([e for e in dir(model) if 'index' in e])
+	# print()
+	# print(db)
+	# print(dir(db))
+	# print([e for e in dir(db) if 'index' in e])
 
 	return model
 
