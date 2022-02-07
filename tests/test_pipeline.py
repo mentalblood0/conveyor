@@ -94,6 +94,8 @@ def test_correct():
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
+	assert False
+
 
 def test_mover_transaction():
 
