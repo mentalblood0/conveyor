@@ -39,9 +39,7 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 		}[k]
 		for k in item.__dict__
 		if not k in ['data', 'metadata', 'type', 'id']
-	}
-
-	columns |= {
+	} | {
 		k: {
 			str: CharField(default=None, null=True),
 			int: IntegerField(default=None, null=True),
@@ -51,17 +49,7 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 		for k, v in item.metadata.items()
 	}
 
-	model = Model(db, item.type, columns)
-
-	# print(model)
-	# print(dir(model))
-	# print([e for e in dir(model) if 'index' in e])
-	# print()
-	# print(db)
-	# print(dir(db))
-	# print([e for e in dir(db) if 'index' in e])
-
-	return model
+	return Model(db, item.type, columns)
 
 
 def getDigest(data: bytes) -> str:
