@@ -5,7 +5,7 @@ import growing_tree_base
 from typing import Union
 from blake3 import blake3
 from functools import lru_cache
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from peewee import Database, Model as Model_
 from peewee import CharField, IntegerField, FloatField
 
@@ -24,7 +24,7 @@ class Path(str):
 def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	return {
 		k: v or (None if type(v) == str else v)
-		for k, v in (item.metadata | item.__dict__).items()
+		for k, v in (item.metadata | asdict(item)).items()
 		if not k in ['data', 'metadata', 'type', 'id']
 	}
 
@@ -37,7 +37,7 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 			'status': CharField(max_length=63, index=True),
 			'data_digest': CharField(max_length=63)
 		}[k]
-		for k in item.__dict__
+		for k in asdict(item)
 		if not k in ['data', 'metadata', 'type', 'id']
 	} | {
 		k: {
@@ -141,7 +141,7 @@ class Treegres(Repository):
 			item.metadata = {
 				k: v
 				for k, v in r_dict.items()
-				if not k in [*item.__dict__.keys()]
+				if not k in [*asdict(item).keys()]
 			}
 
 			result.append(item)
