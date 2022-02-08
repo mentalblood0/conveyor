@@ -22,7 +22,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			logger.error(f'receiveItems: {e}')
+			logger.error(f'{self.__class__.__name__}.receiveItems: {e}')
 			return result
 
 		for i in items:
@@ -30,7 +30,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 				i_result = self.processItem(i)
 				result.append(i_result)
 			except Exception as e:
-				logger.error(f'processItem: {e}')
+				logger.error(f'{self.__class__.__name__}.processItem: {e}')
 				continue
 		
 		return result

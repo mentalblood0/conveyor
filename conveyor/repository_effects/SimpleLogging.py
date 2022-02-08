@@ -48,7 +48,7 @@ class SimpleLogging(RepositoryEffect):
 				
 				if all([
 					(not h._filter) or
-					(h._filter.__code__.co_consts != filter.__code__.co_consts)
+					(h._filter.__code__ != filter.__code__)
 					for h in logger._core.handlers.values()
 				]):
 					logger.add(
