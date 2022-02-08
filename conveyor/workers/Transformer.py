@@ -1,3 +1,4 @@
+import dataclasses
 from abc import ABCMeta, abstractmethod
 
 from .. import Item, Processor
@@ -12,7 +13,7 @@ class Transformer(Processor, metaclass=ABCMeta):
 	possible_output_statuses: list[str]
 
 	@abstractmethod
-	def transform(self, item: Item) -> Item:
+	def transform(self, item: Item) -> Item | str:
 		pass
 	
 	def processItem(self, input_item: Item) -> int | None:
@@ -21,14 +22,27 @@ class Transformer(Processor, metaclass=ABCMeta):
 		if output_item == None:
 			return None
 		
-		if type(output_item) == str:
-			output_status = output_item
-			output_item = input_item
-			output_item.status = output_status
-
-		if not output_item.status in self.possible_output_statuses:
-			return None
+		if type(output_item) == Item:
+			
+			output_status = output_item.status
+			if not output_status in self.possible_output_statuses:
+				return None
+			
+			output_item = dataclasses.replace(
+				input_item,
+				status=output_status,
+				metadata=output_item.metadata
+			)
 		
-		output_item.data_digest = input_item.data_digest
+		elif type(output_item) == str:
+			
+			output_status = output_item
+			if not output_status in self.possible_output_statuses:
+				return None
+			
+			output_item = dataclasses.replace(
+				input_item,
+				status=output_status
+			)
 		
 		return self.repository.update(self.input_type, input_item.id, output_item)

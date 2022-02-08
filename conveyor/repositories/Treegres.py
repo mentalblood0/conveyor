@@ -2,12 +2,12 @@ import os
 import lzma
 import base64
 import growing_tree_base
-from typing import Union
 from blake3 import blake3
 from functools import lru_cache
-from dataclasses import dataclass, asdict
+from typing import Union, Callable
 from peewee import Database, Model as Model_
 from peewee import CharField, IntegerField, FloatField
+from dataclasses import dataclass, asdict, field, replace
 
 from .. import Item, Repository, Model
 
@@ -80,18 +80,21 @@ def getFileContent(path: str, digest: str) -> str:
 @dataclass
 class Treegres(Repository):
 
+	path_length: int=field(init=False, repr=False)
+	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
+
 	db: Database
 	dir_tree_root_path: str
-	cache_size: int=1024
-	base_file_name: str='.xz'
-	max_files_number: int=10**10
+	cache_size: int = 1024
+	base_file_name: str = '.xz'
+	max_files_number: int = 10**10
 
 	def __post_init__(self):
-		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
 		self.path_length = growing_tree_base.calc.getPathLengthForFilesNumber(
 			self.max_files_number,
 			len(self.base_file_name)
 		)
+		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
 
 	def create(self, item):
 
@@ -108,9 +111,16 @@ class Treegres(Repository):
 			max_dirs_on_level=8
 		)
 
-		item.metadata['file_path'] = Path(os.path.relpath(file_absolute_path, type_dir_path))
+		result_item = replace(
+			item,
+			data_digest=getDigest(item_data_bytes),
+			metadata=(
+				item.metadata
+				| {'file_path': Path(os.path.relpath(file_absolute_path, type_dir_path))}
+			)
+		)
 
-		return getModel(self.db, item, self.path_length)(**getFields(item)).save()
+		return getModel(self.db, result_item, self.path_length)(**getFields(result_item)).save()
 
 	def get(self, type, status, limit=None):
 

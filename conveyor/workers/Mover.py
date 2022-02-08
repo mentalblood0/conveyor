@@ -1,3 +1,4 @@
+import dataclasses
 from abc import ABCMeta
 from copy import deepcopy
 
@@ -14,20 +15,31 @@ class Mover(Processor, metaclass=ABCMeta):
 	output_type: str
 	output_status: str
 	
-	def transform(self, item: Item) -> list[Item]:
+	def transform(self, item: Item) -> list[Item] | Item:
 		return [item]
 	
 	def processItem(self, input_item: Item) -> int:
 
 		output_items = self.transform(deepcopy(input_item))
-		if type(output_items) != list:
+		if type(output_items) == Item:
 			output_items = [output_items]
-		for i in output_items:
-			i.type = self.output_type
-			i.status = self.output_status
-			i.chain_id = input_item.chain_id
-			i.data_digest = input_item.data_digest
-			self.repository.create(i)
 		
-		input_item.status = self.moved_status
-		return self.repository.update(self.input_type, input_item.id, input_item)
+		for i in output_items:
+			self.repository.create(
+				dataclasses.replace(
+					i,
+					type=self.output_type,
+					status=self.output_status,
+					chain_id=input_item.chain_id,
+					data_digest=input_item.data_digest
+				)
+			)
+		
+		return self.repository.update(
+			self.input_type,
+			input_item.id,
+			dataclasses.replace(
+				input_item,
+				status=self.moved_status
+			)
+		)

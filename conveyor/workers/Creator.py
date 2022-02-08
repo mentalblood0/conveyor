@@ -1,4 +1,5 @@
 import uuid
+import dataclasses
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
@@ -25,11 +26,14 @@ class Creator(metaclass=ABCMeta):
 		except Exception:
 			return 0
 		
-		item.type = self.output_type
-		item.status = self.output_status
-		item.chain_id = ' '.join([
-			str(datetime.utcnow()),
-			uuid.uuid4().hex
-		])
-		
-		return self.repository.create(item)
+		return self.repository.create(
+			dataclasses.replace(
+				item,
+				type=self.output_type,
+				status=self.output_status,
+				chain_id=' '.join([
+					str(datetime.utcnow()),
+					uuid.uuid4().hex
+				])
+			)
+		)
