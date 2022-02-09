@@ -102,14 +102,11 @@ class Treegres(Repository):
 		item.data_digest = getDigest(item_data_bytes)
 		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
 
-		file_absolute_path = growing_tree_base.saveToDirTree(
-			file_content=item_data_bytes,
-			root_dir=type_dir_path,
+		file_absolute_path = growing_tree_base.Tree(
+			root=type_dir_path,
 			base_file_name=self.base_file_name,
-			save_file_function=setFileContent,
-			max_files_on_level=8,
-			max_dirs_on_level=8
-		)
+			save_file_function=setFileContent
+		).save(item_data_bytes)
 
 		result_item = replace(
 			item,
