@@ -1,4 +1,5 @@
-from loguru import logger
+import colorama
+from logama import log
 from abc import ABCMeta, abstractmethod
 
 from . import Item, Receiver
@@ -22,7 +23,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			logger.error(f'{self.__class__.__name__}.receiveItems: {e}')
+			log(f'{self.__class__.__name__}.receiveItems: {e}', colorama.Fore.LIGHTRED_EX)
 			return result
 
 		for i in items:
@@ -30,7 +31,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 				i_result = self.processItem(i)
 				result.append(i_result)
 			except Exception as e:
-				logger.error(f'{self.__class__.__name__}.processItem: {e}')
+				log(f'{self.__class__.__name__}.processItem: {e}', colorama.Fore.LIGHTRED_EX)
 				continue
 		
 		return result
