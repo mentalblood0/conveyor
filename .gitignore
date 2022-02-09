@@ -9,3 +9,4 @@ test.py
 conveyor_log
 poetry.lock
 report.py
+.*cache*
