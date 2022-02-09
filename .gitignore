@@ -8,5 +8,4 @@ dir_tree
 test.py
 conveyor_log
 poetry.lock
-pyproject.toml
 report.py
