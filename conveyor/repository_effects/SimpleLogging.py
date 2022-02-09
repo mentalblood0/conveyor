@@ -7,9 +7,6 @@ from .. import RepositoryEffect
 
 class SimpleLogging(RepositoryEffect):
 
-	def __init__(self):
-		colorama.init()
-
 	def create(self, item):
 		log(f'-> {item.type}::{item.status}', colorama.Fore.GREEN)
 	
