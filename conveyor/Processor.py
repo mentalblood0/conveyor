@@ -23,7 +23,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			log(f'{self.__class__.__name__}.receiveItems: {e}', colorama.Fore.LIGHTRED_EX)
+			log(f'{self.__class__.__name__}.receiveItems: {e}', colorama.Fore.RED)
 			return result
 
 		for i in items:
@@ -31,7 +31,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 				i_result = self.processItem(i)
 				result.append(i_result)
 			except Exception as e:
-				log(f'{self.__class__.__name__}.processItem: {e}', colorama.Fore.LIGHTRED_EX)
+				log(f'{self.__class__.__name__}.processItem: {e}', colorama.Fore.RED)
 				continue
 		
 		return result

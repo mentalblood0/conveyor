@@ -17,4 +17,4 @@ class SimpleLogging(RepositoryEffect):
 		log(f'{type}::?::{id} -> {type}::{item.status}', colorama.Fore.LIGHTBLUE_EX)
 
 	def delete(self, type, id):
-		log(f'{type}::?::{id} ->', colorama.Fore.RED)
+		log(f'{type}::?::{id} ->', colorama.Fore.LIGHTRED_EX)
