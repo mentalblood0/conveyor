@@ -13,7 +13,7 @@ Cold pipeline is a pipeline which state stored in external database
 
 ## Item repositories classes
 
-* [Treegres](conveyor/item_repositories/Treegres.py) -- uses PostgreSQL database for storing metadata and directories tree for storing files
+* [Treegres](conveyor/repositories/Treegres.py) -- uses PostgreSQL database for storing metadata and directories tree for storing files
 
 ## Example
 
