@@ -8,10 +8,10 @@ from Model import Model
 
 class LogsRepository:
 
-	def __init__(self, db, name='conveyor_log', additional_columns=None) -> None:
+	def __init__(self, db, name='conveyor_log') -> None:
 		
 		self.db = db
-		self.log = Model(db, name, (additional_columns or {}) | {
+		self.log = Model(db, name, {
 			'date': DateTimeField(index=True),
 			'type': CharField(max_length=63, index=True),
 			'chain_id': CharField(max_length=63, index=True),
