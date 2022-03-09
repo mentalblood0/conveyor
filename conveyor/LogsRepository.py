@@ -1,14 +1,14 @@
 from datetime import datetime
-from peewee import CharField, DateTimeField
+from peewee import Database, CharField, DateTimeField
 
-from Item import Item
-from Model import Model
+from .Item import Item
+from .Model import Model
 
 
 
 class LogsRepository:
 
-	def __init__(self, db, name='conveyor_log') -> None:
+	def __init__(self, db: Database, name='conveyor_log') -> None:
 		
 		self.db = db
 		self.log = Model(db, name, {

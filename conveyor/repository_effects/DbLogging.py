@@ -1,42 +1,20 @@
 from peewee import Database
-from datetime import datetime
-from peewee import CharField, DateTimeField
+from dataclasses import dataclass
 
 from .. import Item
 from .. import Model, RepositoryEffect
+from ..LogsRepository import LogsRepository
 
 
 
+@dataclass
 class DbLogging(RepositoryEffect):
 
-	def __init__(
-		self,
-		db: Database,
-		log_table_name: str='conveyor_log'
-	):
-
-		self.db = db
-		self.model = Model(db, log_table_name, {
-			'date': DateTimeField(index=True),
-			'type': CharField(max_length=63, index=True),
-			'chain_id': CharField(max_length=63, index=True),
-			'action': CharField(max_length=8, index=True),
-			'status_old': CharField(max_length=63, null=True),
-			'status_new': CharField(max_length=63, null=True, index=True)
-		})
-	
-	def _logItem(self, action: str, new_item: Item, old_item: Item=Item()) -> None:
-		self.model(
-			date=str(datetime.utcnow()),
-			chain_id=new_item.chain_id or old_item.chain_id,
-			action=action,
-			type=new_item.type,
-			status_old=old_item.status or None,
-			status_new=new_item.status or None
-		).save()
+	db: Database
+	logs_repository: LogsRepository
 
 	def create(self, item):
-		self._logItem('create', item)
+		self.logs_repository.create('create', item)
 	
 	def update(self, type, id, item):
 		
@@ -45,7 +23,7 @@ class DbLogging(RepositoryEffect):
 			return None
 
 		item_row = model.select(model.status).where(model.id==id).get()
-		self._logItem(
+		self.logs_repository.create(
 			action='update',
 			new_item=item,
 			old_item=Item(status=item_row.status)
@@ -58,7 +36,7 @@ class DbLogging(RepositoryEffect):
 			return None
 
 		item_row = model.select(model.status, model.chain_id).where(model.id==id).get()
-		self._logItem(
+		self.logs_repository.create(
 			action='delete',
 			new_item=Item(
 				type=type,
