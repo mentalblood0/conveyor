@@ -156,8 +156,29 @@ class Treegres(Repository):
 		return result
 	
 	def get(self, type, id):
-		raise NotImplemented
-	
+
+		model = Model(self.db, type)
+		if not model:
+			return None
+
+		query_result = model.select().where(model.id==id).get()
+		r = query_result[0]
+		r_dict = {
+			k: v if v.__class__ == str else v
+			for k, v in r.__data__.items()
+		}
+
+		file_path = Path(os.path.join(self.dir_tree_root_path, type, r_dict['file_path']))
+
+		return Item(
+			type=type,
+			status=r_dict['status'],
+			id=r_dict['id'],
+			chain_id=r_dict['chain_id'],
+			data_digest = r_dict['data_digest'],
+			data=self.getFileContent(file_path, r_dict['data_digest'])
+		)
+
 	def update(self, type, id, item):
 
 		model = Model(self.db, type)
