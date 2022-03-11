@@ -63,7 +63,7 @@ def test_correct():
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
 
-	DbLogging(db, LogsRepository(db)).install(repository)
+	DbLogging(repository, LogsRepository(db)).install(repository)
 	SimpleLogging().install(repository)
 
 	file_saver = FileSaver(repository)
@@ -116,7 +116,7 @@ def test_mover_transaction():
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
 
-	DbLogging(db, LogsRepository(db)).install(repository)
+	DbLogging(repository, LogsRepository(db)).install(repository)
 	SimpleLogging().install(repository)
 
 	file_saver = FileSaver(repository)

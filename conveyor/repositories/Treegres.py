@@ -161,8 +161,8 @@ class Treegres(Repository):
 		if not model:
 			return None
 
-		query_result = model.select().where(model.id==id).get()
-		r = query_result[0]
+		query_result = model.select().where(model.id==id)
+		r = [*query_result][0]
 		r_dict = {
 			k: v if v.__class__ == str else v
 			for k, v in r.__data__.items()
