@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from .. import Item
 from .. import RepositoryEffect
 from ..Repository import Repository
 from ..LogsRepository import LogsRepository
