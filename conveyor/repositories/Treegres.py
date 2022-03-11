@@ -162,22 +162,22 @@ class Treegres(Repository):
 			return None
 		
 		if fields == None:
-			model_fields = []
+			get_fields = []
 		else:
-			model_fields = [
+			get_fields = [
 				getattr(model, f)
 				for f in fields
 				if hasattr(model, f)
 			]
 
-		query_result = model.select(*model_fields).where(model.id==id)
+		query_result = model.select(*get_fields).where(model.id==id)
 		r = [*query_result][0]
 
 		if fields == None:
 
 			file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 
-			return Item(
+			item = Item(
 				type=type,
 				status=r.status,
 				id=r.id,
@@ -185,21 +185,32 @@ class Treegres(Repository):
 				data_digest = r.data_digest,
 				data=self.getFileContent(file_path, r.data_digest)
 			)
+			item.metadata = {
+				k: v
+				for k, v in r.__data__.items()
+				if not k in asdict(item).keys()
+			}
 
 		else:
 
-			item_fields = {
-				'type': type
-			} | {
+			item = Item(type=type, **{
 				name: getattr(r, name)
 				for name in fields
 				if hasattr(r, name)
-			}
+			})
+
 			if 'data' in fields:
 				file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-				item_fields['data'] = self.getFileContent(file_path, r.data_digest)
-
-			return Item(**item_fields)
+				item.data = self.getFileContent(file_path, r.data_digest)
+			
+			if 'metadata' in fields:
+				item.metadata = {
+					k: v
+					for k, v in r.__data__.items()
+					if not k in asdict(item).keys()
+				}
+		
+		return item
 
 	def update(self, type, id, item):
 
