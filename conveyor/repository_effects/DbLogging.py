@@ -18,7 +18,7 @@ class DbLogging(RepositoryEffect):
 	
 	def update(self, type, id, item):
 
-		old_item = self.repository.get(type, id)
+		old_item = self.repository.get(type, id, ['status'])
 
 		self.logs_repository.create(
 			action='update',
@@ -28,7 +28,7 @@ class DbLogging(RepositoryEffect):
 
 	def delete(self, type, id):
 
-		old_item = self.repository.get(type, id)
+		old_item = self.repository.get(type, id, ['status', 'chain_id'])
 
 		self.logs_repository.create(
 			action='delete',

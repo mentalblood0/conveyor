@@ -171,10 +171,10 @@ class Treegres(Repository):
 
 		query_result = model.select(*model_fields).where(model.id==id)
 		r = [*query_result][0]
-		
-		file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 
 		if fields == None:
+
+			file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 
 			return Item(
 				type=type,
@@ -195,6 +195,7 @@ class Treegres(Repository):
 				if hasattr(r, name)
 			}
 			if 'data' in fields:
+				file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 				item_fields['data'] = self.getFileContent(file_path, r.data_digest)
 
 			return Item(**item_fields)
