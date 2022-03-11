@@ -155,29 +155,49 @@ class Treegres(Repository):
 		
 		return result
 	
-	def get(self, type, id):
+	def get(self, type, id, fields=None):
 
 		model = Model(self.db, type)
 		if not model:
 			return None
+		
+		if fields == None:
+			model_fields = []
+		else:
+			model_fields = [
+				getattr(model, f)
+				for f in fields
+			]
 
-		query_result = model.select().where(model.id==id)
+		query_result = model.select(*model_fields).where(model.id==id)
 		r = [*query_result][0]
-		r_dict = {
-			k: v if v.__class__ == str else v
-			for k, v in r.__data__.items()
-		}
+		
+		file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 
-		file_path = Path(os.path.join(self.dir_tree_root_path, type, r_dict['file_path']))
+		if fields == None:
 
-		return Item(
-			type=type,
-			status=r_dict['status'],
-			id=r_dict['id'],
-			chain_id=r_dict['chain_id'],
-			data_digest = r_dict['data_digest'],
-			data=self.getFileContent(file_path, r_dict['data_digest'])
-		)
+			return Item(
+				type=type,
+				status=r.status,
+				id=r.id,
+				chain_id=r.chain_id,
+				data_digest = r.data_digest,
+				data=self.getFileContent(file_path, r.data_digest)
+			)
+
+		else:
+
+			item_fields = {
+				'type': type
+			} | {
+				name: getattr(r, name)
+				for name in fields
+				if hasattr(r, name)
+			}
+			if 'data' in fields:
+				item_fields['data'] = self.getFileContent(file_path, r.data_digest)
+
+			return Item(**item_fields)
 
 	def update(self, type, id, item):
 

@@ -18,8 +18,6 @@ class DbLogging(RepositoryEffect):
 	
 	def update(self, type, id, item):
 
-		print('log update')
-
 		old_item = self.repository.get(type, id)
 
 		self.logs_repository.create(
