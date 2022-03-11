@@ -20,12 +20,12 @@ class LogsRepository:
 			'status_new': CharField(max_length=63, null=True, index=True)
 		})
 	
-	def create(self, action: str, new_item: Item, old_item: Item=Item()) -> None:
+	def create(self, action: str, old_item: Item=Item(), new_item: Item=Item()) -> None:
 		self.log(
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
 			action=action,
-			type=new_item.type,
+			type=new_item.type or old_item.type,
 			status_old=old_item.status or None,
 			status_new=new_item.status or None
 		).save()

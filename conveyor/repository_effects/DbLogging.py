@@ -14,29 +14,20 @@ class DbLogging(RepositoryEffect):
 	logs_repository: LogsRepository
 
 	def create(self, item):
-		self.logs_repository.create('create', item)
+		self.logs_repository.create(
+			action='create',
+			new_item=item
+		)
 	
 	def update(self, type, id, item):
-
-		old_item = self.repository.get(type, id, ['status'])
-
 		self.logs_repository.create(
 			action='update',
-			new_item=item,
-			old_item=old_item
+			old_item=self.repository.get(type, id, ['status']),
+			new_item=item
 		)
 
 	def delete(self, type, id):
-
-		old_item = self.repository.get(type, id, ['status', 'chain_id'])
-
 		self.logs_repository.create(
 			action='delete',
-			new_item=Item(
-				type=type,
-				chain_id=old_item.chain_id
-			),
-			old_item=Item(
-				status=old_item.status
-			)
+			old_item=self.repository.get(type, id, ['status', 'chain_id'])
 		)

@@ -167,6 +167,7 @@ class Treegres(Repository):
 			model_fields = [
 				getattr(model, f)
 				for f in fields
+				if hasattr(model, f)
 			]
 
 		query_result = model.select(*model_fields).where(model.id==id)
