@@ -139,6 +139,6 @@ def test_mover_transaction():
 	repository.update = crash
 	print('-- mover')
 	assert len(mover()) == 0
-	assert len(repository.get(mover.output_type, mover.output_status)) == 0
+	assert len(repository.fetch(mover.output_type, mover.output_status)) == 0
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)

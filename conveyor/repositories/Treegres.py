@@ -119,7 +119,7 @@ class Treegres(Repository):
 
 		return getModel(self.db, result_item, self.path_length)(**getFields(result_item)).save()
 
-	def get(self, type, status, limit=None):
+	def fetch(self, type, status, limit=None):
 
 		model = Model(self.db, type)
 		if not model:
@@ -154,6 +154,9 @@ class Treegres(Repository):
 			result.append(item)
 		
 		return result
+	
+	def get(self, type, id):
+		raise NotImplemented
 	
 	def update(self, type, id, item):
 

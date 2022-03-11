@@ -12,7 +12,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, status: Item, limit=None) -> list[Item]:
+	def get(self, type: str, id: str) -> Item:
 		pass
 
 	@abstractmethod
@@ -22,7 +22,11 @@ class Repository(metaclass=ABCMeta):
 	@abstractmethod
 	def delete(self, id: str) -> int:
 		pass
-	
+
+	@abstractmethod
+	def fetch(self, type: str, status: Item, limit=None) -> list[Item]:
+		pass
+
 	@abstractmethod
 	def transaction(self) -> Callable[[Callable], Callable]:
 		pass
