@@ -62,15 +62,18 @@ def test_correct():
 	repository._drop('conveyor_log')
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
+	repository._drop('PrintTask')
 
 	DbLogging(repository, LogsRepository(db)).install(repository)
 	SimpleLogging().install(repository)
 
 	file_saver = FileSaver(repository)
-	xml_verifier = XmlVerifier(repository, one_call_items_limit=10)
-	typer = Typer(repository, one_call_items_limit=10)
-	mover = PersonalizationRequestToCreatedMover(repository, one_call_items_limit=10)
-	destroyer = DestroyerFactory('undefined', 'end')(repository, one_call_items_limit=10)
+	another_file_saver = PrintTaskSaver(repository)
+	xml_verifier = XmlVerifier(repository)
+	typer = Typer(repository)
+	mover = PersonalizationRequestToCreatedMover(repository)
+	linker = PrintTaskToPersonalizationRequestLinker(repository)
+	destroyer = DestroyerFactory('undefined', 'end')(repository)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
@@ -79,11 +82,15 @@ def test_correct():
 	assert len(xml_verifier()) == 1
 	assert len(typer()) == 1
 	assert len(mover()) == 1
+	assert another_file_saver(text)
+	assert len(linker()) == 1
+	assert repository.fetch('PrintTask', 'linked_to_PersonlizationRequest')
 	assert len(destroyer()) == 1
 
 	assert not xml_verifier()
 	assert not typer()
 	assert not mover()
+	assert not linker()
 	assert not destroyer()
 
 	assert file_saver(text)

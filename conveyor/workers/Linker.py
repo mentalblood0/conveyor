@@ -8,36 +8,36 @@ from .. import Item, Processor
 
 class Linker(Processor, metaclass=ABCMeta):
 
-	unlinked_type: str
-	unlinked_status: str
+	input_type: str
+	input_status: str
 
 	source_type: str
 	source_status: str
 
-	linked_status: str='linked'
+	output_status: str='linked'
 
 	@abstractmethod
 	def link(self, item: Item) -> Item:
 		pass
 
-	def processItem(self, unlinked_item: Item) -> int | None:
+	def processItem(self, input_item: Item) -> int | None:
 
-		source_item = self.link(deepcopy(unlinked_item))
+		source_item = self.link(deepcopy(input_item))
 		if source_item == None:
 			return None
 
 		chain_id = self.repository.get(
 			self.source_type,
-			self.source_item.metadata | {
+			source_item.metadata | {
 				'status': self.source_status
 			},
 			['chain_id']
-		)
+		).chain_id
 
-		linked_item = dataclasses.update(
-			unlinked_item,
+		output_item = dataclasses.replace(
+			input_item,
 			chain_id=chain_id,
-			status=self.linked_status
+			status=self.output_status
 		)
 
-		return self.repository.update(self.unlinked_type, unlinked_item.id, linked_item)
+		return self.repository.update(self.input_type, input_item.id, output_item)

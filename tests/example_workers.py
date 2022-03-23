@@ -1,7 +1,8 @@
+import dataclasses
 from lxml import etree
 from conveyor import Item
 from structure_mapper import *
-from conveyor.workers import Creator, Transformer, Mover
+from conveyor.workers import Creator, Transformer, Mover, Linker
 
 
 
@@ -70,4 +71,37 @@ class PersonalizationRequestToCreatedMover(Mover):
 	output_status = 'created'
 
 	def transform(self, item):
-		return [item, item]
+		return [item]
+
+
+class PrintTaskSaver(Creator):
+
+	output_type = 'PrintTask'
+	output_status = 'created'
+
+	def create(self, text):
+		return Item(
+			data=text,
+			metadata={
+				'message_id': findByYPath('MessageID', text)
+			}
+		)
+
+
+class PrintTaskToPersonalizationRequestLinker(Linker):
+
+	input_type = 'PrintTask'
+	input_status = 'created'
+
+	source_type = 'PersonalizationRequest'
+	source_status = 'created'
+
+	output_status = 'linked_to_PersonlizationRequest'
+
+	def link(self, item):
+		return dataclasses.replace(
+			item,
+			metadata={
+				'message_id': item.metadata['message_id']
+			}
+		)
