@@ -1,6 +1,5 @@
 import uuid
 import dataclasses
-from copy import deepcopy
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
@@ -15,7 +14,7 @@ class Creator(metaclass=ABCMeta):
 
 	source_type: str | None = None
 	source_status: str | None = None
-	match_fields: list[str] = dataclasses.field(default_factory=list)
+	match_fields: list[str] | None = None
 
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
