@@ -12,7 +12,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, id: str, fields: list[str]=None) -> Item:
+	def get(self, type: str, where: dict[str, any]=None, fields: list[str]=None) -> Item | None:
 		pass
 
 	@abstractmethod

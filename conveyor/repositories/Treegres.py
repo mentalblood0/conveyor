@@ -155,7 +155,7 @@ class Treegres(Repository):
 		
 		return result
 	
-	def get(self, type, id, fields=None):
+	def get(self, type, where=None, fields=None):
 
 		model = Model(self.db, type)
 		if not model:
@@ -170,8 +170,15 @@ class Treegres(Repository):
 				if hasattr(model, f)
 			]
 
-		query_result = model.select(*get_fields).where(model.id==id)
-		r = [*query_result][0]
+		conditions = [
+			getattr(model, key)==value
+			for key, value in where.items()
+		]
+		query_result = [*model.select(*get_fields).where(*conditions)]
+		if len(query_result) != 1:
+			return None
+		
+		r = query_result[0]
 
 		if fields == None:
 
