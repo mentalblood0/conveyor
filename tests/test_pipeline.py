@@ -1,46 +1,17 @@
-import os
 import shutil
-import pytest
-from peewee import PostgresqlDatabase, OperationalError
+from peewee import PostgresqlDatabase
 
 from tests import config
 from tests.example_workers import *
 from conveyor import LogsRepository
-from conveyor.workers.factories import DestroyerFactory
 from conveyor.repositories import Treegres
 from conveyor.repository_effects import SimpleLogging, DbLogging
+from conveyor.workers.factories import LinkerFactory, DestroyerFactory
 
 
 
 
 dir_tree_root_path = 'dir_tree'
-
-
-# def test_incorrect():
-
-# 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
-
-# 	db = PostgresqlDatabase(
-# 		config.db['db'],
-# 		user=config.db['user'],
-# 		password='',
-# 		host=config.db['host'],
-# 		port=config.db['port']
-# 	)
-# 	repository = Treegres(
-# 		db=db,
-# 		dir_tree_root_path=dir_tree_root_path
-# 	)	
-
-# 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
-# 		text = f.read()
-	
-# 	with pytest.raises(OperationalError):
-# 		FileSaver(repository)(text)
-	
-# 	assert not os.listdir(os.path.join(dir_tree_root_path, 'undefined', '0'))
-
-# 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 
 def test_correct():
@@ -72,7 +43,14 @@ def test_correct():
 	xml_verifier = XmlVerifier(repository)
 	typer = Typer(repository)
 	mover = PersonalizationRequestToCreatedMover(repository)
-	linker = PrintTaskToPersonalizationRequestLinker(repository)
+	linker = LinkerFactory(
+		input_type='PrintTask',
+		input_status='created',
+		source_type='PersonalizationRequest',
+		source_status='created',
+		output_status='linked_to_PersonalizationRequest',
+		metadata_field='message_id'
+	)(repository)
 	destroyer = DestroyerFactory('undefined', 'end')(repository)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
@@ -84,7 +62,7 @@ def test_correct():
 	assert len(mover()) == 1
 	assert another_file_saver(text)
 	assert len(linker()) == 1
-	assert repository.fetch('PrintTask', 'linked_to_PersonlizationRequest')
+	assert repository.fetch('PrintTask', 'linked_to_PersonalizationRequest')
 	assert len(destroyer()) == 1
 
 	assert not xml_verifier()

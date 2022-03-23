@@ -86,22 +86,3 @@ class PrintTaskSaver(Creator):
 				'message_id': findByYPath('MessageID', text)
 			}
 		)
-
-
-class PrintTaskToPersonalizationRequestLinker(Linker):
-
-	input_type = 'PrintTask'
-	input_status = 'created'
-
-	source_type = 'PersonalizationRequest'
-	source_status = 'created'
-
-	output_status = 'linked_to_PersonlizationRequest'
-
-	def link(self, item):
-		return dataclasses.replace(
-			item,
-			metadata={
-				'message_id': item.metadata['message_id']
-			}
-		)
