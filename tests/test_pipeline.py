@@ -5,8 +5,8 @@ from tests import config
 from tests.example_workers import *
 from conveyor import LogsRepository
 from conveyor.repositories import Treegres
+from conveyor.workers.factories import DestroyerFactory
 from conveyor.repository_effects import SimpleLogging, DbLogging
-from conveyor.workers.factories import LinkerFactory, DestroyerFactory
 
 
 
@@ -43,14 +43,6 @@ def test_correct():
 	xml_verifier = XmlVerifier(repository)
 	typer = Typer(repository)
 	mover = PersonalizationRequestToCreatedMover(repository)
-	linker = LinkerFactory(
-		input_type='PrintTask',
-		input_status='created',
-		source_type='PersonalizationRequest',
-		source_status='created',
-		output_status='linked_to_PersonalizationRequest',
-		metadata_field='message_id'
-	)(repository)
 	destroyer = DestroyerFactory('undefined', 'end')(repository)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
@@ -61,9 +53,8 @@ def test_correct():
 	assert len(typer()) == 1
 	assert len(mover()) == 1
 	assert another_file_saver(text)
-	assert len(linker()) == 1
 	source = repository.fetch('PersonalizationRequest', 'created')
-	linked = repository.fetch('PrintTask', 'linked_to_PersonalizationRequest')
+	linked = repository.fetch('PrintTask', 'created')
 	assert linked
 	assert linked[0].chain_id == source[0].chain_id
 	assert len(destroyer()) == 1
@@ -71,7 +62,6 @@ def test_correct():
 	assert not xml_verifier()
 	assert not typer()
 	assert not mover()
-	assert not linker()
 	assert not destroyer()
 
 	assert file_saver(text)

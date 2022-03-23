@@ -1,5 +1,6 @@
 import uuid
 import dataclasses
+from copy import deepcopy
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
@@ -12,11 +13,17 @@ class Creator(metaclass=ABCMeta):
 	output_type: str = 'undefined'
 	output_status: str = 'created'
 
+	source_type: str | None = None
+	source_status: str | None = None
+
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
 
 	@abstractmethod
 	def create(self, *args, **kwargs) -> Item:
+		pass
+
+	def link(self, item: Item) -> Item:
 		pass
 
 	def __call__(self, *args, **kwargs) -> int:
@@ -25,15 +32,33 @@ class Creator(metaclass=ABCMeta):
 			item = self.create(*args, **kwargs)
 		except Exception:
 			return 0
+
+		if self.source_type and self.source_status:
+
+			source_item = self.link(deepcopy(item))
+			if source_item == None:
+				return None
+
+			chain_id = self.repository.get(
+				self.source_type,
+				source_item.metadata | {
+					'status': self.source_status
+				},
+				['chain_id']
+			).chain_id
 		
+		else:
+
+			chain_id =' '.join([
+				str(datetime.utcnow()),
+				uuid.uuid4().hex
+			])
+
 		return self.repository.create(
 			dataclasses.replace(
 				item,
 				type=self.output_type,
 				status=self.output_status,
-				chain_id=' '.join([
-					str(datetime.utcnow()),
-					uuid.uuid4().hex
-				])
+				chain_id=chain_id
 			)
 		)

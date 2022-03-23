@@ -1,8 +1,7 @@
-import dataclasses
 from lxml import etree
 from conveyor import Item
 from structure_mapper import *
-from conveyor.workers import Creator, Transformer, Mover, Linker
+from conveyor.workers import *
 
 
 
@@ -78,6 +77,14 @@ class PrintTaskSaver(Creator):
 
 	output_type = 'PrintTask'
 	output_status = 'created'
+
+	source_type = 'PersonalizationRequest'
+	source_status = 'created'
+
+	def link(self, item):
+		return Item(metadata={
+			'message_id': item.metadata['message_id']
+		})
 
 	def create(self, text):
 		return Item(
