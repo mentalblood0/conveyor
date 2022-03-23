@@ -15,15 +15,13 @@ class Creator(metaclass=ABCMeta):
 
 	source_type: str | None = None
 	source_status: str | None = None
+	match_fields: list[str] = dataclasses.field(default_factory=list)
 
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
 
 	@abstractmethod
 	def create(self, *args, **kwargs) -> Item:
-		pass
-
-	def link(self, item: Item) -> Item:
 		pass
 
 	def __call__(self, *args, **kwargs) -> int:
@@ -35,16 +33,13 @@ class Creator(metaclass=ABCMeta):
 
 		if self.source_type and self.source_status:
 
-			source_item = self.link(deepcopy(item))
-			if source_item == None:
-				return None
-
 			chain_id = self.repository.get(
-				self.source_type,
-				source_item.metadata | {
-					'status': self.source_status
+				type=self.source_type,
+				where={
+					key: item.metadata[key]
+					for key in self.match_fields
 				},
-				['chain_id']
+				fields=['chain_id']
 			).chain_id
 		
 		else:
