@@ -62,7 +62,10 @@ def test_correct():
 	assert len(mover()) == 1
 	assert another_file_saver(text)
 	assert len(linker()) == 1
-	assert repository.fetch('PrintTask', 'linked_to_PersonalizationRequest')
+	source = repository.fetch('PersonalizationRequest', 'created')
+	linked = repository.fetch('PrintTask', 'linked_to_PersonalizationRequest')
+	assert linked
+	assert linked[0].chain_id == source[0].chain_id
 	assert len(destroyer()) == 1
 
 	assert not xml_verifier()
