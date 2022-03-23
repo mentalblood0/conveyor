@@ -16,12 +16,10 @@ Cold pipeline is a pipeline which state stored in external database
 * [Creator](conveyor/workers/Creator.py)
 * [Transformer](conveyor/workers/Transformer.py)
 * [Mover](conveyor/workers/Mover.py)
-* [Linker](conveyor/workers/Linker.py)
 * [Destroyer](conveyor/workers/Destroyer.py)
 
 ### Factories
 
-* [LinkerFactory](conveyor/workers/factories/LinkerFactory.py)
 * [DestroyerFactory](conveyor/workers/factories/DestroyerFactory.py)
 
 ## Repositories classes
