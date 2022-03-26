@@ -3,8 +3,8 @@ import lzma
 import base64
 import growing_tree_base
 from blake3 import blake3
-from functools import lru_cache
 from typing import Union, Callable
+from functools import lru_cache, partial
 from peewee import Database, Model as Model_
 from peewee import CharField, IntegerField, FloatField
 from dataclasses import dataclass, asdict, field, replace
@@ -29,27 +29,32 @@ def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	}
 
 
-def getModel(db: Model_, item: Item, path_length: int) -> Model_:
+base_fields_mapping = {
+	'chain_id': partial(CharField, max_length=63, index=True),
+	'status': partial(CharField, max_length=63, index=True),
+	'data_digest': partial(CharField, max_length=63)
+}
 
-	columns = {
-		k: {
-			'chain_id': CharField(max_length=63, index=True),
-			'status': CharField(max_length=63, index=True),
-			'data_digest': CharField(max_length=63)
-		}[k]
-		for k in asdict(item)
-		if not k in ['data', 'metadata', 'type', 'id']
-	} | {
-		k: {
-			str: CharField(default=None, null=True, index=True),
-			int: IntegerField(default=None, null=True, index=True),
-			float: FloatField(default=None, null=True, index=True),
-			Path: CharField(max_length=path_length, index=True)
-		}[type(v)]
-		for k, v in item.metadata.items()
-	}
+metadata_fields_mapping = {
+	str: partial(CharField, default=None, null=True, index=True),
+	int: partial(IntegerField, default=None, null=True, index=True),
+	float: partial(FloatField, default=None, null=True, index=True),
+	Path: partial(CharField, max_length=32, index=True)
+}
 
-	return Model(db, item.type, columns)
+def getModel(db: Model_, item: Item) -> Model_:
+	return Model(
+		db=db,
+		name=item.type,
+		columns={
+			k: base_fields_mapping[k]()
+			for k in asdict(item)
+			if not k in ['data', 'metadata', 'type', 'id']
+		} | {
+			k: metadata_fields_mapping[type(v)]()
+			for k, v in item.metadata.items()
+		}
+	)
 
 
 def getDigest(data: bytes) -> str:
@@ -79,8 +84,6 @@ def getFileContent(path: str, digest: str) -> str:
 
 @dataclass
 class Treegres(Repository):
-
-	path_length: int=field(init=False, repr=False)
 	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
 
 	db: Database
@@ -90,10 +93,6 @@ class Treegres(Repository):
 	max_files_number: int = 10**10
 
 	def __post_init__(self):
-		self.path_length = growing_tree_base.calc.getPathLengthForFilesNumber(
-			self.max_files_number,
-			len(self.base_file_name)
-		)
 		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
 
 	def create(self, item):
@@ -117,7 +116,7 @@ class Treegres(Repository):
 			)
 		)
 
-		return getModel(self.db, result_item, self.path_length)(**getFields(result_item)).save()
+		return getModel(self.db, result_item)(**getFields(result_item)).save()
 
 	def fetch(self, type, status, limit=None):
 
