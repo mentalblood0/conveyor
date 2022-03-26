@@ -1,6 +1,6 @@
+import time
 import uuid
 import dataclasses
-from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
 from .. import Item, Repository
@@ -43,8 +43,8 @@ class Creator(metaclass=ABCMeta):
 		
 		else:
 
-			chain_id =' '.join([
-				str(datetime.utcnow()),
+			chain_id = ''.join([
+				hex(int(time.time() * 10**7))[2:],
 				uuid.uuid4().hex
 			])
 

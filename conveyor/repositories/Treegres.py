@@ -38,7 +38,7 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 	str: partial(CharField, default=None, null=True, index=True),
 	int: partial(IntegerField, default=None, null=True, index=True),
 	float: partial(FloatField, default=None, null=True, index=True),
-	Path: partial(CharField, max_length=32, index=True)
+	Path: partial(CharField, max_length=63, index=True)
 }
 
 def getModel(db: Model_, item: Item) -> Model_:
