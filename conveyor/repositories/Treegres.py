@@ -41,10 +41,10 @@ def getModel(db: Model_, item: Item, path_length: int) -> Model_:
 		if not k in ['data', 'metadata', 'type', 'id']
 	} | {
 		k: {
-			str: CharField(default=None, null=True),
-			int: IntegerField(default=None, null=True),
-			float: FloatField(default=None, null=True),
-			Path: CharField(max_length=path_length)
+			str: CharField(default=None, null=True, index=True),
+			int: IntegerField(default=None, null=True, index=True),
+			float: FloatField(default=None, null=True, index=True),
+			Path: CharField(max_length=path_length, index=True)
 		}[type(v)]
 		for k, v in item.metadata.items()
 	}
