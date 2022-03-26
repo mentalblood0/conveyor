@@ -5,9 +5,8 @@ import growing_tree_base
 from blake3 import blake3
 from typing import Union, Callable
 from functools import lru_cache, partial
-from peewee import Database, Field, Model as Model_
-from peewee import CharField, IntegerField, FloatField
 from dataclasses import dataclass, asdict, field, replace
+from peewee import Field, CharField, IntegerField, FloatField, Database, Model as Model_
 
 from .. import Item, Repository, Model
 
@@ -84,13 +83,13 @@ def getFileContent(path: str, digest: str) -> str:
 
 @dataclass
 class Treegres(Repository):
-	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
 
 	db: Database
 	dir_tree_root_path: str
+
 	cache_size: int = 1024
 	base_file_name: str = '.xz'
-	max_files_number: int = 10**10
+	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
 
 	def __post_init__(self):
 		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
