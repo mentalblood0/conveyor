@@ -5,7 +5,7 @@ import growing_tree_base
 from blake3 import blake3
 from typing import Union, Callable
 from functools import lru_cache, partial
-from peewee import Database, Model as Model_
+from peewee import Database, Field, Model as Model_
 from peewee import CharField, IntegerField, FloatField
 from dataclasses import dataclass, asdict, field, replace
 
@@ -29,13 +29,13 @@ def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
 	}
 
 
-base_fields_mapping = {
+base_fields_mapping: dict[str, Callable[[], Field]] = {
 	'chain_id': partial(CharField, max_length=63, index=True),
 	'status': partial(CharField, max_length=63, index=True),
 	'data_digest': partial(CharField, max_length=63)
 }
 
-metadata_fields_mapping = {
+metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 	str: partial(CharField, default=None, null=True, index=True),
 	int: partial(IntegerField, default=None, null=True, index=True),
 	float: partial(FloatField, default=None, null=True, index=True),
