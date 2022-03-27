@@ -6,8 +6,8 @@ from . import Item, Repository
 
 class Receiver(metaclass=ABCMeta):
 
-	input_type: str = 'undefined'
-	input_status: str = 'created'
+	input_type: str
+	input_status: str
 
 	def __init__(self, repository: Repository, one_call_items_limit: int = 64) -> None:
 		self.repository = repository

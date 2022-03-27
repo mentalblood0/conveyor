@@ -3,7 +3,7 @@ import lzma
 import base64
 import growing_tree_base
 from blake3 import blake3
-from typing import Union, Callable
+from typing import Callable
 from functools import lru_cache, partial
 from dataclasses import dataclass, asdict, field, replace
 from peewee import Field, CharField, IntegerField, FloatField, Database, Model as Model_
@@ -20,9 +20,9 @@ class Path(str):
 		)
 
 
-def getFields(item: Item) -> dict[str, Union[str, int, float, Path]]:
+def getFields(item: Item) -> dict[str, None | str | int | float | Path]:
 	return {
-		k: v or (None if type(v) == str else v)
+		k: None if v == '' else v
 		for k, v in (item.metadata | asdict(item)).items()
 		if not k in ['data', 'metadata', 'type', 'id']
 	}

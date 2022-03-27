@@ -27,11 +27,13 @@ class Processor(Receiver, metaclass=ABCMeta):
 			return result
 
 		for i in items:
+
 			try:
 				i_result = self.processItem(i)
-				result.append(i_result)
 			except Exception as e:
 				log(f'{self.__class__.__name__}.processItem: {e}', colorama.Fore.RED)
 				continue
+
+			result.append(i_result)
 		
 		return result

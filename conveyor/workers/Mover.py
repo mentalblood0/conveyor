@@ -14,16 +14,19 @@ class Mover(Processor, metaclass=ABCMeta):
 
 	output_type: str
 	output_status: str
-	
+
 	def transform(self, item: Item) -> list[Item] | Item:
 		return [item]
-	
+
 	def processItem(self, input_item: Item) -> int:
 
-		output_items = self.transform(deepcopy(input_item))
-		if type(output_items) == Item:
-			output_items = [output_items]
-		
+		output = self.transform(deepcopy(input_item))
+
+		if type(output) == list[Item]:
+			output_items = output
+		elif type(output) == Item:
+			output_items = [output]
+
 		for i in output_items:
 			self.repository.create(
 				dataclasses.replace(
@@ -34,7 +37,7 @@ class Mover(Processor, metaclass=ABCMeta):
 					data_digest=input_item.data_digest
 				)
 			)
-		
+
 		return self.repository.update(
 			self.input_type,
 			input_item.id,

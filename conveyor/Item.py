@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+import dataclasses
 
 
-@dataclass
+@dataclasses.dataclass
 class Item:
 
 	id: str = ''
@@ -13,4 +13,4 @@ class Item:
 	data: str = ''
 	data_digest: str = ''
 
-	metadata: dict | None = None
+	metadata: dict = dataclasses.field(default_factory=dict)

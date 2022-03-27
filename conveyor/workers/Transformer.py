@@ -15,34 +15,35 @@ class Transformer(Processor, metaclass=ABCMeta):
 	@abstractmethod
 	def transform(self, item: Item) -> Item | str:
 		pass
-	
+
 	def processItem(self, input_item: Item) -> int | None:
 
-		output_item = self.transform(input_item)
-		if output_item == None:
+		output = self.transform(input_item)
+
+		if output == None:
 			return None
-		
-		if type(output_item) == Item:
-			
-			output_status = output_item.status
+
+		elif type(output) == Item:
+
+			output_status = output.status
 			if not output_status in self.possible_output_statuses:
 				return None
-			
+
 			output_item = dataclasses.replace(
 				input_item,
 				status=output_status,
-				metadata=output_item.metadata
+				metadata=output.metadata
 			)
-		
-		elif type(output_item) == str:
+
+		elif type(output) == str:
 			
 			output_status = output_item
 			if not output_status in self.possible_output_statuses:
 				return None
-			
+
 			output_item = dataclasses.replace(
 				input_item,
 				status=output_status
 			)
-		
+
 		return self.repository.update(self.input_type, input_item.id, output_item)

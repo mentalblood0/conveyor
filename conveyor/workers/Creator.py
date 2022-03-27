@@ -9,12 +9,12 @@ from .. import Item, Repository
 
 class Creator(metaclass=ABCMeta):
 
-	output_type: str = 'undefined'
-	output_status: str = 'created'
+	output_type: str
+	output_status: str
 
-	source_type: str | None = None
-	source_status: str | None = None
-	match_fields: list[str] | None = None
+	source_type: str = ''
+	source_status: str = ''
+	match_fields: list[str] = dataclasses.field(default_factory=list)
 
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
