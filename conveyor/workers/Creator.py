@@ -39,7 +39,7 @@ class Creator(metaclass=ABCMeta):
 					for key in self.match_fields
 				},
 				fields=['chain_id']
-			).chain_id
+			)[0].chain_id
 		
 		else:
 

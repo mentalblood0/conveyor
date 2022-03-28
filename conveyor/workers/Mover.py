@@ -22,7 +22,7 @@ class Mover(Processor, metaclass=ABCMeta):
 
 		output = self.transform(deepcopy(input_item))
 
-		if type(output) == list[Item]:
+		if type(output) == list:
 			output_items = output
 		elif type(output) == Item:
 			output_items = [output]

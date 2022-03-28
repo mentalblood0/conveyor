@@ -160,11 +160,11 @@ class Treegres(Repository):
 		
 		return result
 	
-	def get(self, type, where=None, fields=None):
+	def get(self, type, where=None, fields=None, limit=1):
 
 		model = Model(self.db, type)
 		if not model:
-			return None
+			return []
 		
 		if fields == None:
 			get_fields = []
@@ -179,50 +179,52 @@ class Treegres(Repository):
 			getattr(model, key)==value
 			for key, value in where.items()
 		]
-		query_result = [*model.select(*get_fields).where(*conditions)]
-		if len(query_result) != 1:
-			return None
-		
-		r = query_result[0]
+		query_result = model.select(*get_fields).where(*conditions).limit(limit)
 
-		if fields == None:
+		result = []
 
-			file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
+		for r in query_result:
 
-			item = Item(
-				type=type,
-				status=r.status,
-				id=r.id,
-				chain_id=r.chain_id,
-				data_digest = r.data_digest,
-				data=self.getFileContent(file_path, r.data_digest)
-			)
-			item.metadata = {
-				k: v
-				for k, v in r.__data__.items()
-				if not k in asdict(item).keys()
-			}
+			if fields == None:
 
-		else:
-
-			item = Item(type=type, **{
-				name: getattr(r, name)
-				for name in fields
-				if hasattr(r, name)
-			})
-
-			if 'data' in fields:
 				file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-				item.data = self.getFileContent(file_path, r.data_digest)
-			
-			if 'metadata' in fields:
+
+				item = Item(
+					type=type,
+					status=r.status,
+					id=r.id,
+					chain_id=r.chain_id,
+					data_digest = r.data_digest,
+					data=self.getFileContent(file_path, r.data_digest)
+				)
 				item.metadata = {
 					k: v
 					for k, v in r.__data__.items()
 					if not k in asdict(item).keys()
 				}
+
+			else:
+
+				item = Item(type=type, **{
+					name: getattr(r, name)
+					for name in fields
+					if hasattr(r, name)
+				})
+
+				if 'data' in fields:
+					file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
+					item.data = self.getFileContent(file_path, r.data_digest)
+				
+				if 'metadata' in fields:
+					item.metadata = {
+						k: v
+						for k, v in r.__data__.items()
+						if not k in asdict(item).keys()
+					}
 		
-		return item
+			result.append(item)
+
+		return result
 
 	def update(self, type, id, item):
 
