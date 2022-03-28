@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, Repository
+from .. import Repository
 
 
 
@@ -14,7 +14,6 @@ class Destroyer(metaclass=ABCMeta):
 		self.one_call_items_limit = one_call_items_limit
 
 	def __call__(self) -> list[int]:
-
 		return [
 			self.repository.delete(
 				type=self.input_type,

@@ -20,7 +20,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def delete(self, id: str) -> int:
+	def delete(self, type: str, id: str) -> int:
 		pass
 
 	@abstractmethod
