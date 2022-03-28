@@ -1,4 +1,5 @@
 import dataclasses
+from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 
 from .. import Item, Processor
@@ -18,7 +19,7 @@ class Transformer(Processor, metaclass=ABCMeta):
 
 	def processItem(self, input_item: Item) -> int | None:
 
-		output = self.transform(input_item)
+		output = self.transform(deepcopy(input_item))
 
 		if output == None:
 			return None
