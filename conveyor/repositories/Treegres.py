@@ -20,11 +20,18 @@ class Path(str):
 		)
 
 
+ignored_fields = [
+	'id',
+	'type',
+	'data',
+	'metadata'
+]
+
 def getFields(item: Item) -> dict[str, None | str | int | float | Path]:
 	return {
 		k: None if v == '' else v
 		for k, v in (item.metadata | asdict(item)).items()
-		if not k in ['data', 'metadata', 'type', 'id']
+		if k not in ignored_fields
 	}
 
 
@@ -48,7 +55,7 @@ def getModel(db: Model_, item: Item) -> Model_:
 		columns={
 			k: base_fields_mapping[k]()
 			for k in asdict(item)
-			if not k in ['data', 'metadata', 'type', 'id']
+			if k not in ignored_fields
 		} | {
 			k: metadata_fields_mapping[type(v)]()
 			for k, v in item.metadata.items()
