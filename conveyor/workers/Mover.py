@@ -33,8 +33,7 @@ class Mover(Processor, metaclass=ABCMeta):
 					i,
 					type=self.output_type,
 					status=self.output_status,
-					chain_id=input_item.chain_id,
-					data_digest=input_item.data_digest
+					chain_id=input_item.chain_id
 				)
 			)
 
