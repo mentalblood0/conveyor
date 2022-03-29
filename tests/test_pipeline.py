@@ -42,7 +42,6 @@ def test_correct():
 	another_file_saver = PrintTaskSaver(repository)
 	xml_verifier = XmlVerifier(repository)
 	typer = Typer(repository)
-	mover = PersonalizationRequestToCreatedMover(repository)
 	destroyer = DestroyerFactory('undefined', 'end')(repository)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
@@ -51,7 +50,6 @@ def test_correct():
 	assert file_saver(text)
 	assert len(xml_verifier()) == 1
 	assert len(typer()) == 1
-	assert len(mover()) == 1
 	assert another_file_saver(text)
 	source = repository.fetch('PersonalizationRequest', 'created')
 	linked = repository.fetch('PrintTask', 'created')
@@ -61,14 +59,12 @@ def test_correct():
 
 	assert not xml_verifier()
 	assert not typer()
-	assert not mover()
 	assert not destroyer()
 
 	assert file_saver(text)
 	assert file_saver(text)
 	assert len(xml_verifier()) == 2
 	assert len(typer()) == 2
-	assert len(mover()) == 2
 	assert len(destroyer()) == 2
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
@@ -100,7 +96,6 @@ def test_mover_transaction():
 	file_saver = FileSaver(repository)
 	xml_verifier = XmlVerifier(repository)
 	typer = Typer(repository)
-	mover = PersonalizationRequestToCreatedMover(repository)
 
 	with open('tests/example_file.xml', 'r', encoding='utf8') as f:
 		text = f.read()
@@ -109,14 +104,12 @@ def test_mover_transaction():
 	assert file_saver(text)
 	print('-- xml_verifier')
 	assert len(xml_verifier()) == 1
-	print('-- typer')
-	assert len(typer()) == 1
 
 	def crash(*args, **kwargs):
 		raise Exception
 	repository.update = crash
-	print('-- mover')
-	assert len(mover()) == 0
-	assert len(repository.fetch(mover.output_type, mover.output_status)) == 0
+	print('-- typer')
+	assert len(typer()) == 0
+	assert len(repository.fetch(typer.possible_output_types[0], typer.output_status)) == 0
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)

@@ -38,39 +38,26 @@ class XmlVerifier(Transformer):
 			return 'not xml'
 
 
-class Typer(Transformer):
+class Typer(Mover):
 
 	input_type = 'undefined'
 	input_status = 'xml'
+	moved_status = 'end'
 
-	possible_output_statuses = [
+	possible_output_types = [
 		'PersonalizationRequest'
 	]
+	output_status = 'created'
 
 	def transform(self, item):
 
 		text = item.data
 		type = findByYPath('Body/0', text, content_type='tag')
-		
-		if type in self.possible_output_statuses:
-			item.status = type
-			item.metadata['message_id'] = findByYPath('MessageID', text)
-			return item
-		else:
-			return None
 
+		item.type = type
+		item.metadata['message_id'] = findByYPath('MessageID', text)
 
-class PersonalizationRequestToCreatedMover(Mover):
-
-	input_type = 'undefined'
-	input_status = 'PersonalizationRequest'
-	moved_status = 'end'
-
-	output_type = 'PersonalizationRequest'
-	output_status = 'created'
-
-	def transform(self, item):
-		return [item]
+		return item
 
 
 class PrintTaskSaver(Creator):
