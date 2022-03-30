@@ -80,7 +80,7 @@ class File:
 		]) as f:
 			f.write(content)
 
-		self.content = content
+		self.content = content.decode()
 		self.correct_digest = getDigest(content)
 
 	def get(self, digest):
