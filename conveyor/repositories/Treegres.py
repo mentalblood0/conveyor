@@ -73,7 +73,7 @@ class File:
 
 	path: str
 
-	def set(self, content: bytes):
+	def set(self, content: bytes) -> None:
 
 		with lzma.open(self.path, 'wb', filters=[
 			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
@@ -83,7 +83,7 @@ class File:
 		self.content = content.decode()
 		self.correct_digest = getDigest(content)
 
-	def get(self, digest):
+	def get(self, digest: str) -> str:
 
 		if not hasattr(self, 'content'):
 
