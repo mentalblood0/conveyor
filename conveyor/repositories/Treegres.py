@@ -112,7 +112,10 @@ class Treegres(Repository):
 	cache_size: int = 1024
 
 	def __post_init__(self):
-		self.getFile = lru_cache(maxsize=self.cache_size)(getFile)
+		if self.cache_size:
+			self.getFile = lru_cache(maxsize=self.cache_size)(getFile)
+		else:
+			self.getFile = getFile
 
 	def create(self, item):
 
