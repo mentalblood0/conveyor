@@ -5,7 +5,7 @@ import growing_tree_base
 from blake3 import blake3
 from typing import Callable
 from functools import lru_cache, partial
-from dataclasses import dataclass, asdict, field, replace
+from dataclasses import dataclass, asdict, replace
 from peewee import Field, CharField, IntegerField, FloatField, Database, Model as Model_
 
 from .. import Item, Repository, Model
@@ -68,24 +68,36 @@ def getDigest(data: bytes) -> str:
 	return base64.b64encode(d).decode('ascii')
 
 
-def setFileContent(path: str, content: bytes) -> None:
+@dataclass
+class File:
 
-	with lzma.open(path, 'wb', filters=[
-		{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
-	]) as f:
-		f.write(content)
+	path: str
+	content: str | None = None
+
+	def set(self, content: bytes):
+		with lzma.open(self.path, 'wb', filters=[
+			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
+		]) as f:
+			f.write(content)
+
+	def get(self, digest):
+
+		if self.content == None:
+
+			with lzma.open(self.path, 'rb') as f:
+				file_content = f.read()
+
+			correct_digest = getDigest(file_content)
+			if correct_digest != digest:
+				raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{correct_digest}'")
+
+			self.content = file_content.decode()
+
+		return self.content
 
 
-def getFileContent(path: str, digest: str) -> str:
-
-	with lzma.open(path, 'rb') as f:
-		file_content = f.read()
-	
-	correct_digest = getDigest(file_content)
-	if correct_digest != digest:
-		raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{correct_digest}'")
-
-	return file_content.decode()
+def getFile(path):
+	return File(path)
 
 
 @dataclass
@@ -97,7 +109,7 @@ class Treegres(Repository):
 	cache_size: int = 1024
 
 	def __post_init__(self):
-		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
+		self.getFile = lru_cache(maxsize=self.cache_size)(getFile)
 
 	def create(self, item):
 
@@ -108,7 +120,7 @@ class Treegres(Repository):
 		file_absolute_path = growing_tree_base.Tree(
 			root=type_dir_path,
 			base_file_name='.xz',
-			save_file_function=setFileContent
+			save_file_function=lambda p, c: getFile(p).set(c)
 		).save(item_data_bytes)
 
 		result_item = replace(
@@ -146,7 +158,7 @@ class Treegres(Repository):
 				id=r_dict['id'],
 				chain_id=r_dict['chain_id'],
 				data_digest = r_dict['data_digest'],
-				data=self.getFileContent(file_path, r_dict['data_digest'])
+				data=self.getFile(file_path).get(r_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
@@ -193,7 +205,7 @@ class Treegres(Repository):
 					id=r.id,
 					chain_id=r.chain_id,
 					data_digest = r.data_digest,
-					data=self.getFileContent(file_path, r.data_digest)
+					data=self.getFile(file_path).get(r.data_digest)
 				)
 				item.metadata = {
 					k: v
@@ -211,7 +223,7 @@ class Treegres(Repository):
 
 				if 'data' in fields:
 					file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-					item.data = self.getFileContent(file_path, r.data_digest)
+					item.data=self.getFile(file_path).get(r.data_digest)
 				
 				if 'metadata' in fields:
 					item.metadata = {
