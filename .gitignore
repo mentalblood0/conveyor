@@ -6,4 +6,3 @@ config.py
 dir_tree
 poetry.lock
 .*cache*
-test.db

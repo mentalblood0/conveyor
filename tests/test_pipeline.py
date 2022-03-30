@@ -9,8 +9,7 @@ from conveyor.repository_effects import SimpleLogging, DbLogging
 
 
 
-
-db = SqliteDatabase('test.db')
+db = SqliteDatabase(':memory:')
 dir_tree_root_path = 'dir_tree'
 repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
