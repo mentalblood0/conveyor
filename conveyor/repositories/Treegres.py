@@ -74,10 +74,14 @@ class File:
 	path: str
 
 	def set(self, content: bytes):
+
 		with lzma.open(self.path, 'wb', filters=[
 			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
 		]) as f:
 			f.write(content)
+
+		self.content = content
+		self.correct_digest = getDigest(content)
 
 	def get(self, digest):
 
