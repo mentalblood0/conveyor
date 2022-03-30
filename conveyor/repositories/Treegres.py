@@ -95,7 +95,6 @@ class Treegres(Repository):
 	dir_tree_root_path: str
 
 	cache_size: int = 1024
-	base_file_name: str = '.xz'
 	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
 
 	def __post_init__(self):
@@ -109,7 +108,7 @@ class Treegres(Repository):
 
 		file_absolute_path = growing_tree_base.Tree(
 			root=type_dir_path,
-			base_file_name=self.base_file_name,
+			base_file_name='.xz',
 			save_file_function=setFileContent
 		).save(item_data_bytes)
 
