@@ -29,7 +29,7 @@ ignored_fields = [
 
 def getFields(item: Item) -> dict[str, None | str | int | float | Path]:
 	return {
-		k: None if v == '' else v
+		k: v
 		for k, v in (item.metadata | asdict(item)).items()
 		if k not in ignored_fields
 	}
@@ -152,7 +152,7 @@ class Treegres(Repository):
 		for r in query_result:
 
 			r_dict = {
-				k: v if v.__class__ == str else v
+				k: v
 				for k, v in r.__data__.items()
 			}
 
@@ -169,7 +169,7 @@ class Treegres(Repository):
 			item.metadata = {
 				k: v
 				for k, v in r_dict.items()
-				if not k in [*asdict(item).keys()]
+				if k not in asdict(item)
 			}
 
 			result.append(item)
@@ -216,7 +216,7 @@ class Treegres(Repository):
 				item.metadata = {
 					k: v
 					for k, v in r.__data__.items()
-					if not k in asdict(item).keys()
+					if k not in asdict(item)
 				}
 
 			else:
@@ -235,7 +235,7 @@ class Treegres(Repository):
 					item.metadata = {
 						k: v
 						for k, v in r.__data__.items()
-						if not k in asdict(item).keys()
+						if k not in asdict(item)
 					}
 		
 			result.append(item)
