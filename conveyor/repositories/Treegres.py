@@ -123,7 +123,7 @@ class Treegres(Repository):
 		file_absolute_path = growing_tree_base.Tree(
 			root=type_dir_path,
 			base_file_name='.xz',
-			save_file_function=lambda p, c: getFile(p).set(c)
+			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
 		).save(item_data_bytes)
 
 		result_item = replace(
