@@ -1,7 +1,6 @@
 import shutil
-from peewee import PostgresqlDatabase
+from peewee import SqliteDatabase
 
-from tests import config
 from tests.example_workers import *
 from conveyor import LogsRepository
 from conveyor.repositories import Treegres
@@ -11,25 +10,15 @@ from conveyor.repository_effects import SimpleLogging, DbLogging
 
 
 
+db = SqliteDatabase('test.db')
 dir_tree_root_path = 'dir_tree'
+repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
 
 def test_correct():
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	db = PostgresqlDatabase(
-		config.db['db'],
-		user=config.db['user'],
-		password=config.db['password'],
-		host=config.db['host'],
-		port=config.db['port']
-	)
-
-	repository = Treegres(
-		db=db,
-		dir_tree_root_path=dir_tree_root_path
-	)
 	repository._drop('conveyor_log')
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')
@@ -74,18 +63,6 @@ def test_mover_transaction():
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-	db = PostgresqlDatabase(
-		config.db['db'],
-		user=config.db['user'],
-		password=config.db['password'],
-		host=config.db['host'],
-		port=config.db['port']
-	)
-
-	repository = Treegres(
-		db=db,
-		dir_tree_root_path=dir_tree_root_path
-	)
 	repository._drop('conveyor_log')
 	repository._drop('undefined')
 	repository._drop('PersonalizationRequest')

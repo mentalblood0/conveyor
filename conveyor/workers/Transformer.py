@@ -37,7 +37,7 @@ class Transformer(Processor, metaclass=ABCMeta):
 			)
 
 		elif type(output) == str:
-			
+
 			output_status = output
 			if not output_status in self.possible_output_statuses:
 				return None

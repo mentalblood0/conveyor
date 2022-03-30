@@ -38,7 +38,6 @@ class Mover(Processor, metaclass=ABCMeta):
 				raise Exception(f'output type "{output_items[0].type}" not possible')
 
 			for i in output_items:
-
 				self.repository.create(
 					dataclasses.replace(
 						i,
