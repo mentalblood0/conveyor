@@ -10,15 +10,16 @@ db = SqliteDatabase(':memory:')
 dir_tree_root_path = 'dir_tree'
 repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
+type = 'undefined'
+status = 'created'
 
-def clear(type):
+
+def clear():
 	repository._drop(type)
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
-def test_create():
 
-	type = 'undefined'
-	clear(type)
+def test_create():
 
 	item = Item(
 		type=type,
@@ -33,12 +34,10 @@ def test_create():
 
 	assert repository.create(item)
 
+	clear()
+
 
 def test_get():
-
-	type = 'undefined'
-	status = 'created'
-	clear(type)
 
 	item = Item(
 		type=type,
@@ -54,12 +53,10 @@ def test_get():
 	assert repository.create(item)
 	assert repository.fetch(type, status, None)[0].metadata['message_id'] == item.metadata['message_id']
 
+	clear()
+
 
 def test_delete():
-
-	type = 'undefined'
-	status = 'created'
-	clear(type)
 
 	assert repository.create(Item(
 		type=type,
@@ -74,3 +71,5 @@ def test_delete():
 	id = repository.fetch(type, status, 1)[0].id
 	assert repository.delete(type, id)
 	assert repository.fetch(type, status, None) == []
+
+	clear()

@@ -16,13 +16,6 @@ repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
 def test_correct():
 
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
-
-	repository._drop('conveyor_log')
-	repository._drop('undefined')
-	repository._drop('PersonalizationRequest')
-	repository._drop('PrintTask')
-
 	DbLogging(repository, LogsRepository(db)).install(repository)
 	SimpleLogging().install(repository)
 
@@ -55,16 +48,13 @@ def test_correct():
 	assert len(typer()) == 2
 	assert len(destroyer()) == 2
 
+	repository._drop('undefined')
+	repository._drop('PersonalizationRequest')
+	repository._drop('PrintTask')
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 
 def test_mover_transaction():
-
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
-
-	repository._drop('conveyor_log')
-	repository._drop('undefined')
-	repository._drop('PersonalizationRequest')
 
 	DbLogging(repository, LogsRepository(db)).install(repository)
 	SimpleLogging().install(repository)
@@ -88,4 +78,6 @@ def test_mover_transaction():
 	assert len(typer()) == 0
 	assert len(repository.fetch(typer.possible_output_types[0], typer.output_status)) == 0
 
+	repository._drop('undefined')
+	repository._drop('PersonalizationRequest')
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
