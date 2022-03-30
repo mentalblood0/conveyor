@@ -99,7 +99,7 @@ class File:
 		return self.content
 
 
-def getFile(path):
+def getFile(path: Path):
 	return File(path)
 
 
