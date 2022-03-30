@@ -72,7 +72,6 @@ def getDigest(data: bytes) -> str:
 class File:
 
 	path: str
-	content: str | None = None
 
 	def set(self, content: bytes):
 		with lzma.open(self.path, 'wb', filters=[
@@ -82,16 +81,16 @@ class File:
 
 	def get(self, digest):
 
-		if self.content == None:
+		if not hasattr(self, 'content'):
 
 			with lzma.open(self.path, 'rb') as f:
-				file_content = f.read()
+				file_bytes = f.read()
 
-			correct_digest = getDigest(file_content)
-			if correct_digest != digest:
-				raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{correct_digest}'")
+			self.content = file_bytes.decode()
+			self.correct_digest = getDigest(file_bytes)
 
-			self.content = file_content.decode()
+		if self.correct_digest != digest:
+			raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{self.correct_digest}'")
 
 		return self.content
 
