@@ -95,7 +95,6 @@ class Treegres(Repository):
 	dir_tree_root_path: str
 
 	cache_size: int = 1024
-	getFileContent: Callable[[str, str], str]=field(init=False, repr=False)
 
 	def __post_init__(self):
 		self.getFileContent = lru_cache(maxsize=self.cache_size)(getFileContent)
