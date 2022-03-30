@@ -7,6 +7,13 @@ from .. import Item, Repository
 
 
 
+def composeChainId():
+	return ''.join([
+		hex(int(time.time() * 10**7))[2:],
+		uuid.uuid4().hex
+	])
+
+
 class Creator(metaclass=ABCMeta):
 
 	output_type: str
@@ -32,21 +39,21 @@ class Creator(metaclass=ABCMeta):
 
 		if self.source_type and self.source_status:
 
-			chain_id = self.repository.get(
-				type=self.source_type,
-				where={
-					key: item.metadata[key]
-					for key in self.match_fields
-				},
-				fields=['chain_id']
-			)[0].chain_id
+			try:
+				chain_id = self.repository.get(
+					type=self.source_type,
+					where={
+						key: item.metadata[key]
+						for key in self.match_fields
+					},
+					fields=['chain_id']
+				)[0].chain_id
+
+			except IndexError:
+				chain_id = composeChainId()
 		
 		else:
-
-			chain_id = ''.join([
-				hex(int(time.time() * 10**7))[2:],
-				uuid.uuid4().hex
-			])
+			chain_id = composeChainId()
 
 		return self.repository.create(
 			dataclasses.replace(

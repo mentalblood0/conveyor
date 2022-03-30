@@ -1,11 +1,11 @@
-from lxml import etree
+import dataclasses
 from conveyor import Item
-from structure_mapper import *
+
 from conveyor.workers import *
 
 
 
-class FileSaver(Creator):
+class Saver(Creator):
 
 	output_type = 'undefined'
 	output_status = 'created'
@@ -14,65 +14,69 @@ class FileSaver(Creator):
 		return Item(
 			data=text,
 			metadata={
-				'message_id': ''
+				'square': -1
 			}
 		)
 
 
-class XmlVerifier(Transformer):
+class Verifier(Transformer):
 
 	input_type = 'undefined'
 	input_status = 'created'
 
 	possible_output_statuses = [
-		'xml',
-		'not xml'
+		'valid',
+		'invalid'
 	]
 
 	def transform(self, item):
 
 		try:
-			etree.fromstring(item.data)
-			return 'xml'
-		except etree.XMLSyntaxError:
-			return 'not xml'
+			int(item.data)
+		except ValueError:
+			return 'invalid'
+
+		return dataclasses.replace(
+			item,
+			status='valid',
+			metadata={
+				'square': int(item.data) ** 2
+			}
+		)
 
 
 class Typer(Mover):
 
 	input_type = 'undefined'
-	input_status = 'xml'
-	moved_status = 'end'
+	input_status = 'valid'
+	moved_status = 'typed'
 
 	possible_output_types = [
-		'PersonalizationRequest'
+		'even',
+		'odd'
 	]
 	output_status = 'created'
 
 	def transform(self, item):
-
-		text = item.data
-		type = findByYPath('Body/0', text, content_type='tag')
-
-		item.type = type
-		item.metadata['message_id'] = findByYPath('MessageID', text)
-
-		return item
+		return dataclasses.replace(
+			item,
+			type='odd' if int(item.data) % 2 else 'even'
+		)
 
 
-class PrintTaskSaver(Creator):
+class AnotherSaver(Creator):
 
-	output_type = 'PrintTask'
+	output_type = 'another'
 	output_status = 'created'
 
-	source_type = 'PersonalizationRequest'
+	source_type = 'odd'
 	source_status = 'created'
-	match_fields = ['message_id']
+	match_fields = ['square']
 
 	def create(self, text):
 		return Item(
 			data=text,
 			metadata={
-				'message_id': findByYPath('MessageID', text)
+				'square': int(text) ** 2
 			}
 		)
