@@ -1,5 +1,5 @@
-from .SimpleLogging import SimpleLogging
-from .DbLogging import DbLogging
+from .SimpleLogging.SimpleLogging import SimpleLogging
+from .DbLogging.DbLogging import DbLogging
 
 
 all = [

@@ -1,7 +1,7 @@
 import colorama
 from logama import log
 
-from .. import RepositoryEffect
+from ... import RepositoryEffect
 
 
 

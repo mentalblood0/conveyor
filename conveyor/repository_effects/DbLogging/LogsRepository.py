@@ -1,8 +1,8 @@
 from datetime import datetime
 from peewee import Database, CharField, DateTimeField
 
-from .Item import Item
-from .Model import Model
+from ...core.Item import Item
+from ...common.Model import Model
 
 
 

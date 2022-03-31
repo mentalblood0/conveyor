@@ -8,7 +8,8 @@ from functools import lru_cache, partial
 from dataclasses import dataclass, asdict, replace
 from peewee import Field, CharField, IntegerField, FloatField, Database, Model as Model_
 
-from .. import Item, Repository, Model
+from ...common import Model
+from ...core import Item, Repository
 
 
 

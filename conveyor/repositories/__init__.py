@@ -1,4 +1,4 @@
-from .Treegres import Treegres
+from .Treegres.Treegres import Treegres
 
 
 all = [

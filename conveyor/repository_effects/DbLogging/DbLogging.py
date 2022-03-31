@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from .. import RepositoryEffect
-from ..Repository import Repository
-from ..LogsRepository import LogsRepository
+from ... import RepositoryEffect
+from ...core.Repository import Repository
+from .LogsRepository import LogsRepository
 
 
 
