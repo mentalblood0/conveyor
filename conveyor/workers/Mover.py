@@ -47,8 +47,6 @@ class Mover(Processor, metaclass=ABCMeta):
 				)
 
 		return self.repository.update(
-			self.input_type,
-			input_item.id,
 			dataclasses.replace(
 				input_item,
 				status=self.moved_status

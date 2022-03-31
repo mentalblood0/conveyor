@@ -17,10 +17,10 @@ class DbLogging(Effect):
 			new_item=item
 		)
 	
-	def update(self, type, id, item):
+	def update(self, item):
 		self.logs_repository.create(
 			action='update',
-			old_item=self.repository.get(type, {'id': id}, ['status'])[0],
+			old_item=self.repository.get(item.type, {'id': item.id}, ['status'])[0],
 			new_item=item
 		)
 

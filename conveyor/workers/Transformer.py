@@ -47,4 +47,4 @@ class Transformer(Processor, metaclass=ABCMeta):
 				status=output_status
 			)
 
-		return self.repository.update(self.input_type, input_item.id, output_item)
+		return self.repository.update(output_item)

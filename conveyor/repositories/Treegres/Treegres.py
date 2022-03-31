@@ -1,107 +1,14 @@
 import os
-import lzma
-import base64
 import growing_tree_base
-from blake3 import blake3
-from typing import Callable
-from functools import lru_cache, partial
+from peewee import Database
+from functools import lru_cache
 from dataclasses import dataclass, asdict, replace
-from peewee import Field, CharField, IntegerField, FloatField, Database, Model as Model_
 
 from ...common import Model
 from ...core import Item, Repository
 
+from . import Path, File, getDigest, ItemAdapter
 
-
-class Path(str):
-	def __new__(C, value):
-		return super().__new__(
-			C,
-			os.path.normpath(os.path.normcase(value))
-		)
-
-
-ignored_fields = [
-	'id',
-	'type',
-	'data',
-	'metadata'
-]
-
-def getFields(item: Item) -> dict[str, None | str | int | float | Path]:
-	return {
-		k: v
-		for k, v in (item.metadata | asdict(item)).items()
-		if k not in ignored_fields
-	}
-
-
-base_fields_mapping: dict[str, Callable[[], Field]] = {
-	'chain_id': partial(CharField, max_length=63, index=True),
-	'status': partial(CharField, max_length=63, index=True),
-	'data_digest': partial(CharField, max_length=63)
-}
-
-metadata_fields_mapping: dict[type, Callable[[], Field]] = {
-	str: partial(CharField, default=None, null=True, index=True),
-	int: partial(IntegerField, default=None, null=True, index=True),
-	float: partial(FloatField, default=None, null=True, index=True),
-	Path: partial(CharField, max_length=63, index=True)
-}
-
-def getModel(db: Model_, item: Item) -> Model_:
-	return Model(
-		db=db,
-		name=item.type,
-		columns={
-			k: base_fields_mapping[k]()
-			for k in asdict(item)
-			if k not in ignored_fields
-		} | {
-			k: metadata_fields_mapping[type(v)]()
-			for k, v in item.metadata.items()
-		}
-	)
-
-
-def getDigest(data: bytes) -> str:
-	d = blake3(data, max_threads=blake3.AUTO).digest()
-	return base64.b64encode(d).decode('ascii')
-
-
-@dataclass
-class File:
-
-	path: str
-
-	def set(self, content: bytes) -> None:
-
-		with lzma.open(self.path, 'wb', filters=[
-			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
-		]) as f:
-			f.write(content)
-
-		self.content = content.decode()
-		self.correct_digest = getDigest(content)
-
-	def get(self, digest: str) -> str:
-
-		if not hasattr(self, 'content'):
-
-			with lzma.open(self.path, 'rb') as f:
-				file_bytes = f.read()
-
-			self.content = file_bytes.decode()
-			self.correct_digest = getDigest(file_bytes)
-
-		if self.correct_digest != digest:
-			raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{self.correct_digest}'")
-
-		return self.content
-
-
-def getFile(path: Path):
-	return File(path)
 
 
 @dataclass
@@ -114,9 +21,9 @@ class Treegres(Repository):
 
 	def __post_init__(self):
 		if self.cache_size:
-			self.getFile = lru_cache(maxsize=self.cache_size)(getFile)
+			self.File = lru_cache(maxsize=self.cache_size)(File)
 		else:
-			self.getFile = getFile
+			self.File = File
 
 	def create(self, item):
 
@@ -127,7 +34,7 @@ class Treegres(Repository):
 		file_absolute_path = growing_tree_base.Tree(
 			root=type_dir_path,
 			base_file_name='.xz',
-			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
+			save_file_function=lambda p, c: self.File(Path(p)).set(c)
 		).save(item_data_bytes)
 
 		result_item = replace(
@@ -139,7 +46,7 @@ class Treegres(Repository):
 			)
 		)
 
-		return getModel(self.db, result_item)(**getFields(result_item)).save()
+		return ItemAdapter(result_item, self.db).save()
 
 	def fetch(self, type, status, limit=None):
 
@@ -165,7 +72,7 @@ class Treegres(Repository):
 				id=r_dict['id'],
 				chain_id=r_dict['chain_id'],
 				data_digest = r_dict['data_digest'],
-				data=self.getFile(file_path).get(r_dict['data_digest'])
+				data=self.File(file_path).get(r_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
@@ -174,7 +81,7 @@ class Treegres(Repository):
 			}
 
 			result.append(item)
-		
+
 		return result
 	
 	def get(self, type, where=None, fields=None, limit=1):
@@ -182,7 +89,7 @@ class Treegres(Repository):
 		model = Model(self.db, type)
 		if not model:
 			return []
-		
+
 		if fields == None:
 			get_fields = []
 		else:
@@ -212,7 +119,7 @@ class Treegres(Repository):
 					id=r.id,
 					chain_id=r.chain_id,
 					data_digest = r.data_digest,
-					data=self.getFile(file_path).get(r.data_digest)
+					data=self.File(file_path).get(r.data_digest)
 				)
 				item.metadata = {
 					k: v
@@ -230,7 +137,7 @@ class Treegres(Repository):
 
 				if 'data' in fields:
 					file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-					item.data=self.getFile(file_path).get(r.data_digest)
+					item.data=self.File(file_path).get(r.data_digest)
 				
 				if 'metadata' in fields:
 					item.metadata = {
@@ -243,13 +150,8 @@ class Treegres(Repository):
 
 		return result
 
-	def update(self, type, id, item):
-
-		model = Model(self.db, type)
-		if not model:
-			return None
-
-		return model.update(**getFields(item)).where(model.id==id).execute()
+	def update(self, item):
+		return ItemAdapter(item, self.db).update()
 
 	def delete(self, type, id):
 
@@ -279,11 +181,11 @@ class Treegres(Repository):
 			return new_f
 
 		return decorator
-	
+
 	def _drop(self, type: str) -> int:
 
 		model = Model(self.db, type)
 		if not model:
 			return None
-		
+
 		return self.db.drop_tables([model])

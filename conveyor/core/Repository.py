@@ -16,7 +16,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def update(self, type: str, id: str, item: Item) -> int:
+	def update(self, type: str, item: Item) -> int:
 		pass
 
 	@abstractmethod
