@@ -1,7 +1,7 @@
 import os
 import growing_tree_base
 from peewee import Database
-from dataclasses import dataclass, asdict, replace
+from dataclasses import dataclass, replace
 
 from ...common import Model
 from ...core import Item, Repository
@@ -56,7 +56,7 @@ class Treegres(Repository):
 		if not model:
 			return []
 
-		if fields == None:
+		if not fields:
 			get_fields = []
 		else:
 			get_fields = [
