@@ -1,3 +1,3 @@
 from .Path import Path
-from .File import File, getDigest
 from .ItemAdapter import ItemAdapter
+from .File import getDigest, File, FileCache

@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict, replace
 from ...common import Model
 from ...core import Item, Repository
 
-from . import Path, File, getDigest, ItemAdapter
+from . import Path, File, FileCache, getDigest, ItemAdapter
 
 
 
@@ -21,9 +21,9 @@ class Treegres(Repository):
 
 	def __post_init__(self):
 		if self.cache_size:
-			self.File = lru_cache(maxsize=self.cache_size)(File)
+			self.getFile = FileCache(self.cache_size)
 		else:
-			self.File = File
+			self.getFile = File
 
 	def create(self, item):
 
@@ -34,7 +34,7 @@ class Treegres(Repository):
 		file_absolute_path = growing_tree_base.Tree(
 			root=type_dir_path,
 			base_file_name='.xz',
-			save_file_function=lambda p, c: self.File(Path(p)).set(c)
+			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
 		).save(item_data_bytes)
 
 		result_item = replace(
@@ -72,7 +72,7 @@ class Treegres(Repository):
 				id=r_dict['id'],
 				chain_id=r_dict['chain_id'],
 				data_digest = r_dict['data_digest'],
-				data=self.File(file_path).get(r_dict['data_digest'])
+				data=self.getFile(file_path).get(r_dict['data_digest'])
 			)
 			item.metadata = {
 				k: v
@@ -119,7 +119,7 @@ class Treegres(Repository):
 					id=r.id,
 					chain_id=r.chain_id,
 					data_digest = r.data_digest,
-					data=self.File(file_path).get(r.data_digest)
+					data=self.getFile(file_path).get(r.data_digest)
 				)
 				item.metadata = {
 					k: v
@@ -137,7 +137,7 @@ class Treegres(Repository):
 
 				if 'data' in fields:
 					file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-					item.data=self.File(file_path).get(r.data_digest)
+					item.data=self.getFile(file_path).get(r.data_digest)
 				
 				if 'metadata' in fields:
 					item.metadata = {
