@@ -14,4 +14,4 @@ class FileCache:
 		self.File = lru_cache(maxsize=self.size)(File)
 
 	def __call__(self, path: str):
-		return File(path)
+		return self.File(path)
