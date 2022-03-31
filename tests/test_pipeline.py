@@ -28,9 +28,9 @@ def test_correct():
 	assert len(verifier()) == 1
 	assert len(typer()) == 1
 	assert square_saver(another)
-	source = repository.fetch('odd', 'created')
+	source = repository.get('odd', {'status': 'created'})
 	assert source
-	linked = repository.fetch('another', 'created')
+	linked = repository.get('another', {'status': 'created'})
 	assert linked
 	assert linked[0].chain_id == source[0].chain_id
 	assert len(destroyer()) == 1
@@ -70,7 +70,7 @@ def test_mover_transaction():
 	repository.update = crash
 	print('-- typer')
 	assert len(typer()) == 0
-	assert len(repository.fetch(typer.possible_output_types[0], typer.output_status)) == 0
+	assert len(repository.get(typer.possible_output_types[0], {'status': typer.output_status})) == 0
 
 	repository._drop('undefined')
 	repository._drop('odd')

@@ -47,7 +47,7 @@ def test_get():
 	)
 
 	assert repository.create(item)
-	assert repository.fetch(type, status, None)[0].metadata['message_id'] == item.metadata['message_id']
+	assert repository.get(type, {'status': status}, limit=None)[0].metadata['message_id'] == item.metadata['message_id']
 
 	clear()
 
@@ -64,8 +64,8 @@ def test_delete():
 			'message_id': 'lololo'
 		}
 	))
-	id = repository.fetch(type, status, 1)[0].id
+	id = repository.get(type, {'status': status})[0].id
 	assert repository.delete(type, id)
-	assert repository.fetch(type, status, None) == []
+	assert repository.get(type, {'status': status}) == []
 
 	clear()

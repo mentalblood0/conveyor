@@ -14,8 +14,8 @@ class Receiver(metaclass=ABCMeta):
 		self.one_call_items_limit = one_call_items_limit
 
 	def receiveItems(self) -> list[Item]:
-		return self.repository.fetch(
+		return self.repository.get(
 			self.input_type,
-			self.input_status,
-			self.one_call_items_limit
+			where={'status': self.input_status},
+			limit=self.one_call_items_limit
 		)
