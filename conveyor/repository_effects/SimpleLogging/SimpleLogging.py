@@ -1,11 +1,11 @@
 import colorama
 from logama import log
 
-from ... import RepositoryEffect
+from ...core import Effect
 
 
 
-class SimpleLogging(RepositoryEffect):
+class SimpleLogging(Effect):
 
 	def create(self, item):
 		log(f'-> {item.type}::{item.status}', colorama.Fore.GREEN)

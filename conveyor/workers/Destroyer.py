@@ -1,6 +1,6 @@
 from abc import ABCMeta
 
-from .. import Repository
+from ..core import Repository
 
 
 

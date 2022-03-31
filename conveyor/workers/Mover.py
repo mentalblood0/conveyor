@@ -2,7 +2,7 @@ import dataclasses
 from abc import ABCMeta
 from copy import deepcopy
 
-from .. import Item, Processor
+from ..core import Item, Processor
 
 
 

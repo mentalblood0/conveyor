@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 
-from ... import RepositoryEffect
-from ...core.Repository import Repository
+from ...core import Repository, Effect
 from .LogsRepository import LogsRepository
 
 
 
 @dataclass
-class DbLogging(RepositoryEffect):
+class DbLogging(Effect):
 
 	repository: Repository
 	logs_repository: LogsRepository

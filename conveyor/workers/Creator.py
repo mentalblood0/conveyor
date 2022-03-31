@@ -3,7 +3,7 @@ import uuid
 import dataclasses
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, Repository
+from ..core import Item, Repository
 
 
 

@@ -2,7 +2,7 @@ import dataclasses
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 
-from .. import Item, Processor
+from ..core import Item, Processor
 
 
 
