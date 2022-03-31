@@ -1,13 +1,12 @@
 import os
 import growing_tree_base
 from peewee import Database
-from functools import lru_cache
 from dataclasses import dataclass, asdict, replace
 
 from ...common import Model
 from ...core import Item, Repository
 
-from . import Path, File, FileCache, getDigest, ItemAdapter
+from . import Path, File, FileCache, ItemAdapter
 
 
 
@@ -25,24 +24,27 @@ class Treegres(Repository):
 		else:
 			self.getFile = File
 
-	def create(self, item):
+	def getTree(self, type: str):
 
-		item_data_bytes = item.data.encode('utf8')
-		item.data_digest = getDigest(item_data_bytes)
-		type_dir_path = os.path.join(self.dir_tree_root_path, item.type)
+		root = os.path.join(self.dir_tree_root_path, type)
 
-		file_absolute_path = growing_tree_base.Tree(
-			root=type_dir_path,
+		return growing_tree_base.Tree(
+			root=root,
 			base_file_name='.xz',
 			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
-		).save(item_data_bytes)
+		), root
+
+	def create(self, item):
+
+		type_tree, type_root = self.getTree(item.type)
+		file_path = type_tree.save(item.data.encode('utf8'))
 
 		result_item = replace(
 			item,
-			data_digest=getDigest(item_data_bytes),
+			data_digest=self.getFile(Path(file_path)).correct_digest,
 			metadata=(
 				item.metadata
-				| {'file_path': Path(os.path.relpath(file_absolute_path, type_dir_path))}
+				| {'file_path': Path(os.path.relpath(file_path, type_root))}
 			)
 		)
 

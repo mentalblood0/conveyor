@@ -1,14 +1,10 @@
 import shutil
-from peewee import SqliteDatabase
 
 from conveyor import Item
-from conveyor.repositories import Treegres
+
+from .common import *
 
 
-
-db = SqliteDatabase(':memory:')
-dir_tree_root_path = 'dir_tree'
-repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
 type = 'undefined'
 status = 'created'
