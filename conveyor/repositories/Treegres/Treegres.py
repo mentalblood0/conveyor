@@ -32,7 +32,7 @@ class Treegres(Repository):
 		type_root = self._getTypePath(item.type)
 		type_tree = growing_tree_base.Tree(
 			root=type_root,
-			base_file_name=File.extension,
+			base_file_name=f'.{File.extension}',
 			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
 		)
 		file_path = type_tree.save(item.data.encode('utf8'))

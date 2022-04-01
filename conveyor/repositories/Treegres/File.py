@@ -15,7 +15,7 @@ class File:
 
 	path: str
 
-	extension = '.xz'
+	extension = 'xz'
 
 	def set(self, content: bytes) -> None:
 
