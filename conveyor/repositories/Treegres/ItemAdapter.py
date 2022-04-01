@@ -10,13 +10,6 @@ from . import Path
 
 
 
-ignored_fields = [
-	'id',
-	'type',
-	'data',
-	'metadata'
-]
-
 base_fields_mapping: dict[str, Callable[[], Field]] = {
 	'chain_id': partial(CharField, max_length=63, index=True),
 	'status': partial(CharField, max_length=63, index=True),
@@ -39,10 +32,9 @@ class ItemAdapter:
 
 	@property
 	def fields(self):
-		return {
-			k: v
-			for k, v in (self.item.metadata | asdict(self.item)).items()
-			if k not in ignored_fields
+		return self.item.metadata | {
+			k: getattr(self.item, k)
+			for k in base_fields_mapping
 		}
 
 	def save(self):
@@ -50,12 +42,11 @@ class ItemAdapter:
 			db=self.db,
 			name=self.item.type,
 			columns={
-				k: base_fields_mapping[k]()
-				for k in asdict(self.item)
-				if k not in ignored_fields
-			} | {
 				k: metadata_fields_mapping[type(v)]()
 				for k, v in self.item.metadata.items()
+			} | {
+				k: base_fields_mapping[k]()
+				for k in base_fields_mapping
 			}
 		)(**self.fields).save()
 	
