@@ -14,18 +14,21 @@ def getDigest(data: bytes) -> str:
 class File:
 
 	path: str
+	encoding: str
 
 	extension = 'xz'
 
-	def set(self, content: bytes) -> None:
+	def set(self, content: str) -> None:
+
+		content_bytes = content.encode(self.encoding)
 
 		with lzma.open(self.path, 'wb', filters=[
 			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
 		]) as f:
-			f.write(content)
+			f.write(content_bytes)
 
-		self.content = content.decode()
-		self.correct_digest = getDigest(content)
+		self.content = content
+		self.correct_digest = getDigest(content_bytes)
 
 	def get(self, digest: str) -> str:
 
@@ -34,7 +37,7 @@ class File:
 			with lzma.open(self.path, 'rb') as f:
 				file_bytes = f.read()
 
-			self.content = file_bytes.decode()
+			self.content = file_bytes.decode(self.encoding)
 			self.correct_digest = getDigest(file_bytes)
 
 		if self.correct_digest != digest:

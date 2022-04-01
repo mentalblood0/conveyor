@@ -1,6 +1,7 @@
 import os
 import growing_tree_base
 from peewee import Database
+from functools import partial
 from dataclasses import dataclass, replace
 
 from ...common import Model
@@ -17,12 +18,16 @@ class Treegres(Repository):
 	dir_tree_root_path: str
 
 	cache_size: int = 1024
+	encoding: str = 'utf8'
 
 	def __post_init__(self):
+
 		if self.cache_size:
 			self._getFile = FileCache(self.cache_size)
 		else:
 			self._getFile = File
+
+		self._getFile = partial(self._getFile, encoding=self.encoding)
 	
 	def _getTypePath(self, type: str) -> str:
 		return os.path.join(self.dir_tree_root_path, type.lower())
@@ -35,7 +40,7 @@ class Treegres(Repository):
 			base_file_name=f'.{File.extension}',
 			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
 		)
-		file_path = type_tree.save(item.data.encode('utf8'))
+		file_path = type_tree.save(item.data)
 
 		result_item = replace(
 			item,
