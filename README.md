@@ -11,25 +11,31 @@ Cold pipeline is a pipeline which state stored in external database
 * logama
 * growing-tree-base
 
-## Workers classes
+## Workers
 
-* [Creator](conveyor/workers/Creator.py)
-* [Transformer](conveyor/workers/Transformer.py)
-* [Mover](conveyor/workers/Mover.py)
-* [Destroyer](conveyor/workers/Destroyer.py)
+### [Transformer](conveyor/workers/Transformer.py)
 
-### Factories
+Takes item with fixed type and status
+Changes item status and metadata
 
-* [DestroyerFactory](conveyor/workers/factories/DestroyerFactory.py)
+### [Mover](conveyor/workers/Mover.py)
+
+Takes item with fixed type and status
+Creates one or more item of fixed type and status
+Changes taken item status
+
+### [Destroyer](conveyor/workers/Destroyer.py)
+
+Deletes item with fixed type and status
 
 ## Repositories classes
 
-* [Treegres](conveyor/repositories/Treegres.py) -- uses peewee compatible (should also support indexes) database for storing metadata, and directories tree for storing files
+* [Treegres](conveyor/repositories/Treegres) -- uses peewee compatible (should also support indexes) database for storing metadata, and directories tree for storing files
 
 ## RepositoryEffect classes
 
-* [SimpleLogging](conveyor/repository_effects/SimpleLogging.py) -- logs repository actions to stderr
-* [DbLogging](conveyor/repository_effects/DbLogging.py) -- logs repository actions to peewee compatible database
+* [SimpleLogging](conveyor/repository_effects/SimpleLogging) -- logs repository actions to stderr
+* [DbLogging](conveyor/repository_effects/DbLogging) -- logs repository actions to peewee compatible database
 
 ## Example
 
