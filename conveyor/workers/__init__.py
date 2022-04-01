@@ -1,11 +1,9 @@
-from .Creator import Creator
-from .Transformer import Transformer
 from .Mover import Mover
 from .Destroyer import Destroyer
+from .Transformer import Transformer
 
 
 __all__ = [
-	'Creator',
 	'Transformer',
 	'Mover',
 	'Destroyer'

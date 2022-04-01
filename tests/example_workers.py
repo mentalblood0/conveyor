@@ -2,6 +2,7 @@ import dataclasses
 from conveyor import Item
 
 from conveyor.workers import *
+from conveyor.core import Creator
 
 
 

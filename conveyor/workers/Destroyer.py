@@ -1,10 +1,10 @@
 from abc import ABCMeta
 
-from ..core import Processor
+from ..core import Worker
 
 
 
-class Destroyer(Processor):
+class Destroyer(Worker):
 
 	input_type: str
 	input_status: str
