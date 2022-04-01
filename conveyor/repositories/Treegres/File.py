@@ -15,6 +15,8 @@ class File:
 
 	path: str
 
+	extension = '.xz'
+
 	def set(self, content: bytes) -> None:
 
 		with lzma.open(self.path, 'wb', filters=[

@@ -30,7 +30,7 @@ class Treegres(Repository):
 
 		return growing_tree_base.Tree(
 			root=root,
-			base_file_name='.xz',
+			base_file_name=File.extension,
 			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
 		), root
 
