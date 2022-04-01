@@ -17,7 +17,7 @@ class Transformer(Worker, metaclass=ABCMeta):
 	def transform(self, item: Item) -> Item | str:
 		pass
 
-	def processItem(self, input_item: Item) -> int | None:
+	def processItem(self, input_item):
 
 		output = self.transform(deepcopy(input_item))
 

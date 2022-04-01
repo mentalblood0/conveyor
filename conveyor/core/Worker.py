@@ -13,10 +13,10 @@ class Worker(Receiver, metaclass=ABCMeta):
 		self.processItem = self.repository.transaction(self.processItem)
 
 	@abstractmethod
-	def processItem(self, item: Item) -> Item | str | None:
+	def processItem(self, item: Item) -> int | None:
 		pass
 
-	def __call__(self) -> list[Item]:
+	def __call__(self) -> list[int]:
 
 		result = []
 

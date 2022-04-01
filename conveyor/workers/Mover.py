@@ -18,11 +18,11 @@ class Mover(Worker, metaclass=ABCMeta):
 	def transform(self, item: Item) -> list[Item] | Item:
 		return []
 
-	def processItem(self, input_item: Item) -> int:
+	def processItem(self, input_item):
 
 		output = self.transform(deepcopy(input_item))
 		if type(output) == None:
-			return 0
+			return None
 
 		if type(output) == Item:
 			output_items = [output]
