@@ -1,7 +1,7 @@
 import os
 import growing_tree_base
 from peewee import Database
-from dataclasses import dataclass, asdict, replace
+from dataclasses import dataclass, replace
 
 from ...common import Model
 from ...core import Item, Repository
@@ -49,42 +49,6 @@ class Treegres(Repository):
 		)
 
 		return ItemAdapter(result_item, self.db).save()
-
-	def fetch(self, type, status, limit=None):
-
-		model = Model(self.db, type)
-		if not model:
-			return []
-
-		query_result = model.select().where(model.status==status).limit(limit)
-		result = []
-
-		for r in query_result:
-
-			r_dict = {
-				k: v
-				for k, v in r.__data__.items()
-			}
-
-			file_path = Path(os.path.join(self.dir_tree_root_path, type, r_dict['file_path']))
-
-			item = Item(
-				type=type,
-				status=status,
-				id=r_dict['id'],
-				chain_id=r_dict['chain_id'],
-				data_digest = r_dict['data_digest'],
-				data=self.getFile(file_path).get(r_dict['data_digest'])
-			)
-			item.metadata = {
-				k: v
-				for k, v in r_dict.items()
-				if k not in asdict(item)
-			}
-
-			result.append(item)
-
-		return result
 	
 	def get(self, type, where=None, fields=None, limit=1):
 
@@ -92,7 +56,7 @@ class Treegres(Repository):
 		if not model:
 			return []
 
-		if fields == None:
+		if not fields:
 			get_fields = []
 		else:
 			get_fields = [
@@ -105,48 +69,26 @@ class Treegres(Repository):
 			getattr(model, key)==value
 			for key, value in where.items()
 		]
-		query_result = model.select(*get_fields).where(*conditions).limit(limit)
 
 		result = []
 
-		for r in query_result:
+		for r in model.select(*get_fields).where(*conditions).limit(limit):
 
-			if fields == None:
+			item = Item(type=type)
 
-				file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
+			for name in fields or r.__data__:
 
-				item = Item(
-					type=type,
-					status=r.status,
-					id=r.id,
-					chain_id=r.chain_id,
-					data_digest = r.data_digest,
-					data=self.getFile(file_path).get(r.data_digest)
-				)
-				item.metadata = {
-					k: v
-					for k, v in r.__data__.items()
-					if k not in asdict(item)
-				}
+				value = getattr(r, name)
 
-			else:
+				if hasattr(item, name):
+					setattr(item, name, value)
+				else:
+					item.metadata[name] = value
 
-				item = Item(type=type, **{
-					name: getattr(r, name)
-					for name in fields
-					if hasattr(r, name)
-				})
-
-				if 'data' in fields:
-					file_path = Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
-					item.data=self.getFile(file_path).get(r.data_digest)
-				
-				if 'metadata' in fields:
-					item.metadata = {
-						k: v
-						for k, v in r.__data__.items()
-						if k not in asdict(item)
-					}
+			if (fields and ('data' in fields)) or (not fields):
+				item.data=self.getFile(
+					Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
+				).get(r.data_digest)
 		
 			result.append(item)
 
