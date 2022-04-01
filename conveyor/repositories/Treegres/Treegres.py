@@ -20,33 +20,30 @@ class Treegres(Repository):
 
 	def __post_init__(self):
 		if self.cache_size:
-			self.getFile = FileCache(self.cache_size)
+			self._getFile = FileCache(self.cache_size)
 		else:
-			self.getFile = File
+			self._getFile = File
 
-	def getTree(self, type: str):
+	def _getTree(self, type: str):
 
 		root = os.path.join(self.dir_tree_root_path, type)
 
 		return growing_tree_base.Tree(
 			root=root,
 			base_file_name=File.extension,
-			save_file_function=lambda p, c: self.getFile(Path(p)).set(c)
+			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
 		), root
 
 	def create(self, item):
 
-		type_tree, type_root = self.getTree(item.type)
+		type_tree, type_root = self._getTree(item.type)
 		file_path = type_tree.save(item.data.encode('utf8'))
 
 		result_item = replace(
 			item,
-			data_digest=self.getFile(Path(file_path)).correct_digest,
-			metadata=(
-				item.metadata
-				| {'file_path': Path(os.path.relpath(file_path, type_root))}
-			)
+			data_digest=self._getFile(Path(file_path)).correct_digest
 		)
+		result_item.metadata['file_path'] = Path(os.path.relpath(file_path, type_root))
 
 		return ItemAdapter(result_item, self.db).save()
 	
@@ -86,7 +83,7 @@ class Treegres(Repository):
 					item.metadata[name] = value
 
 			if (fields and ('data' in fields)) or (not fields):
-				item.data=self.getFile(
+				item.data=self._getFile(
 					Path(os.path.join(self.dir_tree_root_path, type, r.file_path))
 				).get(r.data_digest)
 		
@@ -103,12 +100,13 @@ class Treegres(Repository):
 		if not model:
 			return None
 
-		file_path = Path(model.select().where(model.id==id).get().__data__['file_path'])
+		relative_path = model.select().where(model.id==id).get().file_path
+		full_path = os.path.join(self.dir_tree_root_path, type, relative_path)
 
 		result = model.delete().where(model.id==id).execute()
 
 		try:
-			os.remove(file_path)
+			os.remove(full_path)
 		except FileNotFoundError:
 			pass
 		
