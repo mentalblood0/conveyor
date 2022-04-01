@@ -30,6 +30,11 @@ class ItemAdapter:
 	item: Item
 	db: Database
 
+	def __post_init__(self):
+		for k in self.item.metadata:
+			if hasattr(self.item, k):
+				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
+
 	@property
 	def fields(self):
 		return self.item.metadata | {
