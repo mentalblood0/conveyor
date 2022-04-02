@@ -57,8 +57,11 @@ class ItemAdapter:
 	
 	def update(self):
 
-		model = Model(self.db, self.item.type)
-		if not model:
+		if not (model := Model(self.db, self.item.type)):
 			return None
+
+		update_fields = self.fields
+		if 'file_path' in update_fields:
+			del update_fields['file_path']
 
 		return model.update(**self.fields).where(model.id==self.item.id).execute()
