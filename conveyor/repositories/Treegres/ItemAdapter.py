@@ -64,4 +64,4 @@ class ItemAdapter:
 		if 'file_path' in update_fields:
 			del update_fields['file_path']
 
-		return model.update(**self.fields).where(model.id==self.item.id).execute()
+		return model.update(**update_fields).where(model.id==self.item.id).execute()

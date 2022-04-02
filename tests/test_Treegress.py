@@ -1,6 +1,8 @@
 import shutil
+import dataclasses
 
 from conveyor import Item
+from conveyor.common import Model
 from conveyor.workers import Transformer
 
 from .common import *
@@ -91,5 +93,36 @@ def test_cant_get_file_path():
 			return self.possible_output_statuses[0]
 
 	assert not W(repository)()
+
+	clear()
+
+
+def test_cant_set_file_path():
+
+	repository.create(Item(
+		type=type,
+		status=status
+	))
+
+	class W(Transformer):
+
+		input_type = type
+		input_status = status
+
+		possible_output_statuses = ['got file path']
+
+		def transform(self, item):
+			return dataclasses.replace(
+				item,
+				status=self.possible_output_statuses[0],
+				metadata=item.metadata | {
+					'file_path': 'lalala'
+				}
+			)
+
+	assert W(repository)()
+
+	model = Model(repository.db, type)
+	assert not model.select().where(model.file_path=='lalala').execute()
 
 	clear()
