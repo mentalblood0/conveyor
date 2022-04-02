@@ -1,5 +1,3 @@
-from abc import ABCMeta
-
 from ..core import Worker
 
 

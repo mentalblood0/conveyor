@@ -19,12 +19,10 @@ class Transformer(Worker, metaclass=ABCMeta):
 
 	def processItem(self, input_item):
 
-		output = self.transform(deepcopy(input_item))
-
-		if output == None:
+		if (output := self.transform(deepcopy(input_item))) == None:
 			return None
 
-		elif type(output) == Item:
+		if type(output) == Item:
 			new = {
 				'status': output.status,
 				'metadata': output.metadata
@@ -34,7 +32,7 @@ class Transformer(Worker, metaclass=ABCMeta):
 				'status': output
 			}
 
-		if not new['status'] in self.possible_output_statuses:
+		if new['status'] not in self.possible_output_statuses:
 			return None
 
 		return self.repository.update(dataclasses.replace(input_item, **new))

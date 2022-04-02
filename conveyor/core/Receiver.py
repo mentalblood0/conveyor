@@ -11,14 +11,14 @@ class Receiver(metaclass=ABCMeta):
 
 	receive_fields: list[str]=[]
 
-	def __init__(self, repository: Repository, one_call_items_limit: int = 64) -> None:
+	def __init__(self, repository: Repository, limit: int = 64) -> None:
 		self.repository = repository
-		self.one_call_items_limit = one_call_items_limit
+		self.limit = limit
 
 	def receiveItems(self) -> list[Item]:
 		return self.repository.get(
 			self.input_type,
 			where={'status': self.input_status},
 			fields=self.receive_fields,
-			limit=self.one_call_items_limit
+			limit=self.limit
 		)

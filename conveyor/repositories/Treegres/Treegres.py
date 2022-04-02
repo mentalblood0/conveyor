@@ -52,8 +52,7 @@ class Treegres(Repository):
 	
 	def get(self, type, where=None, fields=None, limit=1):
 
-		model = Model(self.db, type)
-		if not model:
+		if not (model := Model(self.db, type)):
 			return []
 
 		if not fields:
@@ -99,8 +98,7 @@ class Treegres(Repository):
 
 	def delete(self, type, id):
 
-		model = Model(self.db, type)
-		if not model:
+		if not (model := Model(self.db, type)):
 			return None
 
 		relative_path = model.select().where(model.id==id).get().file_path
@@ -129,8 +127,7 @@ class Treegres(Repository):
 
 	def _drop(self, type: str) -> int:
 
-		model = Model(self.db, type)
-		if not model:
+		if not (model := Model(self.db, type)):
 			return None
-
-		return self.db.drop_tables([model])
+		else:
+			return self.db.drop_tables([model])
