@@ -1,6 +1,7 @@
 import shutil
 
 from conveyor import Item
+from conveyor.workers import Transformer
 
 from .common import *
 
@@ -67,5 +68,28 @@ def test_delete():
 	id = repository.get(type, {'status': status})[0].id
 	assert repository.delete(type, id)
 	assert repository.get(type, {'status': status}) == []
+
+	clear()
+
+
+def test_cant_get_file_path():
+
+	repository.create(Item(
+		type=type,
+		status=status
+	))
+
+	class W(Transformer):
+
+		input_type = type
+		input_status = status
+
+		possible_output_statuses = ['got file path']
+
+		def transform(self, item):
+			print(item.metadata['file_path'])
+			return self.possible_output_statuses[0]
+
+	assert not W(repository)()
 
 	clear()

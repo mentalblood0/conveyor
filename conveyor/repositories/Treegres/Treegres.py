@@ -79,12 +79,14 @@ class Treegres(Repository):
 
 			for name in fields or r.__data__:
 
-				value = getattr(r, name)
+				if name not in ['file_path']:
 
-				if hasattr(item, name):
-					setattr(item, name, value)
-				else:
-					item.metadata[name] = value
+					value = getattr(r, name)
+
+					if hasattr(item, name):
+						setattr(item, name, value)
+					else:
+						item.metadata[name] = value
 
 			if (fields and ('data' in fields)) or (not fields):
 				item.data=self._getFile(
