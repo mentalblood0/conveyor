@@ -56,13 +56,15 @@ class Treegres(Repository):
 			return []
 
 		if not fields:
-			get_fields = []
+			fields = set()
 		else:
-			get_fields = [
-				getattr(model, f)
-				for f in fields
-				if hasattr(model, f)
-			]
+			fields = set(fields) - {'file_path'}
+
+		get_fields = {
+			getattr(model, f)
+			for f in fields
+			if hasattr(model, f)
+		}
 
 		conditions = [
 			getattr(model, key)==value
