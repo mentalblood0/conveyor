@@ -25,26 +25,16 @@ class Transformer(Worker, metaclass=ABCMeta):
 			return None
 
 		elif type(output) == Item:
-
-			output_status = output.status
-			if not output_status in self.possible_output_statuses:
-				return None
-
-			output_item = dataclasses.replace(
-				input_item,
-				status=output_status,
-				metadata=output.metadata
-			)
-
+			new = {
+				'status': output.status,
+				'metadata': output.metadata
+			}
 		elif type(output) == str:
+			new = {
+				'status': output
+			}
 
-			output_status = output
-			if not output_status in self.possible_output_statuses:
-				return None
+		if not new['status'] in self.possible_output_statuses:
+			return None
 
-			output_item = dataclasses.replace(
-				input_item,
-				status=output_status
-			)
-
-		return self.repository.update(output_item)
+		return self.repository.update(dataclasses.replace(input_item, **new))
