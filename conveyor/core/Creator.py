@@ -1,17 +1,13 @@
-import time
-import uuid
 import dataclasses
 from abc import ABCMeta, abstractmethod
 
+from . import uuid7
 from . import Item, Repository
 
 
 
 def composeChainId():
-	return ''.join([
-		hex(int(time.time() * 10**7))[2:],
-		uuid.uuid4().hex
-	])
+	return hex(uuid7())
 
 
 class Creator(metaclass=ABCMeta):
