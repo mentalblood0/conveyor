@@ -7,7 +7,7 @@ Cold pipeline is a pipeline which state stored in external database
 
 ## Key concepts
 
-### Item
+### [Item](conveyor/core/Item.py)
 
 Unit of information conveyor operates on
 
@@ -21,25 +21,17 @@ Each item has:
 | data     | string | constant | storing something                    |
 | metadata | any    | variable | storing something computed from data |
 
-Presented in [conveyor.core.Item](conveyor/core/Item.py)
-
-### Repository
+### [Repository](conveyor/core/Repository.py)
 
 Interface to items storage
 
-Presented in [conveyor.core.Repository](conveyor/core/Repository.py)
-
-### Worker
+### [Worker](conveyor/core/Worker.py)
 
 Program unit that operates on items
 
-Presented in [conveyor.core.Worker](conveyor/core/Worker.py)
-
-### Effect
+### [Effect](conveyor/core/Effect.py)
 
 Decorator-like class for adding logging to `Repository`-inherited classes
-
-Presented in [conveyor.core.Effect](conveyor/core/Effect.py)
 
 
 ## Workers
@@ -68,7 +60,9 @@ Strictly speaking, `Creator` is not a worker (not inherited from `Worker`)
 
 ### [Destroyer](conveyor/workers/Destroyer.py)
 
-**Deletes** item with fixed type and status
+**Gets** item with fixed type and status
+
+**Deletes** it
 
 
 ## Repositories
