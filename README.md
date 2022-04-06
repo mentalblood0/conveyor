@@ -13,17 +13,17 @@ Unit of information conveyor operates on
 
 Each item has:
 
-|          | type   | constant | purpose                              |
-|----------|--------|----------|--------------------------------------|
-| id       | string | constant | unique identifier                    |
-| type     | string | constant | grouping                             |
-| status   | string | variable | processing progress identifier       |
-| data     | string | constant | storing something                    |
-| metadata | any    | variable | storing something computed from data |
+| name     | type       | description                |
+|----------|------------|----------------------------|
+| id       | string     | constant unique identifier |
+| type     | string     | constant common identifier |
+| status   | string     | variable common identifier |
+| data     | string     | constant storage           |
+| metadata | dictionary | variable storage           |
 
 ### [Repository](conveyor/core/Repository.py)
 
-Interface to items storage
+Interface to where items stored
 
 ### [Worker](conveyor/core/Worker.py)
 
@@ -42,25 +42,31 @@ Strictly speaking, `Creator` is not a worker (not inherited from `Worker`)
 
 **Takes** some arguments
 
-**Creates** item with fixed type and status
+**Creates** item with type and status given in self class description
 
 ### [Transformer](conveyor/workers/Transformer.py)
 
-**Gets** item with fixed type and status
+Takes **no arguments**
+
+**Gets** item with type and status given in self class description
 
 **Changes** item status and metadata
 
 ### [Mover](conveyor/workers/Mover.py)
 
+Takes **no arguments**
+
 **Gets** item with fixed type and status
 
-**Creates** one or more item of fixed type and status
+**Creates** one or more item of type and status given in self class description
 
 **Changes** taken item status
 
 ### [Destroyer](conveyor/workers/Destroyer.py)
 
-**Gets** item with fixed type and status
+Takes **no arguments**
+
+**Gets** item with type and status given in self class description
 
 **Deletes** it
 
