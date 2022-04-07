@@ -5,36 +5,47 @@ Library for creating cold-pipeline-oriented systems
 Cold pipeline is a pipeline which state stored in external database
 
 
+
+## Why
+
+* Simplicity
+* Maintainability
+* Scalability
+
+
+
 ## Key concepts
 
 ### [Item](conveyor/core/Item.py)
 
-Unit of information conveyor operates on
+**Unit** of information conveyor operates on
 
 Each item has:
 
-| name     | type       | description                |
-|----------|------------|----------------------------|
-| id       | string     | constant unique identifier |
-| type     | string     | constant common identifier |
-| status   | string     | variable common identifier |
-| data     | string     | constant storage           |
-| metadata | dictionary | variable storage           |
+| name     | type       | description                                        |
+| -------- | ---------- | ---------------------------------------------------|
+| chain_id | string     | constant unique identifier for every item in chain |
+| id       | string     | constant unique identifier                         |
+| type     | string     | constant common identifier                         |
+| status   | string     | variable common identifier                         |
+| data     | string     | constant storage                                   |
+| metadata | dictionary | variable storage                                   |
 
 ### [Repository](conveyor/core/Repository.py)
 
-Interface to where items stored
+**Interface** to where items are stored
 
 ### [Worker](conveyor/core/Worker.py)
 
-Program unit that operates on items
+**Program** unit that operates on items
 
 ### [Effect](conveyor/core/Effect.py)
 
-Decorator-like class for adding logging to `Repository`-inherited classes
+**Decorator**-like class for adding logging to `Repository`-inherited classes
 
 
-## Workers
+
+## Abstract Workers
 
 ### [Creator](conveyor/core/Creator.py)
 
@@ -71,6 +82,7 @@ Takes **no arguments**
 **Deletes** it
 
 
+
 ## Repositories
 
 ### [Treegres](conveyor/repositories/Treegres)
@@ -78,6 +90,7 @@ Takes **no arguments**
 Stores `Item.data` in files in directories tree
 
 Stores the rest of `Item` in peewee compatible database
+
 
 
 ## Effects
@@ -89,6 +102,7 @@ Logs repository actions to stderr
 ### [DbLogging](conveyor/repository_effects/DbLogging)
 
 Logs repository actions to peewee compatible database
+
 
 
 ## Example
