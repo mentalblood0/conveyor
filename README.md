@@ -18,7 +18,7 @@ Cold pipeline is a pipeline which state stored in external database
 
 ### [Item](conveyor/core/Item.py)
 
-**Unit** of information conveyor operates on
+**Information** unit conveyor operates on
 
 Each item has:
 
@@ -33,55 +33,28 @@ Each item has:
 
 ### [Repository](conveyor/core/Repository.py)
 
-**Interface** to where items are stored
+**Storage** interface
 
 ### Worker
 
 **Program** unit that operates on items
 
-All workers classes should be inherited from [abstract workers](#abstract-workers)
+All workers should be inherited from [abstract workers](#abstract-workers)
 
 ### [Effect](conveyor/core/Effect.py)
 
-**Decorator**-like class for adding logging to `Repository`-inherited classes
+**Decorator**-like class for adding methods calls logging
 
 
 
 ## Abstract Workers
 
-### [Creator](conveyor/core/Creator.py)
-
-Strictly speaking, `Creator` is not a worker (not inherited from `Worker`)
-
-**Takes** some arguments
-
-**Creates** item with type and status given in self class description
-
-### [Transformer](conveyor/workers/Transformer.py)
-
-Takes **no arguments**
-
-**Gets** item with type and status given in self class description
-
-**Changes** item status and metadata
-
-### [Mover](conveyor/workers/Mover.py)
-
-Takes **no arguments**
-
-**Gets** item with fixed type and status
-
-**Creates** one or more item of type and status given in self class description
-
-**Changes** taken item status
-
-### [Destroyer](conveyor/workers/Destroyer.py)
-
-Takes **no arguments**
-
-**Gets** item with type and status given in self class description
-
-**Deletes** it
+|                                                | takes arguments | gets item | creates items | changes item status | changes item metadata | deletes item |
+|------------------------------------------------|:---------------:|:---------:|:-------------:|:-------------------:|:---------------------:|:------------:|
+| [Creator](conveyor/core/Creator.py)            |        +        |           |       +       |                     |                       |              |
+| [Transformer](conveyor/workers/Transformer.py) |                 |     +     |               |          +          |           +           |              |
+| [Mover](conveyor/workers/Mover.py)             |                 |     +     |       +       |          +          |                       |              |
+| [Destroyer](conveyor/workers/Destroyer.py)     |                 |     +     |               |                     |                       |       +      |
 
 
 
@@ -89,9 +62,9 @@ Takes **no arguments**
 
 ### [Treegres](conveyor/repositories/Treegres)
 
-Stores `Item.data` in files in directories tree
+Stores `Item.data` in files in **directories tree**
 
-Stores the rest of `Item` in peewee compatible database
+Stores the rest of `Item` in **peewee compatible database**
 
 
 
@@ -99,11 +72,11 @@ Stores the rest of `Item` in peewee compatible database
 
 ### [SimpleLogging](conveyor/repository_effects/SimpleLogging)
 
-Logs repository actions to stderr
+Logs repository actions **to stderr**
 
 ### [DbLogging](conveyor/repository_effects/DbLogging)
 
-Logs repository actions to peewee compatible database
+Logs repository actions **to peewee compatible database**
 
 
 
