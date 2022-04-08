@@ -1,8 +1,8 @@
-from ..core import Worker
+from ..core import Processor
 
 
 
-class Destroyer(Worker):
+class Destroyer(Processor):
 
 	input_type: str
 	input_status: str

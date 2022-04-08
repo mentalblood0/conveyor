@@ -7,7 +7,7 @@ from . import Item, Receiver
 
 
 
-class Worker(Receiver, metaclass=ABCMeta):
+class Processor(Receiver, metaclass=ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

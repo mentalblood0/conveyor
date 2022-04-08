@@ -35,9 +35,11 @@ Each item has:
 
 **Interface** to where items are stored
 
-### [Worker](conveyor/core/Worker.py)
+### Worker
 
 **Program** unit that operates on items
+
+All workers classes should be inherited from [abstract workers](#abstract-workers)
 
 ### [Effect](conveyor/core/Effect.py)
 

@@ -2,11 +2,11 @@ import dataclasses
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 
-from ..core import Item, Worker
+from ..core import Item, Processor
 
 
 
-class Transformer(Worker, metaclass=ABCMeta):
+class Transformer(Processor, metaclass=ABCMeta):
 
 	input_type: str
 	input_status: str
