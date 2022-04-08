@@ -12,7 +12,7 @@ def composeSequence(functions):
 
 class Effect:
 
-	def install(self, target: any, *args, **kwargs):
+	def install(self, target: any, position: str='before'):
 
 		for name in dir(self):
 			if (
@@ -23,7 +23,10 @@ class Effect:
 				field = getattr(self, name)
 
 				if callable(field):
-					setattr(target, name, composeSequence([
-						field,
-						getattr(target, name)
-					]))
+
+					if position == 'before':
+						sequence = [field, getattr(target, name)]
+					elif position == 'after':
+						sequence = [getattr(target, name), field]
+
+					setattr(target, name, composeSequence(sequence))
