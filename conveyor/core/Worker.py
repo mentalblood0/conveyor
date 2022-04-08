@@ -17,6 +17,10 @@ class Worker(Receiver, metaclass=ABCMeta):
 	def processItem(self, item: Item) -> int | None:
 		pass
 
+	def handleException(self, e):
+		text = ''.join(traceback.format_exception(e)[1:])
+		log(f'{self.__class__.__name__}:\n{text}', colorama.Fore.RED)
+
 	def __call__(self) -> list[int]:
 
 		result = []
@@ -24,7 +28,7 @@ class Worker(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			log(f'{self.__class__.__name__}.receiveItems: {e}', colorama.Fore.RED)
+			self.handleException(e)
 			return result
 
 		for i in items:
@@ -32,8 +36,7 @@ class Worker(Receiver, metaclass=ABCMeta):
 			try:
 				i_result = self.processItem(i)
 			except Exception as e:
-				text = '\n'.join(traceback.format_exc().split('\n')[1:])
-				log(f'{self.__class__.__name__}.processItem: \n{text}', colorama.Fore.RED)
+				self.handleException(e)
 				continue
 
 			result.append(i_result)
