@@ -19,7 +19,7 @@ class Transformer(Worker, metaclass=ABCMeta):
 
 	def processItem(self, input_item):
 
-		if (output := self.transform(deepcopy(input_item))) == None:
+		if (output := self.transform(deepcopy(input_item))) is None:
 			return None
 
 		if type(output) == Item:

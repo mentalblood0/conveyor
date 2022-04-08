@@ -21,7 +21,7 @@ class Mover(Worker, metaclass=ABCMeta):
 	def processItem(self, input_item):
 
 		output = self.transform(deepcopy(input_item))
-		if type(output) == None:
+		if type(output) is None:
 			return None
 
 		if type(output) == Item:
@@ -32,7 +32,7 @@ class Mover(Worker, metaclass=ABCMeta):
 		if len(output_items):
 
 			if not all(i.type == output_items[0].type for i in output_items):
-				raise Exception(f'output items must be of one type')
+				raise Exception('output items must be of one type')
 
 			if output_items[0].type not in self.possible_output_types:
 				raise Exception(f'output type "{output_items[0].type}" not possible')

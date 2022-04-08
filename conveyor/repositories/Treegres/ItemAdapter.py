@@ -1,6 +1,6 @@
 from typing import Callable
 from functools import partial
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from peewee import Field, CharField, IntegerField, FloatField, Database
 
 from ...core import Item

@@ -1,4 +1,5 @@
 import colorama
+import traceback
 from logama import log
 from abc import ABCMeta, abstractmethod
 
@@ -31,7 +32,8 @@ class Worker(Receiver, metaclass=ABCMeta):
 			try:
 				i_result = self.processItem(i)
 			except Exception as e:
-				log(f'{self.__class__.__name__}.processItem: {e}', colorama.Fore.RED)
+				text = '\n'.join(traceback.format_exc().split('\n')[1:])
+				log(f'{self.__class__.__name__}.processItem: \n{text}', colorama.Fore.RED)
 				continue
 
 			result.append(i_result)
