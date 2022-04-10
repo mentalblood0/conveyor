@@ -130,31 +130,55 @@ def test_cant_set_file_path():
 
 def test_reserve():
 
-	repository.create(Item(
-		type=type,
-		status=status
-	))
+	for i in range(2):
+		repository.create(Item(
+			type=type,
+			status=status
+		))
 
 	first_worker = 'lalala'
 	second_worker = 'lololo'
 
-	repository.reserve(
+	assert repository.reserve(
 		type=type,
 		status=status,
 		id=first_worker,
-		limit=None
-	)
-
-	assert repository.get(
+		limit=1
+	) == 1
+	assert len(repository.get(
 		type=type,
 		where={'status': status},
 		reserved_by=first_worker
-	)
+	)) == 1
 
-	assert not repository.get(
+	assert repository.reserve(
+		type=type,
+		status=status,
+		id=second_worker,
+		limit=2
+	) == 1
+	assert len(repository.get(
 		type=type,
 		where={'status': status},
 		reserved_by=second_worker
-	)
+	)) == 1
+
+	clear()
+
+
+def test_reserve_intersection():
+
+	repository.create(Item(
+		type=type,
+		status=status
+	))
+	
+	model = Model(repository.db, type)
+
+	ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(1)
+	another_ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(1)
+
+	assert model.update(reserved_by='lalala').where(model.id.in_(ids_to_reserve)).execute() == 1
+	assert model.update(reserved_by='lololo').where(model.id.in_(another_ids_to_reserve)).execute() == 0
 
 	clear()

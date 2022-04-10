@@ -12,7 +12,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def reserve(self, type: str, status: str, id: str, limit: int):
+	def reserve(self, type: str, status: str, id: str, limit: int) -> int:
 		pass
 
 	@abstractmethod
