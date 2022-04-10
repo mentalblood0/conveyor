@@ -175,10 +175,38 @@ def test_reserve_intersection():
 	
 	model = Model(repository.db, type)
 
-	ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(1)
-	another_ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(1)
+	first_query = (
+		model
+		.update(reserved_by='lalala')
+		.where(
+			model.id.in_(
+				model
+				.select(model.id)
+				.where(
+					model.reserved_by=='',
+					model.status==status
+				)
+				.limit(1)
+			)
+		)
+	)
+	second_query = (
+		model
+		.update(reserved_by='lololo')
+		.where(
+			model.id.in_(
+				model
+				.select(model.id)
+				.where(
+					model.reserved_by=='',
+					model.status==status
+				)
+				.limit(1)
+			)
+		)
+	)
 
-	assert model.update(reserved_by='lalala').where(model.id.in_(ids_to_reserve)).execute() == 1
-	assert model.update(reserved_by='lololo').where(model.id.in_(another_ids_to_reserve)).execute() == 0
+	assert first_query.execute() == 1
+	assert second_query.execute() == 0
 
 	clear()

@@ -55,9 +55,23 @@ class Treegres(Repository):
 		if not (model := Model(self.db, type)):
 			return []
 
-		ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(limit)
+		query = (
+			model
+			.update(reserved_by=id)
+			.where(
+				model.id.in_(
+					model
+					.select(model.id)
+					.where(
+						model.reserved_by=='',
+						model.status==status
+					)
+					.limit(limit)
+				)
+			)
+		)
 
-		return model.update(reserved_by=id).where(model.id.in_(ids_to_reserve)).execute()
+		return query.execute()
 
 	def get(self, type, where=None, fields=None, limit=1, reserved_by=None):
 
