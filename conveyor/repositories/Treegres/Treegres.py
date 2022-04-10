@@ -50,13 +50,25 @@ class Treegres(Repository):
 
 		return ItemAdapter(result_item, self.db).save()
 
-	def get(self, type, where=None, fields=None, limit=1, reserve_by=None):
+	def reserve(self, type, status, id, limit=64):
 
 		if not (model := Model(self.db, type)):
 			return []
 
-		if reserve_by:
-			model.update(reserved_by=reserve_by).limit(limit)
+		with self.db.transaction():
+			ids_to_reserve = model.select(model.id).where(model.reserved_by=='', model.status==status).limit(limit)
+
+		model.update(reserved_by=id).where(model.id.in_(ids_to_reserve)).execute()
+
+		# query = model.update(reserved_by=id).where(model.reserved_by=='', model.status==status).limit(limit)
+		# print(query)
+
+		# query.execute()
+
+	def get(self, type, where=None, fields=None, limit=1):
+
+		if not (model := Model(self.db, type)):
+			return []
 
 		ignored_fields = {'file_path', 'reserved_by'}
 

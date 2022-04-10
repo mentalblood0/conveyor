@@ -27,10 +27,17 @@ class Receiver(metaclass=ABCMeta):
 		])
 
 	def receiveItems(self) -> list[Item]:
+
+		self.repository.reserve(
+			type=self.input_type,
+			status=self.input_status,
+			id=self.id,
+			limit=self.limit
+		)
+
 		return self.repository.get(
 			self.input_type,
 			where={'status': self.input_status},
 			fields=self.receive_fields,
-			limit=self.limit,
-			reserve_by=self.id
+			limit=self.limit
 		)

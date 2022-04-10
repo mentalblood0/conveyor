@@ -12,6 +12,10 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
+	def reserve(self, type: str, status: str, id: str, limit: int):
+		pass
+
+	@abstractmethod
 	def get(self, type: str, where: dict[str, any]=None, fields: list[str]=None, limit: int=1, reserve_by: str=None) -> list[Item]:
 		pass
 
