@@ -15,3 +15,5 @@ class Item:
 	data_digest: str = ''
 
 	metadata: dict = dataclasses.field(default_factory=dict)
+
+	reserved_by: str = ''

@@ -49,16 +49,21 @@ class Treegres(Repository):
 		result_item.metadata['file_path'] = Path(os.path.relpath(file_path, type_root))
 
 		return ItemAdapter(result_item, self.db).save()
-	
-	def get(self, type, where=None, fields=None, limit=1):
+
+	def get(self, type, where=None, fields=None, limit=1, reserve_by=None):
 
 		if not (model := Model(self.db, type)):
 			return []
 
+		if reserve_by:
+			model.update(reserved_by=reserve_by).limit(limit)
+
+		ignored_fields = {'file_path', 'reserved_by'}
+
 		if not fields:
 			fields = set()
 		else:
-			fields = set(fields) - {'file_path'}
+			fields = set(fields) - ignored_fields
 
 		get_fields = {
 			getattr(model, f)
@@ -79,7 +84,7 @@ class Treegres(Repository):
 
 			for name in fields or r.__data__:
 
-				if name not in ['file_path']:
+				if name not in ignored_fields:
 
 					value = getattr(r, name)
 

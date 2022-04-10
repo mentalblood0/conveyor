@@ -13,7 +13,8 @@ from . import Path
 base_fields_mapping: dict[str, Callable[[], Field]] = {
 	'chain_id': partial(CharField, max_length=63, index=True),
 	'status': partial(CharField, max_length=63, index=True),
-	'data_digest': partial(CharField, max_length=63)
+	'data_digest': partial(CharField, max_length=63),
+	'reserved_by': partial(CharField, max_length=31)
 }
 
 metadata_fields_mapping: dict[type, Callable[[], Field]] = {
