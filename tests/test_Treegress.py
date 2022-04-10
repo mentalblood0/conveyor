@@ -126,3 +126,35 @@ def test_cant_set_file_path():
 	assert not model.select().where(model.file_path=='lalala').execute()
 
 	clear()
+
+
+def test_reserve():
+
+	repository.create(Item(
+		type=type,
+		status=status
+	))
+
+	first_worker = 'lalala'
+	second_worker = 'lololo'
+
+	repository.reserve(
+		type=type,
+		status=status,
+		id=first_worker,
+		limit=None
+	)
+
+	assert repository.get(
+		type=type,
+		where={'status': status},
+		reserved_by=first_worker
+	)
+
+	assert not repository.get(
+		type=type,
+		where={'status': status},
+		reserved_by=second_worker
+	)
+
+	clear()
