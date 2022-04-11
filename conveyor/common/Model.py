@@ -23,7 +23,6 @@ class Model(Model_):
 		name = name.lower()
 
 		if not columns:
-			print('not columns')
 			models = generate_models(db, table_names=[name])
 			if models:
 				return models[name]
@@ -52,22 +51,18 @@ class Model(Model_):
 					c.name
 					for c in db.get_columns(name)
 				]
-
 				migrator = composeMigrator(db)
 
-				additions = [
-					migrator.add_column(name, column_name, columns[column_name])
-					for column_name in columns
-					if column_name not in current_columns
-				]
-				deletions = [
-					migrator.drop_column(name, column_name)
-					for column_name in current_columns
-					if (column_name != 'id') and (column_name not in columns)
-				]
-
 				with db.atomic():
-					migrate(*deletions, *additions)
+					migrate(*[
+						migrator.drop_column(name, column_name)
+						for column_name in current_columns
+						if (column_name != 'id') and (column_name not in columns)
+					],*[
+						migrator.add_column(name, column_name, columns[column_name])
+						for column_name in columns
+						if column_name not in current_columns
+					])
 
 
 			return result
