@@ -16,7 +16,7 @@ class File:
 	path: str
 	encoding: str
 
-	extension = 'xz'
+	extensions = ['xml', 'xz']
 
 	def set(self, content: str) -> None:
 

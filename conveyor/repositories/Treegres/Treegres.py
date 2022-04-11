@@ -37,7 +37,10 @@ class Treegres(Repository):
 		type_root = self._getTypePath(item.type)
 		type_tree = growing_tree_base.Tree(
 			root=type_root,
-			base_file_name=f'.{File.extension}',
+			base_file_name=''.join(
+				f'.{e}'
+				for e in File.extensions
+			),
 			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
 		)
 		file_path = type_tree.save(item.data)
@@ -63,7 +66,7 @@ class Treegres(Repository):
 					model
 					.select(model.id)
 					.where(
-						model.reserved_by=='',
+						model.reserved_by==None,
 						model.status==status
 					)
 					.limit(limit)

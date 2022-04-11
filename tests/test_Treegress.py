@@ -183,7 +183,7 @@ def test_reserve_intersection():
 				model
 				.select(model.id)
 				.where(
-					model.reserved_by=='',
+					model.reserved_by==None,
 					model.status==status
 				)
 				.limit(1)
@@ -198,7 +198,7 @@ def test_reserve_intersection():
 				model
 				.select(model.id)
 				.where(
-					model.reserved_by=='',
+					model.reserved_by==None,
 					model.status==status
 				)
 				.limit(1)
