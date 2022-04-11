@@ -210,3 +210,47 @@ def test_reserve_intersection():
 	assert second_query.execute() == 0
 
 	clear()
+
+
+def test_migration_add_column():
+
+	repository.create(Item(
+		type=type,
+		status=status,
+		metadata={
+			'a': 1
+		}
+	))
+
+	repository.create(Item(
+		type=type,
+		status=status,
+		metadata={
+			'a': 1,
+			'b': 2
+		}
+	))
+
+	clear()
+
+
+def test_migration_drop_column():
+
+	repository.create(Item(
+		type=type,
+		status=status,
+		metadata={
+			'a': 1,
+			'b': 2
+		}
+	))
+
+	repository.create(Item(
+		type=type,
+		status=status,
+		metadata={
+			'a': 1
+		}
+	))
+
+	clear()
