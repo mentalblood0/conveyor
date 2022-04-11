@@ -66,7 +66,8 @@ class Model(Model_):
 					if (column_name != 'id') and (column_name not in columns)
 				]
 
-				migrate(*deletions, *additions)
+				with db.atomic():
+					migrate(*deletions, *additions)
 
 
 			return result
