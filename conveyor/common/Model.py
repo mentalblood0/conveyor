@@ -6,12 +6,12 @@ from playhouse.reflection import generate_models
 
 def composeMigrator(db):
 
-	migrator_class = None
-
 	if db.__class__ == SqliteDatabase:
 		migrator_class = SqliteMigrator
 	elif db.__class__ == PostgresqlDatabase:
 		migrator_class = PostgresqlMigrator
+	else:
+		raise Exception(f'No migrator class for db class "{db.__class__}"')
 
 	return migrator_class(db)
 
