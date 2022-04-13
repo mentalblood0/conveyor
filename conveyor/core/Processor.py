@@ -40,5 +40,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 				continue
 
 			result.append(i_result)
-		
+
+		self.unreserve()
+
 		return result

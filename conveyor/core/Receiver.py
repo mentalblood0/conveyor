@@ -25,15 +25,25 @@ class Receiver(metaclass=ABCMeta):
 			socket.gethostbyname(socket.gethostname()),
 			str(threading.get_ident())
 		])
-
-	def receiveItems(self) -> list[Item]:
-
-		self.repository.reserve(
+	
+	def reserve(self):
+		return self.repository.reserve(
 			type=self.input_type,
 			status=self.input_status,
 			id=self.id,
 			limit=self.limit
 		)
+	
+	def unreserve(self):
+		return self.repository.unreserve(
+			type=self.input_type,
+			status=self.input_status,
+			id=self.id
+		)
+
+	def receiveItems(self) -> list[Item]:
+
+		self.reserve()
 
 		return self.repository.get(
 			self.input_type,

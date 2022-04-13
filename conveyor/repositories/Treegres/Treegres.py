@@ -59,12 +59,27 @@ class Treegres(Repository):
 			db=self.db,
 			item=Item(
 				type=type,
-				status=status
+				status=status,
+				metadata={'file_path': ''}
 			)
 		).reserve(
 			id=id,
 			limit=limit
 		)
+	
+	def unreserve(self, type, status, id):
+
+		if not (model := Model(self.db, type)):
+			return None
+
+		return (
+			model
+			.update(reserved_by='')
+			.where(
+				model.reserved_by==id,
+				model.status==status
+			)
+		).execute()
 
 	def get(self, type, where=None, fields=None, limit=1, reserved_by=None):
 

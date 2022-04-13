@@ -55,9 +55,9 @@ class Model(Model_):
 
 				with db.atomic():
 					migrate(*[
-						migrator.drop_column(name, column_name)
-						for column_name in current_columns
-						if (column_name != 'id') and (column_name not in columns)
+						# migrator.drop_column(name, column_name)
+						# for column_name in current_columns
+						# if (column_name != 'id') and (column_name not in columns)
 					],*[
 						migrator.add_column(name, column_name, columns[column_name])
 						for column_name in columns
