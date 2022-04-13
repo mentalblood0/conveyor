@@ -6,6 +6,23 @@ from . import Item, Repository
 
 
 
+def getSelfIP():
+
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	s.settimeout(0)
+
+	try:
+		# doesn't even have to be reachable
+		s.connect(('10.255.255.255', 1))
+		result = s.getsockname()[0]
+	except Exception:
+		result = '127.0.0.1'
+	finally:
+		s.close()
+
+	return result
+
+
 class Receiver(metaclass=ABCMeta):
 
 	input_type: str
@@ -22,7 +39,7 @@ class Receiver(metaclass=ABCMeta):
 
 	def composeId(self):
 		return '_'.join([
-			socket.gethostbyname(socket.gethostname()),
+			getSelfIP(),
 			str(threading.get_ident())
 		])
 	
