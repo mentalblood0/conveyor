@@ -1,5 +1,6 @@
 import shutil
 import dataclasses
+from peewee import CharField
 
 from conveyor import Item
 from conveyor.common import Model
@@ -252,5 +253,26 @@ def test_migration_drop_column():
 			'a': 1
 		}
 	))
+
+	clear()
+
+
+def test_migration_to_reserve_field():
+	
+	Model(
+		repository.db,
+		type,
+		{
+			'chain_id': CharField(max_length=63, index=True),
+			'status': CharField(max_length=63, index=True),
+			'data_digest': CharField(max_length=63)
+		}
+	)
+
+	repository.reserve(
+		type=type,
+		status=status,
+		id='test'
+	)
 
 	clear()

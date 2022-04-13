@@ -46,7 +46,8 @@ class ItemAdapter:
 			for k in base_fields_mapping
 		}
 
-	def save(self):
+	@property
+	def model(self):
 		return Model(
 			db=self.db,
 			name=self.item.type,
@@ -57,7 +58,30 @@ class ItemAdapter:
 				k: base_fields_mapping[k]()
 				for k in base_fields_mapping
 			}
-		)(**self.fields).save()
+		)
+
+	def save(self):
+		return self.model(**self.fields).save()
+
+	def reserve(self, id: str, limit: int):
+
+		model = self.model
+
+		return (
+			model
+			.update(reserved_by=id)
+			.where(
+				model.id.in_(
+					model
+					.select(model.id)
+					.where(
+						model.reserved_by==None,
+						model.status==self.item.status
+					)
+					.limit(limit)
+				)
+			)
+		).execute()
 	
 	def update(self):
 
