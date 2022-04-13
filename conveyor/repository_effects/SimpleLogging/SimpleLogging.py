@@ -8,7 +8,7 @@ from ...core import Effect
 class SimpleLogging(Effect):
 
 	def create(self, item):
-		log(f'-> {item.type}::{item.status}', colorama.Fore.GREEN)
+		log(f'-> {item.type}::{item.status} [{item.data_digest}]', colorama.Fore.GREEN)
 	
 	def update(self, item):
 		log(f'{item.type}::?::{item.id} -> {item.type}::{item.status}', colorama.Fore.LIGHTBLUE_EX)
