@@ -39,10 +39,12 @@ class Mover(Processor, metaclass=ABCMeta):
 
 			for i in output_items:
 				self.repository.create(
-					dataclasses.replace(
-						i,
+					Item(
+						type=i.type,
 						status=self.output_status,
-						chain_id=input_item.chain_id
+						chain_id=input_item.chain_id,
+						data=i.data,
+						metadata=i.metadata
 					)
 				)
 
