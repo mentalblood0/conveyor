@@ -29,7 +29,7 @@ class SimpleLogging(Effect):
 			}
 
 	def create(self, item):
-		log(f'-> {item.type}::{item.status} [{item.data_digest}]', self.colors['create'], self.file)
+		log(f'-> {item.type}::{item.status}', self.colors['create'], self.file)
 	
 	def update(self, item):
 		log(f'{item.type}::?::{item.id} -> {item.type}::{item.status}', self.colors['update'], self.file)
