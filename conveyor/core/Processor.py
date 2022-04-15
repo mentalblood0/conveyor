@@ -1,6 +1,3 @@
-import colorama
-import traceback
-from logama import log
 from abc import ABCMeta, abstractmethod
 
 from . import Item, Receiver
@@ -18,8 +15,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		pass
 
 	def handleException(self, e):
-		text = ''.join(traceback.format_exception(e)[1:])
-		log(f'{self.__class__.__name__}:\n{text}', colorama.Fore.RED)
+		pass
 
 	def __call__(self) -> list[int]:
 
