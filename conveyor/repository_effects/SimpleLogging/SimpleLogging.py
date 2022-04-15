@@ -1,38 +1,51 @@
-import sys
+import logging
 import colorama
-from io import IOBase
-from logama import log
-from dataclasses import dataclass
+import dataclasses
+from logging import StreamHandler
+from logging.handlers import RotatingFileHandler
 
 from ...core import Effect
 
 
 
-@dataclass
+def composeLogger(handler):
+
+	logger = logging.getLogger(str(id(handler)))
+
+	logger.propagate = False
+	logger.addHandler(handler)
+	logger.setLevel(logging.INFO)
+
+	return logger
+
+
+@dataclasses.dataclass
 class SimpleLogging(Effect):
 
-	file: IOBase = sys.stderr
+	handler: StreamHandler | RotatingFileHandler = dataclasses.field(default_factory=StreamHandler)
 	color: bool = True
 
 	def __post_init__(self):
+
+		self.handler.setFormatter(
+			logging.Formatter(
+				'%(asctime)s | %(message)s'
+			)
+		)
+
+		self.logger = composeLogger(self.handler)
+
+		print(self.handler, self.color)
 		if self.color:
-			self.colors = {
-				'create': colorama.Fore.GREEN,
-				'update': colorama.Fore.LIGHTBLUE_EX,
-				'delete': colorama.Fore.LIGHTRED_EX
-			}
+			self._withColor = lambda text, color: f'{color}{text}{colorama.Style.RESET_ALL}'
 		else:
-			self.colors = {
-				'create': '',
-				'update': '',
-				'delete': ''
-			}
+			self._withColor = lambda text, _: text
 
 	def create(self, item):
-		log(f'-> {item.type}::{item.status}', self.colors['create'], self.file)
-	
+		self.logger.info(self._withColor(f'CREATE | -> {item.type}::{item.status}', colorama.Fore.GREEN))
+
 	def update(self, item):
-		log(f'{item.type}::?::{item.id} -> {item.type}::{item.status}', self.colors['update'], self.file)
+		self.logger.info(self._withColor(f'UPDATE | {item.type}::?::{item.id} -> {item.type}::{item.status}', colorama.Fore.LIGHTBLUE_EX))
 
 	def delete(self, type, id):
-		log(f'{type}::?::{id} ->', self.colors['delete'], self.file)
+		self.logger.info(self._withColor(f'DELETE | {type}::?::{id} ->', colorama.Fore.LIGHTRED_EX))

@@ -16,7 +16,7 @@ class Effect:
 
 		for name in dir(self):
 			if (
-				not name.startswith('__')
+				not name.startswith('_')
 				and name != 'install'
 			):
 

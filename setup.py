@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
 	setup(
 		name='conveyor',
-		version='1.4.6',
+		version='1.5.0',
 		description='Library for creating cold-pipeline-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
@@ -19,7 +19,6 @@ if __name__ == '__main__':
 		install_requires=[
 			'blake3',
 			'peewee',
-			'logama',
 			'growing-tree-base'
 		],
 		packages=find_packages()
