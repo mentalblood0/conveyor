@@ -90,7 +90,6 @@ def test_cant_get_file_path():
 		possible_output_statuses = ['got file path']
 
 		def transform(self, item):
-			print(item.metadata['file_path'])
 			return self.possible_output_statuses[0]
 
 	assert not W(repository)()

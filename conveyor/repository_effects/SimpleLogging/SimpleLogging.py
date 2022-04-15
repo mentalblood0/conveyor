@@ -35,7 +35,6 @@ class SimpleLogging(Effect):
 
 		self.logger = composeLogger(self.handler)
 
-		print(self.handler, self.color)
 		if self.color:
 			self._withColor = lambda text, color: f'{color}{text}{colorama.Style.RESET_ALL}'
 		else:
