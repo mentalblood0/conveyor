@@ -1,8 +1,11 @@
+import os
 import shutil
+from logging.handlers import RotatingFileHandler
 
 from tests.example_workers import *
 from conveyor import LogsRepository
 from conveyor.workers.factories import DestroyerFactory
+from conveyor.processor_effects import ExceptionLogging
 from conveyor.repository_effects import SimpleLogging, DbLogging
 
 from .common import *
@@ -11,6 +14,25 @@ from .common import *
 
 odd = '3'
 another = str(-int(odd))
+log_path = 'log.txt'
+
+
+def clear():
+
+	repository._drop('undefined')
+	repository._drop('odd')
+	repository._drop('another')
+
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+
+	try:
+		os.remove(log_path)
+	except Exception:
+		pass
+
+
+def crash(*args, **kwargs):
+	raise Exception
 
 
 def test_correct():
@@ -45,10 +67,34 @@ def test_correct():
 	assert len(typer()) == 2
 	assert len(destroyer()) == 2
 
-	repository._drop('undefined')
-	repository._drop('odd')
-	repository._drop('another')
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+	clear()
+
+
+def test_exception_logging():
+
+	saver = Saver(repository)
+	verifier = Verifier(repository)
+
+	verifier.transform = crash
+	logging_effect = ExceptionLogging(
+		handler=RotatingFileHandler(log_path),
+		color=False
+	)
+	logging_effect.install(verifier)
+
+	assert saver(odd)
+	verifier()
+
+	assert os.path.exists(log_path)
+	with open(log_path) as f:
+		log = f.read()
+	
+	assert len(log)
+	assert 'Verifier' in log
+
+	logging_effect.logger.removeHandler(logging_effect.handler)
+	logging_effect.handler.close()
+	clear()
 
 
 def test_mover_transaction():
@@ -65,13 +111,9 @@ def test_mover_transaction():
 	print('-- verifier')
 	assert len(verifier()) == 1
 
-	def crash(*args, **kwargs):
-		raise Exception
 	repository.update = crash
 	print('-- typer')
 	assert len(typer()) == 0
 	assert len(repository.get(typer.possible_output_types[0], {'status': typer.output_status})) == 0
 
-	repository._drop('undefined')
-	repository._drop('odd')
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+	clear()
