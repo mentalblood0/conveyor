@@ -1,13 +1,9 @@
 import dataclasses
 from abc import ABCMeta, abstractmethod
 
-from . import uuid7
+from . import composeChainId
 from . import Item, Repository
 
-
-
-def composeChainId():
-	return hex(uuid7())
 
 
 class Creator(metaclass=ABCMeta):
