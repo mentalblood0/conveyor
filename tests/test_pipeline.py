@@ -21,7 +21,9 @@ def clear():
 
 	repository._drop('undefined')
 	repository._drop('odd')
+	repository._drop('even')
 	repository._drop('another')
+	repository._drop('product')
 
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
@@ -45,6 +47,7 @@ def test_correct():
 	verifier = Verifier(repository)
 	typer = Typer(repository)
 	destroyer = DestroyerFactory('undefined', 'typed')(repository)
+	multiplier = Multiplier(repository)
 
 	assert saver(odd)
 	assert len(verifier()) == 1
@@ -56,16 +59,25 @@ def test_correct():
 	assert linked
 	assert linked[0].chain_id == source[0].chain_id
 	assert len(destroyer()) == 1
+	assert len(multiplier()) == 1
+	products = repository.get('product', {'status': 'created'}, limit=None)
+	assert len(products) == 1
 
 	assert not verifier()
 	assert not typer()
 	assert not destroyer()
+	assert not multiplier()
 
 	assert saver(odd)
 	assert saver(odd)
 	assert len(verifier()) == 2
 	assert len(typer()) == 2
+	assert square_saver(another)
+	assert square_saver(another)
 	assert len(destroyer()) == 2
+	assert len(multiplier()) == 2
+	products = repository.get('product', {'status': 'created'}, limit=None)
+	assert len(products) == 1 + 2
 
 	clear()
 

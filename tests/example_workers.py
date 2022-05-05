@@ -81,3 +81,24 @@ class AnotherSaver(Creator):
 				'square': int(text) ** 2
 			}
 		)
+
+
+class Multiplier(Synthesizer):
+
+	input_type = 'another'
+	input_status = 'created'
+	moved_status = 'created product'
+	not_matched_status = 'not found matching source'
+
+	output_type = 'product'
+	output_status = 'created'
+
+	source_type = 'odd'
+	source_status = 'created'
+	match_fields = ['square']
+
+	def transform(self, item, source_item):
+		return Item(
+			data=str(int(item.data) * int(source_item.data)),
+			metadata={}
+		)

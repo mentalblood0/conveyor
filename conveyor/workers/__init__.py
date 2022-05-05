@@ -7,5 +7,6 @@ from .Synthesizer import Synthesizer
 __all__ = [
 	'Transformer',
 	'Mover',
-	'Destroyer'
+	'Destroyer',
+	'Synthesizer'
 ]
