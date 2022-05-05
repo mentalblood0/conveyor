@@ -11,6 +11,7 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 	input_type: str
 	input_status: str
 	moved_status: str
+	not_matched_status: str
 
 	output_type: str
 	output_status: str
@@ -34,7 +35,12 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			)[0]
 
 		except IndexError:
-			return
+			return self.repository.update(
+				dataclasses.replace(
+					input_item,
+					status=self.not_matched_status
+				)
+			)
 
 		output = self.transform(
 			deepcopy(input_item), 
