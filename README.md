@@ -25,8 +25,8 @@ Each item has:
 | name     | type       | description                                        |
 | -------- | ---------- | ---------------------------------------------------|
 | chain_id | string     | constant unique identifier for every item in chain |
-| id       | string     | constant unique identifier                         |
 | type     | string     | constant common identifier                         |
+| id       | string     | constant in-`type`-unique identifier               |
 | status   | string     | variable common identifier                         |
 | data     | string     | constant storage                                   |
 | metadata | dictionary | variable storage                                   |
