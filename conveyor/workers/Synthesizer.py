@@ -8,8 +8,6 @@ from ..core import Item, Processor, composeChainId
 
 class Synthesizer(Processor, metaclass=ABCMeta):
 
-	input_type: str
-	input_status: str
 	moved_status: str
 	not_matched_status: str
 
@@ -35,15 +33,18 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			)[0]
 
 		except IndexError:
-			return self.repository.update(
-				dataclasses.replace(
-					input_item,
-					status=self.not_matched_status
+			if self.not_matched_status is None:
+				source_item = None
+			else:
+				return self.repository.update(
+					dataclasses.replace(
+						input_item,
+						status=self.not_matched_status
+					)
 				)
-			)
 
 		output = self.transform(
-			deepcopy(input_item), 
+			deepcopy(input_item),
 			deepcopy(source_item)
 		)
 		if type(output) is None:
