@@ -1,7 +1,8 @@
 from typing import Callable
 from functools import partial
+from datetime import datetime
 from dataclasses import dataclass
-from peewee import Field, CharField, IntegerField, FloatField, Database
+from peewee import Field, CharField, IntegerField, FloatField, DateTimeField, Database
 
 from ...core import Item
 from ...common import Model
@@ -21,6 +22,7 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 	str: partial(CharField, default=None, null=True, index=True),
 	int: partial(IntegerField, default=None, null=True, index=True),
 	float: partial(FloatField, default=None, null=True, index=True),
+	datetime: partial(DateTimeField, default=None, null=True, index=True),
 	Path: partial(CharField, max_length=63, index=True)
 }
 
