@@ -25,27 +25,30 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 
 		where = {
 			key: input_item.metadata[key]
-			for key in self.match_fields
+			for key in set(self.match_fields) - {'data'}
 		}
 		if self.source_status:
 			where['status'] = self.source_status
 
-		try:
-			source_item = self.repository.get(
+		matched_items = [
+			i
+			for i in self.repository.get(
 				type=self.source_type,
 				where=where
-			)[0]
-
-		except IndexError:
-			if self.not_matched_status is None:
-				source_item = None
-			else:
-				return self.repository.update(
-					dataclasses.replace(
-						input_item,
-						status=self.not_matched_status
-					)
+			)
+			if ('data' not in self.match_fields) or (i.data == input_item.data)
+		]
+		if len(matched_items):
+			source_item = matched_items[0]
+		elif self.not_matched_status is None:
+			source_item = None
+		else:
+			return self.repository.update(
+				dataclasses.replace(
+					input_item,
+					status=self.not_matched_status
 				)
+			)
 
 		output = self.transform(
 			deepcopy(input_item),
