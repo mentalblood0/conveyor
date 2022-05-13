@@ -102,10 +102,13 @@ class Treegres(Repository):
 			if hasattr(model, f)
 		}
 
-		conditions = [
-			getattr(model, key)==value
-			for key, value in where.items()
-		]
+		try:
+			conditions = [
+				getattr(model, key)==value
+				for key, value in where.items()
+			]
+		except AttributeError:
+			return []
 
 		result = []
 
