@@ -23,13 +23,17 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 
 	def processItem(self, input_item):
 
+		where = {
+			key: input_item.metadata[key]
+			for key in self.match_fields
+		}
+		if self.source_status:
+			where['status'] = self.source_status
+
 		try:
 			source_item = self.repository.get(
 				type=self.source_type,
-				where={
-					key: input_item.metadata[key]
-					for key in self.match_fields
-				}
+				where=where
 			)[0]
 
 		except IndexError:
