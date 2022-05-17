@@ -16,4 +16,4 @@ class Item:
 
 	metadata: dict = dataclasses.field(default_factory=dict)
 
-	reserved_by: str = ''
+	reserved_by: str = None

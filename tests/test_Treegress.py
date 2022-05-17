@@ -1,4 +1,5 @@
 import shutil
+import pytest
 import dataclasses
 from peewee import CharField
 
@@ -37,6 +38,32 @@ def test_create():
 	clear()
 
 
+def test_update():
+
+	ignored_fields = ['id']
+
+	repository.create(Item(
+		type=type,
+		status='created',
+		chain_id='ideeee',
+		data='lalala',
+		data_digest='lololo',
+		metadata={
+			'message_id': 'lololo'
+		}
+	))
+
+	updated_item = dataclasses.replace(
+		repository.get(type)[0],
+		status='changed'
+	)
+	repository.update(updated_item)
+
+	assert repository.get(type)[0] == updated_item
+
+	clear()
+
+
 def test_get():
 
 	item = Item(
@@ -71,6 +98,33 @@ def test_delete():
 	id = repository.get(type, {'status': status})[0].id
 	assert repository.delete(type, id)
 	assert repository.get(type, {'status': status}) == []
+
+	clear()
+
+
+def test_transaction():
+
+	def create():
+
+		for i in range(3):
+			repository.create(Item(
+				type=type,
+				status=status,
+				chain_id='ideeee',
+				data='lalala',
+				data_digest='lololo',
+				metadata={
+					'message_id': 'lololo'
+				}
+			))
+
+		raise KeyError
+
+	transaction_create = repository.transaction(create)
+	with pytest.raises(KeyError):
+		transaction_create()
+
+	assert not len(repository.get(type))
 
 	clear()
 
