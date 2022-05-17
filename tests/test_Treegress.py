@@ -15,16 +15,11 @@ type = 'undefined'
 status = 'created'
 
 
-def clear():
-	repository._drop(type)
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
-
-
-def test_create():
-
-	item = Item(
+@pytest.fixture
+def pytest_item():
+	return Item(
 		type=type,
-		status='created',
+		status=status,
 		chain_id='ideeee',
 		data='lalala',
 		data_digest='lololo',
@@ -33,25 +28,20 @@ def test_create():
 		}
 	)
 
-	assert repository.create(item)
 
-	clear()
+@pytest.fixture(autouse=True)
+def clear():
+	repository._drop(type)
+	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
 
-def test_update():
+def test_create(pytest_item):
+	assert repository.create(pytest_item)
 
-	ignored_fields = ['id']
 
-	repository.create(Item(
-		type=type,
-		status='created',
-		chain_id='ideeee',
-		data='lalala',
-		data_digest='lololo',
-		metadata={
-			'message_id': 'lololo'
-		}
-	))
+def test_update(pytest_item):
+
+	repository.create(pytest_item)
 
 	updated_item = dataclasses.replace(
 		repository.get(type)[0],
@@ -61,63 +51,26 @@ def test_update():
 
 	assert repository.get(type)[0] == updated_item
 
-	clear()
+
+def test_get(pytest_item):
+	assert repository.create(pytest_item)
+	assert repository.get(type, {'status': status}, limit=None)[0].metadata['message_id'] == pytest_item.metadata['message_id']
 
 
-def test_get():
+def test_delete(pytest_item):
 
-	item = Item(
-		type=type,
-		status=status,
-		chain_id='ideeee',
-		data='lalala',
-		data_digest='lololo',
-		metadata={
-			'message_id': 'lololo'
-		}
-	)
+	assert repository.create(pytest_item)
 
-	assert repository.create(item)
-	assert repository.get(type, {'status': status}, limit=None)[0].metadata['message_id'] == item.metadata['message_id']
-
-	clear()
-
-
-def test_delete():
-
-	assert repository.create(Item(
-		type=type,
-		status=status,
-		chain_id='ideeee',
-		data='lalala',
-		data_digest='lololo',
-		metadata={
-			'message_id': 'lololo'
-		}
-	))
 	id = repository.get(type, {'status': status})[0].id
 	assert repository.delete(type, id)
 	assert repository.get(type, {'status': status}) == []
 
-	clear()
 
-
-def test_transaction():
+def test_transaction(pytest_item):
 
 	def create():
-
 		for i in range(3):
-			repository.create(Item(
-				type=type,
-				status=status,
-				chain_id='ideeee',
-				data='lalala',
-				data_digest='lololo',
-				metadata={
-					'message_id': 'lololo'
-				}
-			))
-
+			assert repository.create(pytest_item)
 		raise KeyError
 
 	transaction_create = repository.transaction(create)
@@ -126,15 +79,10 @@ def test_transaction():
 
 	assert not len(repository.get(type))
 
-	clear()
 
+def test_cant_get_file_path(pytest_item):
 
-def test_cant_get_file_path():
-
-	repository.create(Item(
-		type=type,
-		status=status
-	))
+	repository.create(pytest_item)
 
 	class W(Transformer):
 
@@ -149,15 +97,10 @@ def test_cant_get_file_path():
 
 	assert not W(repository)()
 
-	clear()
 
+def test_cant_set_file_path(pytest_item):
 
-def test_cant_set_file_path():
-
-	repository.create(Item(
-		type=type,
-		status=status
-	))
+	repository.create(pytest_item)
 
 	class W(Transformer):
 
@@ -180,16 +123,11 @@ def test_cant_set_file_path():
 	model = Model(repository.db, type)
 	assert not model.select().where(model.file_path=='lalala').execute()
 
-	clear()
 
-
-def test_reserve():
+def test_reserve(pytest_item):
 
 	for i in range(2):
-		repository.create(Item(
-			type=type,
-			status=status
-		))
+		repository.create(pytest_item)
 
 	first_worker = 'lalala'
 	second_worker = 'lololo'
@@ -218,15 +156,10 @@ def test_reserve():
 		reserved_by=second_worker
 	)) == 1
 
-	clear()
 
+def test_reserve_intersection(pytest_item):
 
-def test_reserve_intersection():
-
-	repository.create(Item(
-		type=type,
-		status=status
-	))
+	repository.create(pytest_item)
 	
 	model = Model(repository.db, type)
 
@@ -264,51 +197,27 @@ def test_reserve_intersection():
 	assert first_query.execute() == 1
 	assert second_query.execute() == 0
 
-	clear()
 
+def test_migration_add_column(pytest_item):
 
-def test_migration_add_column():
+	repository.create(pytest_item)
 
-	repository.create(Item(
-		type=type,
-		status=status,
-		metadata={
-			'a': 1
-		}
-	))
-
-	repository.create(Item(
-		type=type,
-		status=status,
-		metadata={
-			'a': 1,
+	repository.create(dataclasses.replace(
+		pytest_item,
+		metadata=pytest_item.metadata | {
 			'b': 2
 		}
 	))
 
-	clear()
 
+def test_migration_drop_column(pytest_item):
 
-def test_migration_drop_column():
+	repository.create(pytest_item)
 
-	repository.create(Item(
-		type=type,
-		status=status,
-		metadata={
-			'a': 1,
-			'b': 2
-		}
+	repository.create(dataclasses.replace(
+		pytest_item,
+		metadata={}
 	))
-
-	repository.create(Item(
-		type=type,
-		status=status,
-		metadata={
-			'a': 1
-		}
-	))
-
-	clear()
 
 
 def test_migration_to_reserve_field():
@@ -328,5 +237,3 @@ def test_migration_to_reserve_field():
 		status=status,
 		id='test'
 	)
-
-	clear()
