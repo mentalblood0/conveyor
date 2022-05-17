@@ -85,6 +85,8 @@ class Treegres(Repository):
 
 		if not (model := Model(self.db, type)):
 			return []
+		
+		where = where or {}
 
 		if reserved_by:
 			where['reserved_by'] = reserved_by
@@ -112,7 +114,11 @@ class Treegres(Repository):
 
 		result = []
 
-		for r in model.select(*get_fields).where(*conditions).limit(limit):
+		query = model.select(*get_fields)
+		if conditions:
+			query = query.where(*conditions).limit(limit)
+
+		for r in query:
 
 			item = Item(type=type)
 
