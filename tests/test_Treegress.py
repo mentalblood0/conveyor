@@ -20,9 +20,7 @@ def pytest_item():
 	return Item(
 		type=type,
 		status=status,
-		chain_id='ideeee',
 		data='lalala',
-		data_digest='lololo',
 		metadata={
 			'message_id': 'lololo'
 		}
@@ -44,26 +42,26 @@ def test_update(pytest_item):
 	repository.create(pytest_item)
 
 	updated_item = dataclasses.replace(
-		repository.get(type)[0],
+		repository.get(pytest_item.type)[0],
 		status='changed'
 	)
 	repository.update(updated_item)
 
-	assert repository.get(type)[0] == updated_item
+	assert repository.get(pytest_item.type)[0] == updated_item
 
 
 def test_get(pytest_item):
 	assert repository.create(pytest_item)
-	assert repository.get(type, {'status': status}, limit=None)[0].metadata['message_id'] == pytest_item.metadata['message_id']
+	assert repository.get(pytest_item.type)[0].metadata['message_id'] == pytest_item.metadata['message_id']
 
 
 def test_delete(pytest_item):
 
 	assert repository.create(pytest_item)
 
-	id = repository.get(type, {'status': status})[0].id
-	assert repository.delete(type, id)
-	assert repository.get(type, {'status': status}) == []
+	id = repository.get(pytest_item.type)[0].id
+	assert repository.delete(pytest_item.type, id)
+	assert repository.get(pytest_item.type) == []
 
 
 def test_transaction(pytest_item):
@@ -77,7 +75,7 @@ def test_transaction(pytest_item):
 	with pytest.raises(KeyError):
 		transaction_create()
 
-	assert not len(repository.get(type))
+	assert not len(repository.get(pytest_item.type))
 
 
 def test_cant_get_file_path(pytest_item):
@@ -86,8 +84,8 @@ def test_cant_get_file_path(pytest_item):
 
 	class W(Transformer):
 
-		input_type = type
-		input_status = status
+		input_type = pytest_item.type
+		input_status = pytest_item.status
 
 		possible_output_statuses = ['got file path']
 
@@ -104,8 +102,8 @@ def test_cant_set_file_path(pytest_item):
 
 	class W(Transformer):
 
-		input_type = type
-		input_status = status
+		input_type = pytest_item.type
+		input_status = pytest_item.status
 
 		possible_output_statuses = ['got file path']
 
@@ -120,7 +118,7 @@ def test_cant_set_file_path(pytest_item):
 
 	assert W(repository)()
 
-	model = Model(repository.db, type)
+	model = Model(repository.db, pytest_item.type)
 	assert not model.select().where(model.file_path=='lalala').execute()
 
 
@@ -133,26 +131,24 @@ def test_reserve(pytest_item):
 	second_worker = 'lololo'
 
 	assert repository.reserve(
-		type=type,
-		status=status,
+		type=pytest_item.type,
+		status=pytest_item.status,
 		id=first_worker,
 		limit=1
 	) == 1
 	assert len(repository.get(
-		type=type,
-		where={'status': status},
+		type=pytest_item.type,
 		reserved_by=first_worker
 	)) == 1
 
 	assert repository.reserve(
-		type=type,
-		status=status,
+		type=pytest_item.type,
+		status=pytest_item.status,
 		id=second_worker,
 		limit=2
 	) == 1
 	assert len(repository.get(
-		type=type,
-		where={'status': status},
+		type=pytest_item.type,
 		reserved_by=second_worker
 	)) == 1
 
@@ -161,7 +157,7 @@ def test_reserve_intersection(pytest_item):
 
 	repository.create(pytest_item)
 	
-	model = Model(repository.db, type)
+	model = Model(repository.db, pytest_item.type)
 
 	first_query = (
 		model
@@ -172,7 +168,7 @@ def test_reserve_intersection(pytest_item):
 				.select(model.id)
 				.where(
 					model.reserved_by==None,
-					model.status==status
+					model.status==pytest_item.status
 				)
 				.limit(1)
 			)
@@ -187,7 +183,7 @@ def test_reserve_intersection(pytest_item):
 				.select(model.id)
 				.where(
 					model.reserved_by==None,
-					model.status==status
+					model.status==pytest_item.status
 				)
 				.limit(1)
 			)
