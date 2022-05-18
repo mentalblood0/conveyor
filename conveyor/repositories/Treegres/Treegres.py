@@ -1,10 +1,10 @@
 import os
 import pydantic
-from typing import Any
+import dataclasses
 import growing_tree_base
 from peewee import Database
 from functools import partial
-from dataclasses import dataclass, replace
+from typing import Any, Iterable
 
 from ...common import Model
 from ...core import Item, Repository
@@ -13,7 +13,7 @@ from . import Path, File, FileCache, ItemAdapter
 
 
 
-@dataclass
+@dataclasses.dataclass
 class Treegres(Repository):
 
 	db: Database
@@ -21,6 +21,7 @@ class Treegres(Repository):
 
 	cache_size: int = 1024
 	encoding: str = 'utf8'
+	file_extensions: Iterable[str] = dataclasses.field(default_factory=partial(list, ['xml', 'xz']))
 
 	def __post_init__(self):
 
@@ -42,13 +43,13 @@ class Treegres(Repository):
 			root=type_root,
 			base_file_name=''.join(
 				f'.{e}'
-				for e in File.extensions
+				for e in self.file_extensions
 			),
 			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
 		)
 		file_path = type_tree.save(item.data)
 
-		result_item = replace(
+		result_item = dataclasses.replace(
 			item,
 			data_digest=self._getFile(Path(file_path)).correct_digest
 		)

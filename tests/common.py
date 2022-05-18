@@ -1,4 +1,4 @@
-from peewee import SqliteDatabase
+from peewee import SqliteDatabase, Database
 
 from conveyor.repositories import Treegres
 

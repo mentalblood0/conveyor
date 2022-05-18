@@ -9,5 +9,5 @@ class FileCache:
 	def __init__(self, size: int):
 		self.File = lru_cache(maxsize=size)(File)
 
-	def __call__(self, path: str, encoding: str):
+	def __call__(self, path: str, encoding: str) -> File:
 		return self.File(path, encoding)

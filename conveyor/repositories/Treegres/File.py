@@ -1,23 +1,23 @@
 import lzma
 import base64
+import pydantic
 from blake3 import blake3
-from dataclasses import dataclass
 
 
 
+@pydantic.validate_arguments
 def getDigest(data: bytes) -> str:
 	d = blake3(data, max_threads=blake3.AUTO).digest()
 	return base64.b64encode(d).decode('ascii')
 
 
-@dataclass
+@pydantic.dataclasses.dataclass
 class File:
 
 	path: str
 	encoding: str
 
-	extensions = ['xml', 'xz']
-
+	@pydantic.validate_arguments
 	def set(self, content: str) -> None:
 
 		content_bytes = content.encode(self.encoding)
@@ -30,6 +30,7 @@ class File:
 		self.content = content
 		self.correct_digest = getDigest(content_bytes)
 
+	@pydantic.validate_arguments
 	def get(self, digest: str) -> str:
 
 		if not hasattr(self, 'content'):
