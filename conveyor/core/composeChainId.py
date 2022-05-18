@@ -2,5 +2,5 @@ from . import uuid7
 
 
 
-def composeChainId():
+def composeChainId() -> str:
 	return hex(uuid7())

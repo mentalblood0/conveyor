@@ -1,4 +1,10 @@
-def composeSequence(functions):
+import pydantic
+from typing import Literal, Callable
+
+
+
+@pydantic.validate_arguments
+def composeSequence(functions: list[Callable]):
 
 	def new_f(*args, **kwargs):
 		
@@ -12,7 +18,8 @@ def composeSequence(functions):
 
 class Effect:
 
-	def install(self, target: any, position: str='before'):
+	@pydantic.validate_arguments
+	def install(self, target: object, position: Literal['before', 'after']='before'):
 
 		for name in dir(self):
 			if (

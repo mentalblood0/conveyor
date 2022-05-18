@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any
 from abc import ABCMeta, abstractmethod
 
 from . import Item
@@ -16,7 +16,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, where: dict[str, any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
+	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
 		pass
 
 	@abstractmethod
