@@ -117,9 +117,7 @@ def test_cant_set_file_path(pytest_item):
 			)
 
 	assert W(repository)()
-
-	model = Model(repository.db, pytest_item.type)
-	assert not model.select().where(model.file_path=='lalala').execute()
+	assert not len(repository.get(pytest_item.type, {'file_path': 'lalala'}))
 
 
 def test_reserve(pytest_item):
@@ -195,9 +193,7 @@ def test_reserve_intersection(pytest_item):
 
 
 def test_migration_add_column(pytest_item):
-
 	repository.create(pytest_item)
-
 	repository.create(dataclasses.replace(
 		pytest_item,
 		metadata=pytest_item.metadata | {
@@ -207,17 +203,11 @@ def test_migration_add_column(pytest_item):
 
 
 def test_migration_drop_column(pytest_item):
-
 	repository.create(pytest_item)
-
-	repository.create(dataclasses.replace(
-		pytest_item,
-		metadata={}
-	))
+	repository.create(dataclasses.replace(pytest_item, metadata={}))
 
 
 def test_migration_to_reserve_field():
-	
 	Model(
 		repository.db,
 		type,
@@ -227,9 +217,4 @@ def test_migration_to_reserve_field():
 			'data_digest': CharField(max_length=63)
 		}
 	)
-
-	repository.reserve(
-		type=type,
-		status=status,
-		id='test'
-	)
+	repository.reserve(type, status, 'test')

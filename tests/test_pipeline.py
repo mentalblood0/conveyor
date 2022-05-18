@@ -1,12 +1,11 @@
 import os
 import shutil
+import pytest
 from logging.handlers import RotatingFileHandler
 
 from tests.example_workers import *
-from conveyor import LogsRepository
 from conveyor.workers.factories import DestroyerFactory
 from conveyor.processor_effects import ExceptionLogging
-from conveyor.repository_effects import SimpleLogging, DbLogging
 
 from .common import *
 
@@ -17,6 +16,7 @@ another = str(-int(odd))
 log_path = 'log.txt'
 
 
+@pytest.fixture(autouse=True)
 def clear():
 
 	repository._drop('undefined')
@@ -38,9 +38,6 @@ def crash(*args, **kwargs):
 
 
 def test_correct():
-
-	DbLogging(repository, LogsRepository(db)).install(repository)
-	SimpleLogging().install(repository)
 
 	saver = Saver(repository)
 	square_saver = AnotherSaver(repository)
@@ -79,8 +76,6 @@ def test_correct():
 	products = repository.get('product', {'status': 'created'}, limit=None)
 	assert len(products) == 1 + 2
 
-	clear()
-
 
 def test_exception_logging():
 
@@ -106,26 +101,17 @@ def test_exception_logging():
 
 	logging_effect.logger.removeHandler(logging_effect.handler)
 	logging_effect.handler.close()
-	clear()
 
 
 def test_mover_transaction():
 
-	DbLogging(repository, LogsRepository(db)).install(repository)
-	SimpleLogging().install(repository)
-
 	saver = Saver(repository)
 	verifier = Verifier(repository)
 	typer = Typer(repository)
-	
-	print('-- saver')
+
 	assert saver(odd)
-	print('-- verifier')
 	assert len(verifier()) == 1
 
 	repository.update = crash
-	print('-- typer')
 	assert len(typer()) == 0
 	assert len(repository.get(typer.possible_output_types[0], {'status': typer.output_status})) == 0
-
-	clear()
