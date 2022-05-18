@@ -1,5 +1,7 @@
+import time
 import shutil
 import pytest
+import threading
 import dataclasses
 from peewee import CharField
 
@@ -190,6 +192,38 @@ def test_reserve_intersection(pytest_item):
 
 	assert first_query.execute() == 1
 	assert second_query.execute() == 0
+
+
+# def test_reserve_parallel(pytest_item):
+
+# 	repository.create(pytest_item)
+
+# 	reservers_number = 16
+
+# 	def start_reserving(type, status, id, n):
+# 		for i in range(n):
+# 			reserved = repository.reserve(type, status, id)
+# 			unreserved = repository.unreserve(type, status, id)
+# 			assert reserved == unreserved
+
+# 	reservers = [
+# 		threading.Thread(
+# 			target=start_reserving,
+# 			kwargs={
+# 				'type': pytest_item.type,
+# 				'status': pytest_item.status,
+# 				'id': str(i % reservers_number),
+# 				'n': 100
+# 			}
+# 		)
+# 		for i in range(reservers_number)
+# 	]
+# 	for r in reservers:
+# 		r.start()
+
+# 	time.sleep(7)
+# 	for r in reservers:
+# 		r.join()
 
 
 def test_migration_add_column(pytest_item):

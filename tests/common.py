@@ -1,5 +1,4 @@
 from peewee import SqliteDatabase
-from playhouse.sqliteq import SqliteQueueDatabase
 
 from conveyor.repositories import Treegres
 
