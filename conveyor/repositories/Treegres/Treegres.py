@@ -1,4 +1,6 @@
 import os
+import pydantic
+from typing import Any
 import growing_tree_base
 from peewee import Database
 from functools import partial
@@ -32,7 +34,8 @@ class Treegres(Repository):
 	def _getTypePath(self, type: str) -> str:
 		return os.path.join(self.dir_tree_root_path, type.lower())
 
-	def create(self, item):
+	@pydantic.validate_arguments
+	def create(self, item: Item) -> int:
 
 		type_root = self._getTypePath(item.type)
 		type_tree = growing_tree_base.Tree(
@@ -53,7 +56,8 @@ class Treegres(Repository):
 
 		return ItemAdapter(result_item, self.db).save()
 
-	def reserve(self, type, status, id, limit=None):
+	@pydantic.validate_arguments
+	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> int:
 
 		return ItemAdapter(
 			db=self.db,
@@ -66,8 +70,9 @@ class Treegres(Repository):
 			id=id,
 			limit=limit
 		)
-	
-	def unreserve(self, type, status, id):
+
+	@pydantic.validate_arguments
+	def unreserve(self, type: str, status: str, id: str) -> int:
 
 		if not (model := Model(self.db, type)):
 			return None
@@ -81,7 +86,8 @@ class Treegres(Repository):
 			)
 		).execute()
 
-	def get(self, type, where=None, fields=None, limit=1, reserved_by=None):
+	@pydantic.validate_arguments
+	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int | None=1, reserved_by: str=None) -> list[Item]:
 
 		if not (model := Model(self.db, type)):
 			return []
@@ -143,10 +149,12 @@ class Treegres(Repository):
 
 		return result
 
-	def update(self, item):
+	@pydantic.validate_arguments
+	def update(self, item: Item) -> int:
 		return ItemAdapter(item, self.db).update()
 
-	def delete(self, type, id):
+	@pydantic.validate_arguments
+	def delete(self, type: str, id: str) -> int:
 
 		if not (model := Model(self.db, type)):
 			return None

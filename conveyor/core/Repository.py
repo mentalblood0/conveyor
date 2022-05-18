@@ -16,11 +16,15 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
+	def unreserve(self, type: str, status: str, id: str) -> int:
+		pass
+
+	@abstractmethod
 	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
 		pass
 
 	@abstractmethod
-	def update(self, type: str, item: Item) -> int:
+	def update(self, item: Item) -> int:
 		pass
 
 	@abstractmethod
