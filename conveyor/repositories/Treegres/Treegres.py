@@ -120,18 +120,19 @@ class Treegres(Repository):
 
 		for r in query:
 
-			item = Item(type=type)
-
-			for name in fields or r.__data__:
-
-				if name not in ignored_fields:
-
-					value = getattr(r, name)
-
-					if hasattr(item, name):
-						setattr(item, name, value)
-					else:
-						item.metadata[name] = value
+			item = Item(
+				type=type,
+				**{
+					name: getattr(r, name)
+					for name in fields or r.__data__
+					if name not in ignored_fields and hasattr(Item, name)
+				},
+				metadata={
+					name: getattr(r, name)
+					for name in fields or r.__data__
+					if name not in ignored_fields and not hasattr(Item, name)
+				}
+			)
 
 			if (fields and ('data' in fields)) or (not fields):
 				item.data=self._getFile(

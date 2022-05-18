@@ -1,8 +1,9 @@
+import pydantic
 import dataclasses
 
 
 
-@dataclasses.dataclass
+@pydantic.dataclasses.dataclass
 class Item:
 
 	id: str = ''
