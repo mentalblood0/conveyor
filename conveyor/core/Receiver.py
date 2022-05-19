@@ -30,22 +30,12 @@ class Receiver(metaclass=ABCMeta):
 
 	receive_fields: list[str]=[]
 
-	_required_fields = [
-		'id',
-		'data_digest',
-		'chain_id',
-		'status'
-	]
-
 	def __init__(self, repository: Repository, limit: int = 64) -> None:
 		
 		self.repository = repository
 		self.limit = limit
 
-		self.id = self.composeId()
-
-	def composeId(self):
-		return '_'.join([
+		self.id = '_'.join([
 			getSelfIP(),
 			str(threading.get_ident())
 		])
@@ -70,7 +60,12 @@ class Receiver(metaclass=ABCMeta):
 		self.reserve()
 
 		if len(self.receive_fields):
-			receive_fields = self.receive_fields + self._required_fields
+			receive_fields = self.receive_fields + [
+				'id',
+				'data_digest',
+				'chain_id',
+				'status'
+			]
 		else:
 			receive_fields = self.receive_fields
 

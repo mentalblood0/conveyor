@@ -8,9 +8,6 @@ from ..core import Item, Processor
 
 class Transformer(Processor, metaclass=ABCMeta):
 
-	input_type: str
-	input_status: str
-
 	possible_output_statuses: list[str]
 
 	@abstractmethod

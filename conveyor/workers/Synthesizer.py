@@ -2,7 +2,7 @@ import dataclasses
 from abc import ABCMeta
 from copy import deepcopy
 
-from ..core import Item, Processor, composeChainId
+from ..core import Item, Processor
 
 
 
@@ -14,9 +14,9 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 	output_type: str
 	output_status: str
 
-	source_type: str = ''
-	source_status: str = ''
-	match_fields: list[str] = dataclasses.field(default_factory=list)
+	source_type: str
+	match_fields: list[str]
+	source_status: str = None
 
 	def transform(self, item: Item, source_item: Item) -> list[Item] | Item:
 		return []

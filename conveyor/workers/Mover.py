@@ -8,8 +8,6 @@ from ..core import Item, Processor
 
 class Mover(Processor, metaclass=ABCMeta):
 
-	input_type: str
-	input_status: str
 	moved_status: str
 
 	possible_output_types: list[str]
