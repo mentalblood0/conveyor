@@ -17,16 +17,16 @@ log_path = 'log.txt'
 
 
 @pytest.fixture(autouse=True)
-def clear():
-
+def clearDb():
 	repository._drop('undefined')
 	repository._drop('odd')
 	repository._drop('even')
 	repository._drop('another')
 	repository._drop('product')
 
-	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
 
+@pytest.fixture(autouse=True, scope='session')
+def clearLog():
 	try:
 		os.remove(log_path)
 	except Exception:
