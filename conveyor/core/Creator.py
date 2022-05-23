@@ -13,7 +13,7 @@ class Creator(metaclass=ABCMeta):
 
 	source_type: str = ''
 	source_status: str = ''
-	match_fields: list[str] = dataclasses.field(default_factory=list)
+	match_fields: list[str] = []
 
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
