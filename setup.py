@@ -19,7 +19,8 @@ if __name__ == '__main__':
 		install_requires=[
 			'blake3',
 			'peewee',
-			'growing-tree-base'
+			'growing-tree-base',
+			'pydantic'
 		],
 		packages=find_packages()
 	)
