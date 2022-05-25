@@ -22,7 +22,7 @@ class Creator(metaclass=ABCMeta):
 	def create(self, *args, **kwargs) -> Item:
 		pass
 
-	def handleException(e: Exception, name: str):
+	def handleException(self, e: Exception, name: str):
 		pass
 
 	def __call__(self, *args, **kwargs) -> int:
