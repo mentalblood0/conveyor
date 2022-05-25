@@ -39,7 +39,11 @@ class Creator(metaclass=ABCMeta):
 						where={
 							key: item.metadata[key]
 							for key in self.match_fields
-						},
+						} | (
+							{'status': self.source_status}
+							if self.source_status
+							else {}
+						),
 						fields=['chain_id']
 					)[0].chain_id
 
