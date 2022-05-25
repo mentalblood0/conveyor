@@ -31,7 +31,7 @@ class Creator(metaclass=ABCMeta):
 
 			item = self.create(*args, **kwargs)
 
-			if self.source_type and self.source_status:
+			if self.source_type:
 
 				try:
 					chain_id = self.repository.get(
