@@ -1,12 +1,19 @@
 import pytest
 import shutil
-from peewee import SqliteDatabase, Database
+from peewee import SqliteDatabase, PostgresqlDatabase
 
 from conveyor.repositories import Treegres
 
 
 
 db = SqliteDatabase(':memory:')
+# db = PostgresqlDatabase(
+# 	'postgres',
+# 	host='localhost',
+# 	port='5432',
+# 	user='postgres',
+# 	password='5924'
+# )
 dir_tree_root_path = 'dir_tree'
 repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
 
