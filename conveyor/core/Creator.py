@@ -22,7 +22,7 @@ class Creator(metaclass=ABCMeta):
 	def create(self, *args, **kwargs) -> Item:
 		pass
 
-	def handleException(self, e: Exception, name: str):
+	def handleException(self, _: Item, e: Exception, name: str):
 		pass
 
 	def __call__(self, *args, **kwargs) -> int:
@@ -63,4 +63,4 @@ class Creator(metaclass=ABCMeta):
 			)
 		
 		except Exception as e:
-			self.handleException(e, self.__class__.__name__)
+			self.handleException(Item(type=self.output_type, status=self.output_status), e, self.__class__.__name__)

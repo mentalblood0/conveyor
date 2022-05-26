@@ -13,7 +13,6 @@ from .common import *
 
 odd = '3'
 another = str(-int(odd))
-log_path = 'log.txt'
 
 
 @pytest.fixture(autouse=True)
@@ -23,14 +22,6 @@ def clearDb():
 	repository._drop('even')
 	repository._drop('another')
 	repository._drop('product')
-
-
-@pytest.fixture(autouse=True, scope='session')
-def clearLog():
-	try:
-		os.remove(log_path)
-	except Exception:
-		pass
 
 
 def crash(*args, **kwargs):
@@ -75,32 +66,6 @@ def test_correct():
 	assert len(multiplier()) == 2
 	products = repository.get('product', {'status': 'created'}, limit=None)
 	assert len(products) == 1 + 2
-
-
-def test_exception_logging():
-
-	saver = Saver(repository)
-	verifier = Verifier(repository)
-
-	verifier.transform = crash
-	logging_effect = ExceptionLogging(
-		handler=RotatingFileHandler(log_path),
-		color=False
-	)
-	logging_effect.install(verifier)
-
-	assert saver(odd)
-	verifier()
-
-	assert os.path.exists(log_path)
-	with open(log_path) as f:
-		log = f.read()
-	
-	assert len(log)
-	assert 'Verifier' in log
-
-	logging_effect.logger.removeHandler(logging_effect.handler)
-	logging_effect.handler.close()
 
 
 def test_mover_transaction():
