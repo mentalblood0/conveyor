@@ -30,7 +30,9 @@ class ExceptionLogsRepository:
 
 		self.db = db
 		self.columns = {
-			'date': DateTimeField(index=True),
+			'date_first': DateTimeField(index=True),
+			'date_last': DateTimeField(index=True),
+			'count': IntegerField(default=1),
 			'worker_name': CharField(max_length=63, index=True),
 			'item_type': CharField(max_length=63, null=True, index=True),
 			'item_status': CharField(max_length=63, null=True, index=True),
@@ -58,7 +60,8 @@ class ExceptionLogsRepository:
 					for name in self.uniques[0]
 				),
 				update={
-					self.exceptions.date: row['date']
+					self.exceptions.date_last: row['date_last'],
+					self.exceptions.count: self.exceptions.count + 1
 				}
 			)
 
@@ -68,8 +71,11 @@ class ExceptionLogsRepository:
 	@pydantic.validate_arguments
 	def create(self, item: Item, exception_type: str, exception_text: str, worker_name: str) -> int:
 
+		date = str(datetime.utcnow())
+
 		row = {
-			'date': str(datetime.utcnow()),
+			'date_first': date,
+			'date_last': date,
 			'worker_name': worker_name,
 			'item_type': item.type,
 			'item_status': item.status,

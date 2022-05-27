@@ -94,37 +94,16 @@ def test_Creator(item, exception, logger, errors_table):
 	worker()
 	assert count(errors_table) == 1
 
-	result = errors_table.select()[0]
-	assert result.date
-	assert result.worker_name == worker.__class__.__name__
-	assert result.item_type == item.type
-	assert result.item_status == item.status
-	assert result.item_chain_id == ''
-	assert result.item_id == -1
-	assert result.error_type == exception.__class__.__name__
-	assert result.error_text == str(exception)
-
 
 def test_Processor(item, exception, logger, errors_table):
 
 	repository.create(item)
-	result_item = repository.get(type)[0]
 
 	worker = composeProcessor(exception)
 	logger.install(worker)
 
 	worker()
 	assert count(errors_table) == 1
-
-	result = errors_table.select()[0]
-	assert result.date
-	assert result.worker_name == worker.__class__.__name__
-	assert result.item_type == item.type
-	assert result.item_status == item.status
-	assert result.item_chain_id == result_item.chain_id
-	assert str(result.item_id) == result_item.id
-	assert result.error_type == exception.__class__.__name__
-	assert result.error_text == str(exception)
 
 
 def test_repeat(item, exception, logger, errors_table):
@@ -135,15 +114,18 @@ def test_repeat(item, exception, logger, errors_table):
 	worker = composeProcessor(exception)
 	logger.install(worker)
 
-	old_date = None
-	for _ in range(3):
+	date_first = None
+	date_last = None
+	for i in range(3):
 
 		worker()
 		assert count(errors_table) == 1
 
 		result = errors_table.select()[0]
 
-		assert result.date
+		assert result.date_first
+		assert result.date_last
+		assert result.count == i + 1
 		assert result.worker_name == worker.__class__.__name__
 		assert result.item_type == item.type
 		assert result.item_status == item.status
@@ -152,8 +134,13 @@ def test_repeat(item, exception, logger, errors_table):
 		assert result.error_type == exception.__class__.__name__
 		assert result.error_text == str(exception)
 
-		assert result.date != old_date
-		old_date = result.date
+		if date_first is None:
+			date_first = result.date_first
+		else:
+			assert date_first == result.date_first
+
+		assert result.date_last != date_last
+		date_last = result.date_last
 
 
 def test_delete(item, exception, logger, errors_table):
