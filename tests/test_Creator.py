@@ -43,6 +43,7 @@ def composeCreator(**kwargs):
 @pytest.fixture(autouse=True)
 def clearDb():
 	repository._drop(type)
+	repository._drop('new')
 
 
 def test_create_simple(item):

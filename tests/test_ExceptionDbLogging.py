@@ -125,16 +125,22 @@ def test_repeat(item, exception, logger, errors_table):
 	worker = composeProcessor(exception)
 	logger.install(worker)
 
+	old_date = None
 	for _ in range(3):
-		worker()
-	assert len(errors_table.select()) == 1
 
-	result = errors_table.select()[0]
-	assert result.date
-	assert result.worker_name == worker.__class__.__name__
-	assert result.item_type == item.type
-	assert result.item_status == item.status
-	assert result.item_chain_id == ''
-	assert str(result.item_id) == result_item.id
-	assert result.error_type == exception.__class__.__name__
-	assert result.error_text == str(exception)
+		worker()
+		assert len(errors_table.select()) == 1
+
+		result = errors_table.select()[0]
+
+		assert result.date
+		assert result.worker_name == worker.__class__.__name__
+		assert result.item_type == item.type
+		assert result.item_status == item.status
+		assert result.item_chain_id == ''
+		assert str(result.item_id) == result_item.id
+		assert result.error_type == exception.__class__.__name__
+		assert result.error_text == str(exception)
+
+		assert result.date != old_date
+		old_date = result.date
