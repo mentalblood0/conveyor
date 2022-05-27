@@ -51,18 +51,13 @@ class ExceptionLogsRepository:
 		self.exceptions = Model(self.db, name, self.columns, self.uniques)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-	def _handleConflict(self, query: ModelInsert, row: dict[str, str | int]):
+	def _handleConflict(self, query: ModelInsert) -> ModelInsert:
 
 		if type(self.db) in [PostgresqlDatabase, SqliteDatabase]:
 			return query.on_conflict(
-				conflict_target=tuple(
-					getattr(self.exceptions, name)
-					for name in self.uniques[0]
-				),
-				update={
-					self.exceptions.date_last: row['date_last'],
-					self.exceptions.count: self.exceptions.count + 1
-				}
+				conflict_target=self.uniques[0],
+				preserve='date_last',
+				update={self.exceptions.count: self.exceptions.count + 1}
 			)
 
 		else:
@@ -73,21 +68,19 @@ class ExceptionLogsRepository:
 
 		date = str(datetime.utcnow())
 
-		row = {
-			'date_first': date,
-			'date_last': date,
-			'worker_name': worker_name,
-			'item_type': item.type,
-			'item_status': item.status,
-			'item_chain_id': item.chain_id,
-			'item_id': ItemId(item.id),
-			'error_type': exception_type,
-			'error_text': exception_text[:255]
-		}
-
-		query = self.exceptions.insert(**row)
-
-		return self._handleConflict(query, row).execute()
+		return self._handleConflict(
+			self.exceptions.insert(
+				date_first=date,
+				date_last=date,
+				worker_name=worker_name,
+				item_type=item.type,
+				item_status=item.status,
+				item_chain_id=item.chain_id,
+				item_id=ItemId(item.id),
+				error_type=exception_type,
+				error_text=exception_text[:255]
+			)
+		).execute()
 
 	@pydantic.validate_arguments
 	def delete(self, item: Item, worker_name: str) -> int:
