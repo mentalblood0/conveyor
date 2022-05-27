@@ -25,6 +25,13 @@ class Creator(metaclass=ABCMeta):
 	def handleException(self, _: Item, e: Exception, name: str):
 		pass
 
+	def handleNoException(self, item: Item, worker_name: str):
+		pass
+
+	@property
+	def name(self):
+		return self.__class__.__name__
+
 	def __call__(self, *args, **kwargs) -> int:
 
 		try:
@@ -53,7 +60,7 @@ class Creator(metaclass=ABCMeta):
 			else:
 				chain_id = composeChainId()
 
-			return self.repository.create(
+			result = self.repository.create(
 				dataclasses.replace(
 					item,
 					type=self.output_type,
@@ -61,6 +68,8 @@ class Creator(metaclass=ABCMeta):
 					chain_id=chain_id
 				)
 			)
+			self.handleNoException(item, self.name)
+			return result
 		
 		except Exception as e:
 			self.handleException(Item(type=self.output_type, status=self.output_status), e, self.__class__.__name__)

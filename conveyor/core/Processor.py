@@ -14,8 +14,15 @@ class Processor(Receiver, metaclass=ABCMeta):
 	def processItem(self, item: Item) -> int | None:
 		pass
 
-	def handleException(self, item: Item, e: Exception, worker_name: str):
+	def handleException(self, item: Item, e: Exception | None, worker_name: str):
 		pass
+
+	def handleNoException(self, item: Item, worker_name: str):
+		pass
+
+	@property
+	def name(self):
+		return self.__class__.__name__
 
 	def __call__(self) -> list[int]:
 
@@ -24,7 +31,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			self.handleException(i, e, self.__class__.__name__)
+			self.handleException(i, e, self.name)
 			return result
 
 		for i in items:
@@ -32,8 +39,9 @@ class Processor(Receiver, metaclass=ABCMeta):
 			try:
 				i_result = self.processItem(i)
 			except Exception as e:
-				self.handleException(i, e, self.__class__.__name__)
+				self.handleException(i, e, self.name)
 				continue
+			self.handleNoException(i, self.name)
 
 			result.append(i_result)
 

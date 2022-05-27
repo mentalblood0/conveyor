@@ -12,3 +12,6 @@ class ExceptionDbLogging(Effect):
 
 	def handleException(self, item, e, worker_name):
 		self.logs_repository.create(item, e.__class__.__name__, str(e), worker_name)
+
+	def handleNoException(self, item, worker_name):
+		self.logs_repository.delete(item, worker_name)

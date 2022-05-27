@@ -82,5 +82,12 @@ class ExceptionLogsRepository:
 
 		return self._handleConflict(query, row).execute()
 
-	def delete(self, item: Item) -> int:
-		raise NotImplemented
+	def delete(self, item: Item, worker_name: str) -> int:
+
+		return self.exceptions.delete().where(
+			self.exceptions.worker_name==worker_name,
+			self.exceptions.item_type==item.type,
+			self.exceptions.item_status==item.status,
+			self.exceptions.item_chain_id==item.chain_id,
+			self.exceptions.item_id==ItemId(item.id)
+		).execute()

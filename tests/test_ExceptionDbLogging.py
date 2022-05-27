@@ -1,4 +1,5 @@
 import pytest
+from peewee import fn
 
 from conveyor.common import Model
 from conveyor.core import Item, Creator, Processor
@@ -44,8 +45,17 @@ def exception():
 	return IndexError('lalala')
 
 
+@pytest.fixture
+def exceptions():
+	return [IndexError('lalala'), AttributeError('lololo')]
+
+
 def crash(exception):
 	raise exception
+
+
+def count(table):
+	return table.select(fn.COUNT())
 
 
 def composeCreator(item, exception):
@@ -82,7 +92,7 @@ def test_Creator(item, exception, logger, errors_table):
 	logger.install(worker)
 
 	worker()
-	assert len(errors_table.select()) == 1
+	assert count(errors_table) == 1
 
 	result = errors_table.select()[0]
 	assert result.date
@@ -104,7 +114,7 @@ def test_Processor(item, exception, logger, errors_table):
 	logger.install(worker)
 
 	worker()
-	assert len(errors_table.select()) == 1
+	assert count(errors_table) == 1
 
 	result = errors_table.select()[0]
 	assert result.date
@@ -129,7 +139,7 @@ def test_repeat(item, exception, logger, errors_table):
 	for _ in range(3):
 
 		worker()
-		assert len(errors_table.select()) == 1
+		assert count(errors_table) == 1
 
 		result = errors_table.select()[0]
 
@@ -144,3 +154,40 @@ def test_repeat(item, exception, logger, errors_table):
 
 		assert result.date != old_date
 		old_date = result.date
+
+
+def test_delete(item, exception, logger, errors_table):
+
+	repository.create(item)
+
+	worker = composeProcessor(exception)
+	logger.install(worker)
+
+	worker()
+
+	worker.processItem = lambda item: item
+	worker()
+
+	assert count(errors_table) == 0
+
+
+def test_delete_all(item, exceptions, logger, errors_table):
+
+	repository.create(item)
+
+	workers = [
+		composeProcessor(e)
+		for e in exceptions
+	]
+	for w in workers:
+		logger.install(w)
+
+	for w in workers:
+		w()
+
+	assert count(errors_table) == len(workers)
+
+	workers[0].processItem = lambda item: item
+	workers[0]()
+
+	assert count(errors_table) == 0
