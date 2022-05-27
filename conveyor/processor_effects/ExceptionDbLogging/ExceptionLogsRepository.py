@@ -66,7 +66,7 @@ class ExceptionLogsRepository:
 			)
 
 		else:
-			return query.on_conflict('replace')
+			raise NotImplementedError(f'No conflict handling strategy for database {self.db}')
 
 	@pydantic.validate_arguments
 	def create(self, item: Item, exception_type: str, exception_text: str, worker_name: str) -> int:

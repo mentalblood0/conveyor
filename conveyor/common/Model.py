@@ -11,7 +11,7 @@ def composeMigrator(db):
 	elif db.__class__ == PostgresqlDatabase:
 		migrator_class = PostgresqlMigrator
 	else:
-		raise Exception(f'No migrator class for db class "{db.__class__}"')
+		raise NotImplementedError(f'No migrator class for db class "{db.__class__}"')
 
 	return migrator_class(db)
 

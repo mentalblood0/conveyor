@@ -126,7 +126,7 @@ def test_repeat(item, exception, logger, errors_table):
 		assert result.date_first
 		assert result.date_last
 		assert result.count == i + 1
-		assert result.worker_name == worker.__class__.__name__
+		assert result.worker_name == worker.name
 		assert result.item_type == item.type
 		assert result.item_status == item.status
 		assert result.item_chain_id == ''
