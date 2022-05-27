@@ -1,3 +1,4 @@
+import pydantic
 from ..Destroyer import Destroyer
 
 
@@ -5,7 +6,8 @@ from ..Destroyer import Destroyer
 @lambda c: c()
 class DestroyerFactory:
 
-	def __call__(self, input_type, input_status):
+	@pydantic.validate_arguments
+	def __call__(self, input_type: str, input_status: str):
 		return type(
 			'__'.join([
 				'Destoyer',

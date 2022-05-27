@@ -1,6 +1,6 @@
 import pydantic
 from datetime import datetime
-from peewee import Database, SqliteDatabase, PostgresqlDatabase, CharField, DateTimeField, IntegerField
+from peewee import Database, SqliteDatabase, PostgresqlDatabase, CharField, DateTimeField, IntegerField, ModelInsert
 
 from ...core import Item
 from ...common import Model
@@ -47,8 +47,9 @@ class ExceptionLogsRepository:
 			'error_text'
 		)]
 		self.exceptions = Model(self.db, name, self.columns, self.uniques)
-	
-	def _handleConflict(self, query, row):
+
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def _handleConflict(self, query: ModelInsert, row: dict[str, str | int]):
 
 		if type(self.db) in [PostgresqlDatabase, SqliteDatabase]:
 			return query.on_conflict(
@@ -82,6 +83,7 @@ class ExceptionLogsRepository:
 
 		return self._handleConflict(query, row).execute()
 
+	@pydantic.validate_arguments
 	def delete(self, item: Item, worker_name: str) -> int:
 
 		return self.exceptions.delete().where(
