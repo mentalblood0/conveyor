@@ -1,6 +1,6 @@
-from peewee import Model as Model_, SqliteDatabase, PostgresqlDatabase
-from playhouse.migrate import SqliteMigrator, PostgresqlMigrator, migrate
 from playhouse.reflection import generate_models
+from playhouse.migrate import SqliteMigrator, PostgresqlMigrator, migrate
+from peewee import Model as Model_, SqliteDatabase, PostgresqlDatabase, Database
 
 
 
@@ -18,7 +18,7 @@ def composeMigrator(db):
 
 class Model(Model_):
 
-	def __new__(C, db, name, columns=None):
+	def __new__(C, db: Database, name: str, columns=None, uniques: list[tuple[str]]=None):
 
 		name = name.lower()
 
@@ -33,7 +33,17 @@ class Model(Model_):
 				name,
 				(Model_,),
 				{
-					'Meta': type('Meta', (), {'database': db})
+					'Meta': type(
+						'Meta',
+						(),
+						{
+							'database': db,
+							'indexes': tuple(
+								(u, True)
+								for u in uniques or []
+							)
+						}
+					)
 				} | columns
 			)
 

@@ -2,7 +2,6 @@ import os
 import pytest
 from logging.handlers import RotatingFileHandler
 
-from conveyor.common import Model
 from conveyor.core import Item, Creator
 from conveyor.workers import Transformer
 from conveyor.processor_effects import ExceptionLogging

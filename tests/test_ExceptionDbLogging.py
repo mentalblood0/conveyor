@@ -1,8 +1,8 @@
+import json
 import pytest
 
 from conveyor.common import Model
-from conveyor.core import Item, Creator
-from conveyor.workers import Transformer
+from conveyor.core import Item, Creator, Processor
 from conveyor.processor_effects import ExceptionDbLogging
 from conveyor.processor_effects.ExceptionDbLogging import ExceptionLogsRepository
 
@@ -63,20 +63,18 @@ def composeCreator(item, exception):
 	return C(repository)
 
 
-def composeTransformer(exception):
+def composeProcessor(exception):
 
-	class T(Transformer):
+	class P(Processor):
 
 		input_type = type
 		input_status = status
 
-		possible_output_statuses = ['end']
-
-		def transform(self, item):
+		def processItem(self, item):
 			crash(exception)
-			return self.possible_output_statuses[0]
+			return item
 
-	return T(repository)
+	return P(repository)
 
 
 def test_Creator(item, exception, logger, errors_table):
@@ -93,16 +91,17 @@ def test_Creator(item, exception, logger, errors_table):
 	assert result.item_type == item.type
 	assert result.item_status == item.status
 	assert result.item_chain_id == ''
+	assert result.item_id == -1
 	assert result.error_type == exception.__class__.__name__
 	assert result.error_text == str(exception)
 
 
-def test_Transformer(item, exception, logger, errors_table):
+def test_Processor(item, exception, logger, errors_table):
 
 	repository.create(item)
 	result_item = repository.get(type)[0]
 
-	worker = composeTransformer(exception)
+	worker = composeProcessor(exception)
 	logger.install(worker)
 
 	worker()
@@ -114,5 +113,29 @@ def test_Transformer(item, exception, logger, errors_table):
 	assert result.item_type == item.type
 	assert result.item_status == item.status
 	assert result.item_chain_id == result_item.chain_id
+	assert str(result.item_id) == result_item.id
+	assert result.error_type == exception.__class__.__name__
+	assert result.error_text == str(exception)
+
+
+def test_repeat(item, exception, logger, errors_table):
+
+	repository.create(item)
+	result_item = repository.get(type)[0]
+
+	worker = composeProcessor(exception)
+	logger.install(worker)
+
+	for _ in range(3):
+		worker()
+	assert len(errors_table.select()) == 1
+
+	result = errors_table.select()[0]
+	assert result.date
+	assert result.worker_name == worker.__class__.__name__
+	assert result.item_type == item.type
+	assert result.item_status == item.status
+	assert result.item_chain_id == ''
+	assert str(result.item_id) == result_item.id
 	assert result.error_type == exception.__class__.__name__
 	assert result.error_text == str(exception)
