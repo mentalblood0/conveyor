@@ -1,4 +1,6 @@
-from ..core import Processor
+import pydantic
+
+from ..core import Processor, Item
 
 
 
@@ -8,5 +10,6 @@ class Destroyer(Processor):
 		super().__init__(*args, **kwargs)
 		self.receive_fields = ['id']
 
-	def processItem(self, item):
+	@pydantic.validate_arguments
+	def processItem(self, item: Item):
 		return self.repository.delete(item.type, item.id)

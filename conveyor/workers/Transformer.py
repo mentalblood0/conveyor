@@ -1,3 +1,4 @@
+import pydantic
 import dataclasses
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
@@ -14,7 +15,8 @@ class Transformer(Processor, metaclass=ABCMeta):
 	def transform(self, item: Item) -> Item | str:
 		pass
 
-	def processItem(self, input_item):
+	@pydantic.validate_arguments
+	def processItem(self, input_item: Item):
 
 		if (output := self.transform(deepcopy(input_item))) is None:
 			return None

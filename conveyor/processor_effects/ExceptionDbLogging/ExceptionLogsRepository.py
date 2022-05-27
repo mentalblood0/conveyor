@@ -1,3 +1,4 @@
+import pydantic
 from datetime import datetime
 from peewee import Database, CharField, DateTimeField, IntegerField
 
@@ -6,9 +7,26 @@ from ...common import Model
 
 
 
+class ItemId(int):
+
+	@pydantic.validate_arguments
+	def __new__(C, value: str | int):
+
+		if type(value) == int:
+			return super().__new__(C, value)
+
+		elif type(value) == str:
+			if not len(value):
+				result_value = -1
+			else:
+				result_value = int(value)
+			return super().__new__(C, result_value)
+
+
 class ExceptionLogsRepository:
 
-	def __init__(self, db: Database, name='conveyor_errors') -> None:
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def __init__(self, db: Database, name: str='conveyor_errors') -> None:
 
 		self.db = db
 		self.exceptions = Model(db, name, columns={
@@ -27,21 +45,19 @@ class ExceptionLogsRepository:
 			'error_type',
 			'error_text'
 		)])
-	
-	def create(self, item: Item, exception_type: str, exception_text: str, worker_name: str) -> None:
 
-		if not len(item.id):
-			item_id = -1
-		else:
-			item_id = int(item.id)
+	@pydantic.validate_arguments
+	def create(self, item: Item, exception_type: str, exception_text: str, worker_name: str) -> int:
 
-		self.exceptions.insert(
+		return self.exceptions.insert(
 			date=str(datetime.utcnow()),
 			worker_name=worker_name,
 			item_type=item.type,
 			item_status=item.status,
 			item_chain_id=item.chain_id,
-			item_id=item_id,
+			item_id=ItemId(item.id),
 			error_type=exception_type,
 			error_text=exception_text[:255]
 		).on_conflict('replace').execute()
+
+	# def delete(self, item: Item) -> int:

@@ -1,3 +1,4 @@
+import pydantic
 from datetime import datetime
 from peewee import Database, CharField, DateTimeField
 
@@ -8,6 +9,7 @@ from ...common import Model
 
 class LogsRepository:
 
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __init__(self, db: Database, name='conveyor_log') -> None:
 		
 		self.db = db
@@ -19,9 +21,10 @@ class LogsRepository:
 			'status_old': CharField(max_length=63, null=True),
 			'status_new': CharField(max_length=63, null=True, index=True)
 		})
-	
-	def create(self, action: str, old_item: Item=Item(), new_item: Item=Item()) -> None:
-		self.log(
+
+	@pydantic.validate_arguments
+	def create(self, action: str, old_item: Item=Item(), new_item: Item=Item()) -> int:
+		return self.log(
 			date=str(datetime.utcnow()),
 			chain_id=new_item.chain_id or old_item.chain_id,
 			action=action,

@@ -1,3 +1,4 @@
+import pydantic
 import dataclasses
 from abc import ABCMeta
 from copy import deepcopy
@@ -21,7 +22,8 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 	def transform(self, item: Item, source_item: Item) -> list[Item] | Item:
 		return []
 
-	def processItem(self, input_item):
+	@pydantic.validate_arguments
+	def processItem(self, input_item: Item):
 
 		where = {
 			key: input_item.metadata[key]

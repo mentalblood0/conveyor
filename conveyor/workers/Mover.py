@@ -1,3 +1,4 @@
+import pydantic
 import dataclasses
 from abc import ABCMeta
 from copy import deepcopy
@@ -16,7 +17,8 @@ class Mover(Processor, metaclass=ABCMeta):
 	def transform(self, item: Item) -> list[Item] | Item:
 		return []
 
-	def processItem(self, input_item):
+	@pydantic.validate_arguments
+	def processItem(self, input_item: Item):
 
 		output = self.transform(deepcopy(input_item))
 		if type(output) is None:

@@ -1,4 +1,5 @@
 import socket
+import pydantic
 import threading
 from abc import ABCMeta
 
@@ -30,6 +31,7 @@ class Receiver(metaclass=ABCMeta):
 
 	receive_fields: list[str]=[]
 
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __init__(self, repository: Repository, limit: int = 64) -> None:
 		
 		self.repository = repository
