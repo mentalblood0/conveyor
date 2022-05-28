@@ -86,7 +86,6 @@ class ExceptionLogsRepository:
 	def delete(self, item: Item, worker_name: str) -> int:
 
 		return self.exceptions.delete().where(
-			self.exceptions.worker_name==worker_name,
 			self.exceptions.item_type==item.type,
 			self.exceptions.item_status==item.status,
 			self.exceptions.item_chain_id==item.chain_id,
