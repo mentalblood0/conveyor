@@ -83,7 +83,7 @@ class ExceptionLogsRepository:
 		).execute()
 
 	@pydantic.validate_arguments
-	def delete(self, item: Item, worker_name: str) -> int:
+	def delete(self, item: Item) -> int:
 
 		return self.exceptions.delete().where(
 			self.exceptions.item_type==item.type,

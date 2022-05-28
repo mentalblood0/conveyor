@@ -17,7 +17,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 	def handleException(self, item: Item, e: Exception | None, worker_name: str):
 		pass
 
-	def handleNoException(self, item: Item, worker_name: str):
+	def handleNoException(self, item: Item):
 		pass
 
 	@property
@@ -41,7 +41,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 			except Exception as e:
 				self.handleException(i, e, self.name)
 				continue
-			self.handleNoException(i, self.name)
+			self.handleNoException(i)
 
 			result.append(i_result)
 

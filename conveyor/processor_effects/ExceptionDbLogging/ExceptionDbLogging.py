@@ -16,5 +16,5 @@ class ExceptionDbLogging(Effect):
 		self.logs_repository.create(item, e.__class__.__name__, str(e), worker_name)
 
 	@pydantic.validate_arguments
-	def handleNoException(self, item: Item, worker_name: str):
-		self.logs_repository.delete(item, worker_name)
+	def handleNoException(self, item: Item):
+		self.logs_repository.delete(item)

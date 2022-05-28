@@ -25,7 +25,7 @@ class Creator(metaclass=ABCMeta):
 	def handleException(self, _: Item, e: Exception, name: str):
 		pass
 
-	def handleNoException(self, item: Item, worker_name: str):
+	def handleNoException(self, item: Item):
 		pass
 
 	@property
@@ -68,7 +68,7 @@ class Creator(metaclass=ABCMeta):
 					chain_id=chain_id
 				)
 			)
-			self.handleNoException(item, self.name)
+			self.handleNoException(item)
 			return result
 		
 		except Exception as e:
