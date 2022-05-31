@@ -31,7 +31,7 @@ class Processor(Receiver, metaclass=ABCMeta):
 		try:
 			items = self.receiveItems()
 		except Exception as e:
-			self.handleException(i, e, self.name)
+			self.handleException(Item(), e, self.name)
 			return result
 
 		for i in items:

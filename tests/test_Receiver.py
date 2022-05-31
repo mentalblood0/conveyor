@@ -1,6 +1,7 @@
 import pytest
 
 from conveyor.core import Item, Receiver
+from conveyor.core.Receiver import composeReceiverId
 
 from .common import *
 
@@ -72,3 +73,13 @@ def test_receiveItems_repeat(receiver, item):
 	first = receiver.receiveItems()
 	second = receiver.receiveItems()
 	assert first == second
+
+
+def test_id():
+
+	n = 10**3
+
+	m = set(composeReceiverId() for i in range(n))
+
+	assert n == len(set(m))
+	assert all(len(id) <= 31 for id in m)

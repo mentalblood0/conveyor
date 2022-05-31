@@ -80,7 +80,7 @@ class Treegres(Repository):
 
 		return (
 			model
-			.update(reserved_by='')
+			.update(reserved_by=None)
 			.where(
 				model.reserved_by==id,
 				model.status==status

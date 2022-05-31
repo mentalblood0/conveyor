@@ -1,9 +1,9 @@
 import socket
+import base64
 import pydantic
-import threading
 from abc import ABCMeta
 
-from . import Item, Repository
+from . import Item, Repository, composeChainId, uuid7
 
 
 
@@ -24,6 +24,16 @@ def getSelfIP():
 	return result
 
 
+def composeReceiverId() -> str:
+	u = uuid7()
+	return base64.b64encode(
+		b''.join([
+			bytearray(int(n) for n in getSelfIP().split('.')),
+			u.to_bytes(((u.bit_length() + 7) // 8), byteorder='big')
+		])
+	)
+
+
 class Receiver(metaclass=ABCMeta):
 
 	input_type: str
@@ -37,11 +47,8 @@ class Receiver(metaclass=ABCMeta):
 		self.repository = repository
 		self.limit = limit
 
-		self.id = '_'.join([
-			getSelfIP(),
-			str(threading.get_ident())
-		])
-	
+		self.id = composeReceiverId()
+
 	def reserve(self):
 		return self.repository.reserve(
 			type=self.input_type,
@@ -49,7 +56,7 @@ class Receiver(metaclass=ABCMeta):
 			id=self.id,
 			limit=self.limit
 		)
-	
+
 	def unreserve(self):
 		return self.repository.unreserve(
 			type=self.input_type,
@@ -75,5 +82,6 @@ class Receiver(metaclass=ABCMeta):
 			self.input_type,
 			where={'status': self.input_status},
 			fields=receive_fields,
-			limit=self.limit
+			limit=self.limit,
+			reserved_by=self.id
 		)
