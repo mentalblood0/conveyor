@@ -3,7 +3,7 @@ from typing import Literal, Callable
 
 
 
-def composeTry(f: Callable, handleError: Callable=lambda: None):
+def composeTry(f: Callable, handleError: Callable):
 
 	def new_f(*args, **kwargs):
 		try:
@@ -20,7 +20,7 @@ def composeSequence(functions: list[Callable]):
 	def new_f(*args, **kwargs):
 
 		for f in functions[:-1]:
-			composeTry(f)(*args, **kwargs)
+			f(*args, **kwargs)
 
 		return functions[-1](*args, **kwargs)
 
@@ -30,7 +30,7 @@ def composeSequence(functions: list[Callable]):
 class Effect:
 
 	@pydantic.validate_arguments
-	def install(self, target: object, position: Literal['before', 'after']='before'):
+	def install(self, target: object, position: Literal['before', 'after']='before', handleError: Callable=lambda: None):
 
 		for name in dir(self):
 			if (
@@ -42,9 +42,11 @@ class Effect:
 
 				if callable(field):
 
+					f = composeTry(field, handleError)
+
 					if position == 'before':
-						sequence = [field, getattr(target, name)]
+						sequence = [f, getattr(target, name)]
 					elif position == 'after':
-						sequence = [getattr(target, name), field]
+						sequence = [getattr(target, name), f]
 
 					setattr(target, name, composeSequence(sequence))
