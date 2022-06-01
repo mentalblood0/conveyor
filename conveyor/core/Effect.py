@@ -3,16 +3,27 @@ from typing import Literal, Callable
 
 
 
+def composeTry(f: Callable, handleError: Callable=lambda: None):
+
+	def new_f(*args, **kwargs):
+		try:
+			return f(*args, **kwargs)
+		except Exception as e:
+			handleError(e)
+
+	return new_f
+
+
 @pydantic.validate_arguments
 def composeSequence(functions: list[Callable]):
 
 	def new_f(*args, **kwargs):
-		
+
 		for f in functions[:-1]:
-			f(*args, **kwargs)
-		
+			composeTry(f)(*args, **kwargs)
+
 		return functions[-1](*args, **kwargs)
-	
+
 	return new_f
 
 
