@@ -13,7 +13,7 @@ from . import Path, File, FileCache, ItemAdapter
 
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class Treegres(Repository):
 
 	db: Database
@@ -24,14 +24,19 @@ class Treegres(Repository):
 	file_extensions: Iterable[str] = dataclasses.field(default_factory=partial(list, ['xml', 'xz']))
 
 	def __post_init__(self):
+		object.__setattr__(
+			self,
+			'_getFile',
+			partial(
+				(
+					FileCache(self.cache_size)
+					if self.cache_size
+					else File
+				),
+				encoding=self.encoding
+			)
+		)
 
-		if self.cache_size:
-			self._getFile = FileCache(self.cache_size)
-		else:
-			self._getFile = File
-
-		self._getFile = partial(self._getFile, encoding=self.encoding)
-	
 	def _getTypePath(self, type: str) -> str:
 		return os.path.join(self.dir_tree_root_path, type.lower())
 

@@ -77,6 +77,6 @@ def test_mover_transaction():
 	assert saver(odd)
 	assert len(verifier()) == 1
 
-	repository.update = crash
+	object.__setattr__(repository, 'update', crash)
 	assert len(typer()) == 0
 	assert len(repository.get(typer.possible_output_types[0], {'status': typer.output_status})) == 0
