@@ -6,7 +6,7 @@ from peewee import Database
 from functools import partial
 from typing import Any, Iterable
 
-from ...common import Model
+from ...common import Model, ItemId
 from ...core import Item, Repository
 
 from . import Path, File, FileCache, ItemAdapter
@@ -73,7 +73,7 @@ class Treegres(Repository):
 		)
 
 	@pydantic.validate_arguments
-	def unreserve(self, type: str, status: str, id: str) -> int:
+	def unreserve(self, type: str, ids: list[ItemId]) -> int:
 
 		if not (model := Model(self.db, type)):
 			return None
@@ -81,10 +81,7 @@ class Treegres(Repository):
 		return (
 			model
 			.update(reserved_by=None)
-			.where(
-				model.reserved_by==id,
-				model.status==status
-			)
+			.where(model.id << ids)
 		).execute()
 
 	@pydantic.validate_arguments

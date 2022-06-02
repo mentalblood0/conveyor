@@ -41,10 +41,9 @@ class Processor(Receiver, metaclass=ABCMeta):
 			except Exception as e:
 				self.handleException(i, e, self.name)
 				continue
+			self.unreserve([i.id])
 			self.handleNoException(i)
 
 			result.append(i_result)
-
-		self.unreserve()
 
 		return result

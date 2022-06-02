@@ -3,24 +3,8 @@ from datetime import datetime
 from peewee import Database, SqliteDatabase, PostgresqlDatabase, CharField, DateTimeField, IntegerField, ModelInsert
 
 from ...core import Item
-from ...common import Model
+from ...common import Model, ItemId
 
-
-
-class ItemId(int):
-
-	@pydantic.validate_arguments
-	def __new__(C, value: str | int):
-
-		if type(value) == int:
-			return super().__new__(C, value)
-
-		elif type(value) == str:
-			if not len(value):
-				result_value = -1
-			else:
-				result_value = int(value)
-			return super().__new__(C, result_value)
 
 
 class ExceptionLogsRepository:

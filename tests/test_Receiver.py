@@ -1,5 +1,6 @@
 import pytest
 
+from conveyor.common import ItemId
 from conveyor.core import Item, Receiver
 from conveyor.core.Receiver import composeReceiverId
 
@@ -44,8 +45,9 @@ def test_reserve(receiver, item):
 
 def test_unreserve(receiver, item):
 	repository.create(item)
+	result = repository.get(item.type)[0]
 	assert receiver.reserve() == 1
-	assert receiver.unreserve() == 1
+	assert receiver.unreserve([ItemId(result.id)]) == 1
 
 
 def test_receiveItems_one(receiver, item):

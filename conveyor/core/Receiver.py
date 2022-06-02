@@ -3,6 +3,7 @@ import base64
 import pydantic
 from abc import ABCMeta
 
+from ..common import ItemId
 from . import Item, Repository, composeChainId, uuid7
 
 
@@ -57,11 +58,10 @@ class Receiver(metaclass=ABCMeta):
 			limit=self.limit
 		)
 
-	def unreserve(self):
+	def unreserve(self, ids: list[ItemId]):
 		return self.repository.unreserve(
 			type=self.input_type,
-			status=self.input_status,
-			id=self.id
+			ids=ids
 		)
 
 	def receiveItems(self) -> list[Item]:
