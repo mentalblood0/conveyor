@@ -96,43 +96,38 @@ class Treegres(Repository):
 
 		if not (model := Model(self.db, type)):
 			return []
-		
-		where = where or {}
 
+		where = where or {}
 		if reserved_by:
 			where['reserved_by'] = reserved_by
 
 		ignored_fields = {'file_path', 'reserved_by'}
+		fields = set(fields or []) - ignored_fields
 
-		if not fields:
-			fields = set()
-		else:
-			fields = set(fields) - ignored_fields
-
-		get_fields = {
+		query = model.select(*{
 			getattr(model, f)
 			for f in fields
 			if hasattr(model, f)
-		}
+		})
+		if (conditions := [
+			getattr(model, key)==value
+			for key, value in where.items()
+			if hasattr(model, key)
+		]):
+			query = query.where(*conditions)
 
-		try:
-			conditions = [
-				getattr(model, key)==value
-				for key, value in where.items()
-			]
-		except AttributeError:
-			return []
+		query = query.limit(limit)
 
-		result = []
-
-		query = model.select(*get_fields)
-		if conditions:
-			query = query.where(*conditions).limit(limit)
-
-		for r in query:
-
-			item = Item(
+		return [
+			Item(
 				type=type,
+				data=(
+					self._getFile(
+						Path(os.path.join(self._getTypePath(type), r.file_path))
+					).get(r.data_digest)
+					if (fields and ('data' in fields)) or (not fields)
+					else ''
+				),
 				**{
 					name: getattr(r, name)
 					for name in fields or r.__data__
@@ -144,15 +139,8 @@ class Treegres(Repository):
 					if name not in ignored_fields and not hasattr(Item, name)
 				}
 			)
-
-			if (fields and ('data' in fields)) or (not fields):
-				item.data=self._getFile(
-					Path(os.path.join(self._getTypePath(type), r.file_path))
-				).get(r.data_digest)
-		
-			result.append(item)
-
-		return result
+			for r in query
+		]
 
 	@pydantic.validate_arguments
 	def update(self, item: Item) -> int:

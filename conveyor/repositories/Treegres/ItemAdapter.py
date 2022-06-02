@@ -1,7 +1,7 @@
+import dataclasses
 from typing import Callable
 from functools import partial
 from datetime import datetime
-from dataclasses import dataclass
 from peewee import Field, CharField, IntegerField, FloatField, DateTimeField, Database
 
 from ...core import Item
@@ -27,7 +27,7 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 }
 
 
-@dataclass
+@dataclasses.dataclass
 class ItemAdapter:
 
 	item: Item
@@ -39,7 +39,10 @@ class ItemAdapter:
 			if hasattr(self.item, k):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
-		self.item.reserved_by = None
+		self.item = dataclasses.replace(
+			self.item,
+			reserved_by=None
+		)
 
 	@property
 	def fields(self):

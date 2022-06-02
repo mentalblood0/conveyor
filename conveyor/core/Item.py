@@ -3,7 +3,7 @@ import dataclasses
 
 
 
-@pydantic.dataclasses.dataclass
+@pydantic.dataclasses.dataclass(frozen=True)
 class Item:
 
 	id: str = ''
