@@ -27,7 +27,7 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 }
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class ItemAdapter:
 
 	item: Item
@@ -39,9 +39,13 @@ class ItemAdapter:
 			if hasattr(self.item, k):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
-		self.item = dataclasses.replace(
-			self.item,
-			reserved_by=None
+		object.__setattr__(
+			self,
+			'item',
+			dataclasses.replace(
+				self.item,
+				reserved_by=None
+			)
 		)
 
 	@property
