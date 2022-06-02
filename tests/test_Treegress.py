@@ -272,16 +272,3 @@ def test_migration_add_column(item):
 def test_migration_drop_column(item):
 	repository.create(item)
 	repository.create(dataclasses.replace(item, metadata={}))
-
-
-def test_migration_to_reserve_field():
-	Model(
-		repository.db,
-		type,
-		{
-			'chain_id': CharField(max_length=63, index=True),
-			'status': CharField(max_length=63, index=True),
-			'data_digest': CharField(max_length=63)
-		}
-	)
-	repository.reserve(type, status, 'test')

@@ -60,17 +60,24 @@ class Treegres(Repository):
 	@pydantic.validate_arguments
 	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> int:
 
-		return ItemAdapter(
-			db=self.db,
-			item=Item(
-				type=type,
-				status=status,
-				metadata={'file_path': ''}
+		if not (model := Model(self.db, type)):
+			return None
+
+		return (
+			model
+			.update(reserved_by=id)
+			.where(
+				model.id.in_(
+					model
+					.select(model.id)
+					.where(
+						model.reserved_by==None,
+						model.status==status
+					)
+					.limit(limit)
+				)
 			)
-		).reserve(
-			id=id,
-			limit=limit
-		)
+		).execute()
 
 	@pydantic.validate_arguments
 	def unreserve(self, type: str, ids: list[ItemId]) -> int:

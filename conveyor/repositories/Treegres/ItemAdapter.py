@@ -64,26 +64,6 @@ class ItemAdapter:
 
 	def save(self):
 		return self.model(**self.fields).save()
-
-	def reserve(self, id: str, limit: int):
-
-		model = self.model
-
-		return (
-			model
-			.update(reserved_by=id)
-			.where(
-				model.id.in_(
-					model
-					.select(model.id)
-					.where(
-						model.reserved_by==None,
-						model.status==self.item.status
-					)
-					.limit(limit)
-				)
-			)
-		).execute()
 	
 	def update(self):
 
