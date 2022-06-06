@@ -49,4 +49,4 @@ class Effect:
 					elif position == 'after':
 						sequence = [getattr(target, name), f]
 
-					setattr(target, name, composeSequence(sequence))
+					object.__setattr__(target, name, composeSequence(sequence))

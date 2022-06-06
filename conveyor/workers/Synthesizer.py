@@ -38,7 +38,17 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 				type=self.source_type,
 				where=where
 			)
-			if ('data' not in self.match_fields) or (i.data == input_item.data)
+			if (
+				(
+					('data' not in self.match_fields) or 
+					(i.data == input_item.data)
+				) and not
+				(
+					(i.type == input_item.type) and
+					(i.status == input_item.status) and
+					(i.id == input_item.id)
+				)
+			)
 		]
 		if len(matched_items):
 			source_item = matched_items[0]
