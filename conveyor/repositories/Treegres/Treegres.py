@@ -158,7 +158,7 @@ class Treegres(Repository):
 			return None
 
 		relative_path = model.select().where(model.id==id).get().file_path
-		full_path = os.path.join(self.dir_tree_root_path, type, relative_path)
+		full_path = Path(os.path.join(self.dir_tree_root_path, type, relative_path))
 
 		result = model.delete().where(model.id==id).execute()
 
@@ -166,6 +166,9 @@ class Treegres(Repository):
 			os.remove(full_path)
 		except FileNotFoundError:
 			pass
+
+		if isinstance(self._getFile, FileCache):
+			self._getFile.delete(full_path)
 		
 		return result
 

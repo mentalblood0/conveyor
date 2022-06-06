@@ -11,12 +11,13 @@ if __name__ == '__main__':
 
 	setup(
 		name='conveyor',
-		version='1.13.3',
+		version='1.13.4',
 		description='Library for creating cold-pipeline-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
 		author='mentalblood',
 		install_requires=[
+			'ring',
 			'blake3',
 			'peewee',
 			'growing-tree-base',
