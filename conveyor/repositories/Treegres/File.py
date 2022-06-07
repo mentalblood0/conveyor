@@ -17,6 +17,14 @@ class File:
 	path: str
 	encoding: str
 
+	@property
+	def correct_digest(self):
+
+		if not hasattr(self, '_correct_digest'):
+			self.get()
+
+		return self._correct_digest
+
 	@pydantic.validate_arguments
 	def set(self, content: str) -> None:
 
@@ -28,10 +36,10 @@ class File:
 			f.write(content_bytes)
 
 		self.content = content
-		self.correct_digest = getDigest(content_bytes)
+		self._correct_digest = getDigest(content_bytes)
 
 	@pydantic.validate_arguments
-	def get(self, digest: str) -> str:
+	def get(self, digest: str=None) -> str:
 
 		if not hasattr(self, 'content'):
 
@@ -39,9 +47,9 @@ class File:
 				file_bytes = f.read()
 
 			self.content = file_bytes.decode(self.encoding)
-			self.correct_digest = getDigest(file_bytes)
+			self._correct_digest = getDigest(file_bytes)
 
-		if self.correct_digest != digest:
-			raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{self.correct_digest}'")
+		if (digest) and (self._correct_digest != digest):
+			raise Exception(f"Cannot get file content: digest invalid: '{digest}' != '{self._correct_digest}'")
 
 		return self.content

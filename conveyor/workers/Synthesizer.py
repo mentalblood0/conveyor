@@ -66,7 +66,7 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			deepcopy(input_item),
 			deepcopy(source_item)
 		)
-		if type(output) is None:
+		if output is None:
 			return
 
 		if type(output) == Item:
