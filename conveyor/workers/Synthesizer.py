@@ -36,7 +36,8 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			i
 			for i in self.repository.get(
 				type=self.source_type,
-				where=where
+				where=where,
+				limit=2
 			)
 			if (
 				(
