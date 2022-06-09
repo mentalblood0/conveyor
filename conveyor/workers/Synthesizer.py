@@ -37,7 +37,7 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			for i in self.repository.get(
 				type=self.source_type,
 				where=where,
-				limit=1
+				limit=2
 			)
 			if not (
 				(i.type == input_item.type) and
