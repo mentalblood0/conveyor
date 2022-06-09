@@ -97,7 +97,7 @@ class Treegres(Repository):
 		).execute()
 
 	@pydantic.validate_arguments
-	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int | None=1, reserved_by: str=None) -> list[Item]:
+	def get(self, type: str, where: dict[str, Any]=None, where_not: dict[str, Any]=None, fields: list[str]=None, limit: int | None=1, reserved_by: str=None) -> list[Item]:
 
 		if not (model := Model(self.db, type)):
 			return []
@@ -106,7 +106,9 @@ class Treegres(Repository):
 		if reserved_by:
 			where['reserved_by'] = reserved_by
 
-		ignored_fields = {'file_path', 'reserved_by'}
+		where_not = where_not or {}
+
+		ignored_fields = {'file_path', 'reserved_by', 'data'}
 		fields = set(fields or []) - ignored_fields
 
 		query = model.select(*{
@@ -118,14 +120,24 @@ class Treegres(Repository):
 			getattr(model, key)==value
 			for key, value in where.items()
 			if hasattr(model, key)
+		] + [
+			getattr(model, key)!=value
+			for key, value in where_not.items()
+			if hasattr(model, key)
 		]):
 			query = query.where(*conditions)
 
 		query = query.limit(limit)
 
-		return [
-			Item(
+		result = []
+		for r in query:
+			item = Item(
 				type=type,
+				**{
+					name: getattr(r, name)
+					for name in fields or r.__data__
+					if name not in ignored_fields and hasattr(Item, name)
+				},
 				data=(
 					self._getFile(
 						Path(os.path.join(self._getTypePath(type), r.file_path))
@@ -133,19 +145,16 @@ class Treegres(Repository):
 					if (fields and ('data' in fields)) or (not fields)
 					else ''
 				),
-				**{
-					name: getattr(r, name)
-					for name in fields or r.__data__
-					if name not in ignored_fields and hasattr(Item, name)
-				},
 				metadata={
 					name: getattr(r, name)
 					for name in fields or r.__data__
 					if name not in ignored_fields and not hasattr(Item, name)
 				}
 			)
-			for r in query
-		]
+			if not (('data' in where) and (item.data != where['data'])):
+				result.append(item)
+
+		return result
 
 	@pydantic.validate_arguments
 	def update(self, item: Item) -> int:

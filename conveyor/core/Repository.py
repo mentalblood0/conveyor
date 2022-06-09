@@ -20,7 +20,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
+	def get(self, type: str, where: dict[str, Any]=None, where_not: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
 		pass
 
 	@abstractmethod

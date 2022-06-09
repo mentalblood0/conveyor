@@ -27,7 +27,7 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 
 		where = {
 			key: input_item.metadata[key]
-			for key in set(self.match_fields) - {'data'}
+			for key in self.match_fields
 		}
 		if self.source_status:
 			where['status'] = self.source_status
@@ -37,18 +37,12 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 			for i in self.repository.get(
 				type=self.source_type,
 				where=where,
-				limit=2
+				limit=1
 			)
-			if (
-				(
-					('data' not in self.match_fields) or 
-					(i.data == input_item.data)
-				) and not
-				(
-					(i.type == input_item.type) and
-					(i.status == input_item.status) and
-					(i.id == input_item.id)
-				)
+			if not (
+				(i.type == input_item.type) and
+				(i.status == input_item.status) and
+				(i.id == input_item.id)
 			)
 		]
 		if len(matched_items):
