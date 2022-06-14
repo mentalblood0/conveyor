@@ -30,7 +30,7 @@ def composeSequence(functions: list[Callable]):
 class Effect:
 
 	@pydantic.validate_arguments
-	def install(self, target: object, position: Literal['before', 'after']='before', handleError: Callable=lambda: None):
+	def install(self, target: object, position: Literal['before', 'after']='before', handleError: Callable=lambda e: None):
 
 		for name in dir(self):
 			if (
