@@ -32,19 +32,22 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 		if self.source_status:
 			where['status'] = self.source_status
 
-		matched_items = [
-			i
-			for i in self.repository.get(
-				type=self.source_type,
-				where=where,
-				limit=2
-			)
-			if not (
-				(i.type == input_item.type) and
-				(i.status == input_item.status) and
-				(i.id == input_item.id)
-			)
-		]
+		try:
+			matched_items = [
+				i
+				for i in self.repository.get(
+					type=self.source_type,
+					where=where,
+					limit=2
+				)
+				if not (
+					(i.type == input_item.type) and
+					(i.status == input_item.status) and
+					(i.id == input_item.id)
+				)
+			]
+		except:
+			matched_items = []
 		if len(matched_items):
 			source_item = matched_items[0]
 		elif self.not_matched_status is None:
