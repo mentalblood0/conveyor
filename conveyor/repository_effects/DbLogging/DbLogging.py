@@ -23,7 +23,11 @@ class DbLogging(Effect):
 	def update(self, item: Item):
 		self.logs_repository.create(
 			action='update',
-			old_item=self.repository.get(item.type, {'id': item.id}, ['status'])[0],
+			old_item=self.repository.get(
+				type=item.type,
+				where={'id': item.id},
+				fields=['status']
+			)[0],
 			new_item=item
 		)
 
@@ -31,5 +35,9 @@ class DbLogging(Effect):
 	def delete(self, type: str, id: str | int):
 		self.logs_repository.create(
 			action='delete',
-			old_item=self.repository.get(type, {'id': id}, ['status', 'chain_id'])[0]
+			old_item=self.repository.get(
+				type=type,
+				where={'id': id},
+				fields=['status', 'chain_id']
+			)[0]
 		)
