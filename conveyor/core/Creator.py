@@ -54,7 +54,7 @@ class Creator(metaclass=ABCMeta):
 						fields=['chain_id']
 					)[0].chain_id
 
-				except:
+				except IndexError:
 					chain_id = composeChainId()
 			
 			else:

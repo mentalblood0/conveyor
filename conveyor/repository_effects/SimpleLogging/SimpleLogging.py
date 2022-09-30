@@ -11,7 +11,7 @@ from ...common import Logging
 class SimpleLogging(Logging):
 
 	@pydantic.validate_arguments
-	def create(self, item: Item):
+	def create(self, item: Item, ref: Item = None):
 		self.logger.info(self._withColor(f'CREATE | -> {item.type}::{item.status}', colorama.Fore.GREEN))
 
 	@pydantic.validate_arguments

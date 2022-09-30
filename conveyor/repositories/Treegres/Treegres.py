@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 from ...common import Model, ItemId
 from ...core import Item, Repository
+from ...common.ModelsCache import models_cache
 
 from . import Path, File, FileCache, ItemAdapter
 
@@ -37,28 +38,35 @@ class Treegres(Repository):
 			)
 		)
 
-	def _getTypePath(self, type: str) -> str:
-		return os.path.join(self.dir_tree_root_path, type.lower())
-
 	@pydantic.validate_arguments
-	def create(self, item: Item) -> int:
+	def create(self, item: Item, ref: Item = None) -> int:
 
-		type_root = self._getTypePath(item.type)
-		type_tree = growing_tree_base.Tree(
-			root=type_root,
-			base_file_name=''.join(
-				f'.{e}'
-				for e in self.file_extensions
-			),
-			save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
-		)
-		file_path = type_tree.save(item.data)
+		result_item = None
 
-		result_item = dataclasses.replace(
-			item,
-			data_digest=self._getFile(Path(file_path)).correct_digest
-		)
-		result_item.metadata['file_path'] = Path(os.path.relpath(file_path, type_root))
+		if not (ref is None):
+
+			if (ref.data_digest == item.data_digest):
+
+				result_item = dataclasses.replace(item)
+				result_item.metadata['file_path'] = ref.metadata['file_path']
+
+		if result_item is None:
+
+			type_tree = growing_tree_base.Tree(
+				root=os.path.join(self.dir_tree_root_path, item.type.lower()),
+				base_file_name=''.join(
+					f'.{e}'
+					for e in self.file_extensions
+				),
+				save_file_function=lambda p, c: self._getFile(Path(p)).set(c)
+			)
+			file_path = type_tree.save(item.data)
+
+			result_item = dataclasses.replace(
+				item,
+				data_digest=self._getFile(Path(file_path)).correct_digest
+			)
+			result_item.metadata['file_path'] = Path(os.path.relpath(file_path, self.dir_tree_root_path))
 
 		return ItemAdapter(result_item, self.db).save()
 
@@ -97,7 +105,7 @@ class Treegres(Repository):
 		).execute()
 
 	@pydantic.validate_arguments
-	def get(self, type: str, where: dict[str, Any]=None, where_not: dict[str, Any]=None, fields: list[str]=None, limit: int | None=1, reserved_by: str=None) -> list[Item]:
+	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int | None=1, reserved_by: str=None) -> list[Item]:
 
 		if not (model := Model(self.db, type)):
 			return []
@@ -106,9 +114,7 @@ class Treegres(Repository):
 		if reserved_by:
 			where['reserved_by'] = reserved_by
 
-		where_not = where_not or {}
-
-		ignored_fields = {'file_path', 'reserved_by', 'data'}
+		ignored_fields = {'reserved_by'}
 		fields = set(fields or []) - ignored_fields
 
 		query = model.select(*{
@@ -120,41 +126,34 @@ class Treegres(Repository):
 			getattr(model, key)==value
 			for key, value in where.items()
 			if hasattr(model, key)
-		] + [
-			getattr(model, key)!=value
-			for key, value in where_not.items()
-			if hasattr(model, key)
 		]):
 			query = query.where(*conditions)
 
 		query = query.limit(limit)
 
-		result = []
-		for r in query:
-			item = Item(
+		return [
+			Item(
 				type=type,
+				data=(
+					self._getFile(
+						Path(os.path.join(self.dir_tree_root_path, r.file_path))
+					).get(r.data_digest)
+					if (fields and ('data' in fields)) or (not fields)
+					else ''
+				),
 				**{
 					name: getattr(r, name)
 					for name in fields or r.__data__
 					if name not in ignored_fields and hasattr(Item, name)
 				},
-				data=(
-					self._getFile(
-						Path(os.path.join(self._getTypePath(type), r.file_path))
-					).get(r.data_digest)
-					if (fields and ('data' in fields)) or (not fields)
-					else ''
-				),
 				metadata={
 					name: getattr(r, name)
 					for name in fields or r.__data__
 					if name not in ignored_fields and not hasattr(Item, name)
 				}
 			)
-			if not (('data' in where) and (item.data != where['data'])):
-				result.append(item)
-
-		return result
+			for r in query
+		]
 
 	@pydantic.validate_arguments
 	def update(self, item: Item) -> int:

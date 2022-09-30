@@ -9,7 +9,9 @@ def composeTry(f: Callable, handleError: Callable):
 		try:
 			return f(*args, **kwargs)
 		except Exception as e:
-			handleError(e)
+			handle_result = handleError(e)
+			if not handle_result:
+				raise e
 
 	return new_f
 
@@ -30,7 +32,7 @@ def composeSequence(functions: list[Callable]):
 class Effect:
 
 	@pydantic.validate_arguments
-	def install(self, target: object, position: Literal['before', 'after']='before', handleError: Callable=lambda e: None):
+	def install(self, target: object, position: Literal['before', 'after']='before', handleError: Callable=lambda: None):
 
 		for name in dir(self):
 			if (

@@ -1,3 +1,4 @@
+# import time
 from abc import ABCMeta, abstractmethod
 
 from . import Item, Receiver
@@ -37,7 +38,10 @@ class Processor(Receiver, metaclass=ABCMeta):
 		for i in items:
 
 			try:
+				# start = time.time()
 				i_result = self.processItem(i)
+				# end = time.time()
+				# print(f'>>>>>>>>>>>>>>>>>>>> {self.name} {end - start} <<<<<<<<<<<<<<<<<<<<')
 			except Exception as e:
 				self.handleException(i, e, self.name)
 				continue

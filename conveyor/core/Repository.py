@@ -8,7 +8,7 @@ from . import Item
 class Repository(metaclass=ABCMeta):
 
 	@abstractmethod
-	def create(self, item: Item) -> int:
+	def create(self, item: Item, ref: Item) -> int:
 		pass
 
 	@abstractmethod
@@ -20,7 +20,7 @@ class Repository(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def get(self, type: str, where: dict[str, Any]=None, where_not: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
+	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
 		pass
 
 	@abstractmethod

@@ -37,15 +37,16 @@ class Mover(Processor, metaclass=ABCMeta):
 			if output_items[0].type not in self.possible_output_types:
 				raise Exception(f'output type "{output_items[0].type}" not possible')
 
-			for i in output_items:
+			for o in output_items:
 				self.repository.create(
-					Item(
-						type=i.type,
+					item=Item(
+						type=o.type,
 						status=self.output_status,
 						chain_id=input_item.chain_id,
-						data=i.data,
-						metadata=i.metadata
-					)
+						data=o.data,
+						metadata=o.metadata
+					),
+					ref=input_item
 				)
 
 		return self.repository.update(

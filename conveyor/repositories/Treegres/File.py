@@ -30,9 +30,7 @@ class File:
 
 		content_bytes = content.encode(self.encoding)
 
-		with lzma.open(self.path, 'wb', filters=[
-			{"id": lzma.FILTER_LZMA2, "preset": lzma.PRESET_EXTREME},
-		]) as f:
+		with open(self.path, 'wb') as f:
 			f.write(content_bytes)
 
 		self.content = content
@@ -43,7 +41,7 @@ class File:
 
 		if not hasattr(self, 'content'):
 
-			with lzma.open(self.path, 'rb') as f:
+			with open(self.path, 'rb') as f:
 				file_bytes = f.read()
 
 			self.content = file_bytes.decode(self.encoding)
