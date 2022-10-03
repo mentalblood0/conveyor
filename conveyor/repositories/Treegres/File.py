@@ -30,7 +30,7 @@ class File:
 
 		content_bytes = content.encode(self.encoding)
 
-		with open(self.path, 'wb') as f:
+		with open(self.path, 'xb') as f:
 			f.write(content_bytes)
 
 		self.content = content

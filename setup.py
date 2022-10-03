@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
 	setup(
 		name='conveyor',
-		version='1.15.0',
+		version='1.15.1',
 		description='Library for creating cold-pipeline-oriented systems',
 		long_description=long_description,
 		long_description_content_type='text/markdown',
