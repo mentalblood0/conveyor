@@ -23,7 +23,7 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 	int: partial(IntegerField, default=None, null=True, index=True),
 	float: partial(FloatField, default=None, null=True, index=True),
 	datetime: partial(DateTimeField, default=None, null=True, index=True),
-	Path: partial(CharField, max_length=63, index=True)
+	Path: partial(CharField, index=True)
 }
 
 
