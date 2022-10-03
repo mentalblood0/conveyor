@@ -22,7 +22,7 @@ class Treegres(Repository):
 
 	cache_size: int = 1024
 	encoding: str = 'utf8'
-	file_extensions: Iterable[str] = dataclasses.field(default_factory=partial(list, ['xml', 'xz']))
+	file_extensions: Iterable[str] = dataclasses.field(default_factory=partial(list, ['xml']))
 
 	def __post_init__(self):
 		object.__setattr__(
