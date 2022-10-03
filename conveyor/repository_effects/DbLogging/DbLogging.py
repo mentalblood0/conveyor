@@ -13,7 +13,7 @@ class DbLogging(Effect):
 	logs_repository: LogsRepository
 
 	@pydantic.validate_arguments
-	def create(self, item: Item):
+	def create(self, item: Item, ref: Item = None):
 		self.logs_repository.create(
 			action='create',
 			new_item=item
