@@ -8,7 +8,6 @@ from typing import Any, Iterable
 
 from ...common import Model, ItemId
 from ...core import Item, Repository
-from ...common.ModelsCache import models_cache
 
 from . import Path, File, FileCache, ItemAdapter
 

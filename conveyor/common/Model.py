@@ -2,8 +2,6 @@ from playhouse.reflection import generate_models
 from playhouse.migrate import SqliteMigrator, PostgresqlMigrator, migrate
 from peewee import Model as Model_, SqliteDatabase, PostgresqlDatabase, Database
 
-from .ModelsCache import models_cache
-
 
 
 def composeMigrator(db):
@@ -20,17 +18,22 @@ def composeMigrator(db):
 
 class Model(Model_):
 
+	@lambda C: C()
+	class cache(dict):
+		pass
+
 	def __new__(C, db: Database, name: str, columns=None, uniques: list[tuple[str]]=None):
 
 		name = name.lower()
 
-		if name in models_cache:
-			return models_cache[name]
-
 		if not columns:
+
+			if name in Model.cache:
+				return Model.cache[name]
+
 			models = generate_models(db, table_names=[name])
 			if len(models):
-				models_cache[name] = models[name]
+				Model.cache[name] = models[name]
 				return models[name]
 
 		else:
@@ -80,6 +83,6 @@ class Model(Model_):
 						if column_name not in current_columns
 					])
 
-			models_cache[name] = result
+			Model.cache[name] = result
 
 			return result
