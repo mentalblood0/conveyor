@@ -86,6 +86,7 @@ class Treegres(Repository):
 						model.reserved_by==None,
 						model.status==status
 					)
+					.order_by(model.id)
 					.limit(limit)
 				)
 			)
