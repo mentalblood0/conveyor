@@ -79,10 +79,12 @@ class ItemAdapter:
 		if not (model := Model(self.db, self.item.type)):
 			return None
 
-		update_fields = self.fields | {
-			'date_updated': datetime.utcnow()
-		}
-		if 'file_path' in update_fields:
-			del update_fields['file_path']
-
-		return model.update(**update_fields).where(model.id==self.item.id).execute()
+		return model.update(
+			**{
+				k: v
+				for k, v in self.fields.items()
+				if k not in ['file_path', 'date_created']
+			} | {
+				'date_updated': datetime.utcnow()
+			}
+		).where(model.id==self.item.id).execute()

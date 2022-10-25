@@ -5,6 +5,7 @@ import threading
 import itertools
 import dataclasses
 from peewee import CharField
+from datetime import datetime
 
 from conveyor import Item
 from conveyor.common import Model
@@ -115,6 +116,30 @@ def test_cant_set_file_path(item):
 
 	assert W(repository)()
 	assert not len(repository.get(item.type, {'file_path': 'lalala'}))
+
+
+def test_cant_set_date_created(item):
+
+	repository.create(item)
+
+	date_to_set = datetime.utcnow()
+
+	class W(Transformer):
+
+		input_type = item.type
+		input_status = item.status
+
+		possible_output_statuses = ['got file path']
+
+		def transform(self, item):
+			return dataclasses.replace(
+				item,
+				status=self.possible_output_statuses[0],
+				date_created=date_to_set
+			)
+
+	assert W(repository)()
+	assert not len(repository.get(item.type, {'date_created': date_to_set}))
 
 
 def test_reserve(item):
