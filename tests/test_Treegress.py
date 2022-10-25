@@ -36,6 +36,7 @@ def clear():
 	repository._drop('A')
 	repository._drop('B')
 	shutil.rmtree(dir_tree_root_path, ignore_errors=True)
+	Model.cache.clear()
 
 
 def test_create(item):
@@ -80,25 +81,9 @@ def test_transaction(item):
 	with pytest.raises(KeyError):
 		transaction_create()
 
+	Model.cache.clear()
+
 	assert not len(repository.get(item.type))
-
-
-def test_cant_get_file_path(item):
-
-	repository.create(item)
-
-	class W(Transformer):
-
-		input_type = item.type
-		input_status = item.status
-
-		possible_output_statuses = ['got file path']
-
-		def transform(self, item):
-			item.metadata['file_path']
-			return self.possible_output_statuses[0]
-
-	assert not W(repository)()
 
 
 def test_cant_set_file_path(item):
@@ -269,6 +254,7 @@ def test_migration_add_column(item):
 	))
 
 
-def test_migration_drop_column(item):
-	repository.create(item)
-	repository.create(dataclasses.replace(item, metadata={}))
+# def test_migration_drop_column(item):
+# 	repository.create(item)
+# 	repository.create(dataclasses.replace(item, metadata={}))
+# 	assert not repository.get(item.type)[0].metadata
