@@ -17,7 +17,6 @@ class Item:
 	data_digest: str = ''
 
 	date_created: datetime = dataclasses.field(default_factory=datetime.utcnow)
-	date_updated: datetime = dataclasses.field(default_factory=datetime.utcnow)
 
 	metadata: dict = dataclasses.field(default_factory=dict)
 

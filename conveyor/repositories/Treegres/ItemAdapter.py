@@ -16,8 +16,7 @@ base_fields_mapping: dict[str, Callable[[], Field]] = {
 	'status': partial(CharField, max_length=63, index=True),
 	'data_digest': partial(CharField, max_length=63),
 	'reserved_by': partial(CharField, default=None, null=True, index=True, max_length=31),
-	'date_created': partial(DateTimeField, default=None, null=True, index=True),
-	'date_updated': partial(DateTimeField, default=None, null=True, index=True)
+	'date_created': partial(DateTimeField, default=None, null=True, index=True)
 }
 
 metadata_fields_mapping: dict[type, Callable[[], Field]] = {
@@ -84,7 +83,5 @@ class ItemAdapter:
 				k: v
 				for k, v in self.fields.items()
 				if k not in ['file_path', 'date_created']
-			} | {
-				'date_updated': datetime.utcnow()
 			}
 		).where(model.id==self.item.id).execute()

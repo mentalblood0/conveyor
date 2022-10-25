@@ -15,7 +15,8 @@ if __name__ == '__main__':
 			'blake3',
 			'peewee',
 			'growing-tree-base',
-			'pydantic'
+			'pydantic',
+			'psycopg2-binary'
 		],
 		packages=find_packages()
 	)
