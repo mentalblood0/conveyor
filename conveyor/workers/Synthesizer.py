@@ -56,12 +56,15 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 		elif self.not_matched_status is None:
 			source_item = None
 		else:
-			return self.repository.update(
-				dataclasses.replace(
-					input_item,
-					status=self.not_matched_status
+			if input_item.status != self.not_matched_status:
+				return self.repository.update(
+					dataclasses.replace(
+						input_item,
+						status=self.not_matched_status
+					)
 				)
-			)
+			else:
+				return
 
 		output = self.transform(
 			deepcopy(input_item),
@@ -86,9 +89,12 @@ class Synthesizer(Processor, metaclass=ABCMeta):
 				)
 			)
 
-		return self.repository.update(
-			dataclasses.replace(
-				input_item,
-				status=self.moved_status
+		if input_item.status != self.moved_status:
+			return self.repository.update(
+				dataclasses.replace(
+					input_item,
+					status=self.moved_status
+				)
 			)
-		)
+		else:
+			return
