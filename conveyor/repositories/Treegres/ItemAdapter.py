@@ -72,7 +72,7 @@ class ItemAdapter:
 		)
 
 	def save(self):
-		return self.model(**self.fields).save()
+		return self.model(**self.fields).save(force_insert=True)
 	
 	def update(self):
 
