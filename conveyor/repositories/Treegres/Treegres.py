@@ -144,12 +144,12 @@ class Treegres(Repository):
 				**{
 					name: getattr(r, name)
 					for name in fields or r.__data__
-					if name not in ignored_fields and hasattr(Item, name)
+					if name not in ignored_fields and name in Item.__dataclass_fields__
 				},
 				metadata={
 					name: getattr(r, name)
 					for name in fields or r.__data__
-					if name not in ignored_fields and not hasattr(Item, name)
+					if name not in ignored_fields and name not in Item.__dataclass_fields__
 				}
 			)
 			for r in query

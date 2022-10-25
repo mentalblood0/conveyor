@@ -15,7 +15,9 @@ base_fields_mapping: dict[str, Callable[[], Field]] = {
 	'chain_id': partial(CharField, max_length=63, index=True),
 	'status': partial(CharField, max_length=63, index=True),
 	'data_digest': partial(CharField, max_length=63),
-	'reserved_by': partial(CharField, default=None, null=True, index=True, max_length=31)
+	'reserved_by': partial(CharField, default=None, null=True, index=True, max_length=31),
+	'date_created': partial(DateTimeField, default=None, null=True, index=True),
+	'date_updated': partial(DateTimeField, default=None, null=True, index=True)
 }
 
 metadata_fields_mapping: dict[type, Callable[[], Field]] = {
@@ -77,7 +79,9 @@ class ItemAdapter:
 		if not (model := Model(self.db, self.item.type)):
 			return None
 
-		update_fields = self.fields
+		update_fields = self.fields | {
+			'date_updated': datetime.utcnow()
+		}
 		if 'file_path' in update_fields:
 			del update_fields['file_path']
 

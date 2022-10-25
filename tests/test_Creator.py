@@ -57,6 +57,7 @@ def test_create_simple(item):
 	)
 
 	result = repository.get('undefined', where={'status': 'created'})[0]
+	print(result)
 	assert result.data == item.data
 	assert result.metadata | item.metadata == item.metadata
 

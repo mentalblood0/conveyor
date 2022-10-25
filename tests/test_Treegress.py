@@ -53,7 +53,14 @@ def test_update(item):
 	)
 	repository.update(updated_item)
 
-	assert repository.get(item.type)[0] == updated_item
+	result_item = repository.get(item.type)[0]
+
+	assert result_item.date_updated > updated_item.date_updated
+
+	assert dataclasses.replace(
+		result_item,
+		date_updated=updated_item.date_updated
+	) == updated_item
 
 
 def test_get(item):
