@@ -51,7 +51,10 @@ class ItemAdapter:
 
 	@property
 	def fields(self):
-		return self.item.metadata | {
+		return {
+			k: v if type(v) != type else None
+			for k, v in self.item.metadata.items()
+		} | {
 			k: getattr(self.item, k)
 			for k in base_fields_mapping
 		}
@@ -62,7 +65,7 @@ class ItemAdapter:
 			db=self.db,
 			name=self.item.type,
 			columns={
-				k: metadata_fields_mapping[type(v)]()
+				k: metadata_fields_mapping[type(v) if type(v) != type else v]()
 				for k, v in self.item.metadata.items()
 			} | {
 				k: base_fields_mapping[k]()
