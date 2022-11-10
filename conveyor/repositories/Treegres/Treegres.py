@@ -1,4 +1,5 @@
 import os
+import peewee
 import pydantic
 import dataclasses
 import growing_tree_base
@@ -86,7 +87,7 @@ class Treegres(Repository):
 						model.reserved_by==None,
 						model.status==status
 					)
-					.order_by(model.id)
+					.order_by(peewee.fn.Random())
 					.limit(limit)
 				)
 			)
