@@ -1,3 +1,4 @@
+import time
 import pytest
 from peewee import fn
 
@@ -117,6 +118,9 @@ def test_repeat(item, exception, logger, errors_table):
 	date_first = None
 	date_last = None
 	for i in range(3):
+
+		if i > 0:
+			time.sleep(0.01)
 
 		worker()
 		assert count(errors_table) == 1
