@@ -1,23 +1,24 @@
 import pydantic
-import dataclasses
-from datetime import datetime
 
+from .Data import Data
+from .Chain import Chain
+from .Created import Created
+
+
+
+Metadata = dict[str, str | int | float]
 
 
 @pydantic.dataclasses.dataclass(frozen=True)
 class Item:
 
-	id: str = ''
-	chain_id: str = ''
+	type: str
+	status: str
 
-	type: str = ''
-	status: str = ''
+	data: Data
 
-	data: str = ''
-	data_digest: str = ''
+	metadata: Metadata
 
-	date_created: datetime = dataclasses.field(default_factory=datetime.utcnow)
-
-	metadata: dict = dataclasses.field(default_factory=dict)
-
-	reserved_by: str = None
+	chain: Chain
+	created: Created
+	reserved: str | None

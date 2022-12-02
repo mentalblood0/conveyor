@@ -14,7 +14,6 @@ if __name__ == '__main__':
 			'ring',
 			'blake3',
 			'peewee',
-			'growing-tree-base',
 			'pydantic',
 			'psycopg2-binary'
 		],

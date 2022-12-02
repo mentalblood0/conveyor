@@ -1,53 +1,49 @@
-# import time
-from abc import ABCMeta, abstractmethod
+import abc
+import pydantic
 
 from . import Item, Receiver
 
 
 
-class Processor(Receiver, metaclass=ABCMeta):
+class Processor(Receiver, metaclass=abc.ABCMeta):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.processItem = self.repository.transaction(self.processItem)
+		self.processItem = self.repository.transaction(self.process)
 
-	@abstractmethod
-	def processItem(self, item: Item) -> int | None:
+	@abc.abstractmethod
+	@pydantic.validate_arguments
+	def process(self, item: Item) -> None:
 		pass
 
-	def handleException(self, item: Item, e: Exception | None, worker_name: str):
+	@pydantic.validate_arguments
+	def handleException(self, item: Item | None, e: Exception, worker: str) -> None:
 		pass
 
-	def handleNoException(self, item: Item):
+	@pydantic.validate_arguments
+	def handleNoException(self, item: Item) -> None:
 		pass
 
 	@property
 	def name(self):
 		return self.__class__.__name__
 
-	def __call__(self) -> list[int]:
+	def __call__(self) -> None:
 
-		result = []
+		items = []
 
 		try:
-			items = self.receiveItems()
+			items = self.receive()
 		except Exception as e:
-			self.handleException(Item(), e, self.name)
-			return result
+			self.handleException(None, e, self.name)
 
 		for i in items:
 
 			try:
-				# start = time.time()
-				i_result = self.processItem(i)
-				# end = time.time()
-				# print(f'>>>>>>>>>>>>>>>>>>>> {self.name} {end - start} <<<<<<<<<<<<<<<<<<<<')
+				self.process(i)
 			except Exception as e:
 				self.handleException(i, e, self.name)
 				continue
-			self.unreserve([i.id])
+
+			self.unreserve(i)
 			self.handleNoException(i)
-
-			result.append(i_result)
-
-		return result

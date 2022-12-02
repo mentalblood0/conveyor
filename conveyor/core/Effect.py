@@ -3,6 +3,7 @@ from typing import Literal, Callable
 
 
 
+@pydantic.validate_arguments
 def composeTry(f: Callable, handleError: Callable):
 
 	def new_f(*args, **kwargs):

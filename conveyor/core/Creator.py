@@ -1,75 +1,80 @@
-import dataclasses
-from abc import ABCMeta, abstractmethod
+import abc
+import datetime
+import pydantic
 
-from . import composeChainId
-from . import Item, Repository
+from . import Item, Repository, Chain, Data, Metadata, Created
 
 
 
-class Creator(metaclass=ABCMeta):
+class Creator(metaclass=abc.ABCMeta):
 
 	output_type: str
 	output_status: str
 
-	source_type: str = ''
-	source_status: str = ''
-	match_fields: list[str] = []
+	source_type: str | None = None
+	source_status: str | None = None
+	source_match: list[str] = []
 
+	@pydantic.validate_arguments
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
 
-	@abstractmethod
-	def create(self, *args, **kwargs) -> Item:
+	def create(self, *args, **kwargs) -> tuple[Data, Metadata]:
+		return Data(value=b''), Metadata()
+
+	@pydantic.validate_arguments
+	def handleException(self, item: Item | None, e: Exception, worker: str) -> None:
 		pass
 
-	def handleException(self, _: Item, e: Exception, name: str):
-		pass
-
-	def handleNoException(self, item: Item):
+	@pydantic.validate_arguments
+	def handleNoException(self, item: Item) -> None:
 		pass
 
 	@property
 	def name(self):
 		return self.__class__.__name__
 
-	def __call__(self, *args, **kwargs) -> int:
+	def __call__(self, *args, **kwargs) -> None:
 
 		try:
 
-			item = self.create(*args, **kwargs)
+			data, metadata = self.create(*args, **kwargs)
 
 			if self.source_type:
 
 				try:
-					chain_id = self.repository.get(
-						type=self.source_type,
-						where={
-							key: item.metadata[key]
-							for key in self.match_fields
-						} | (
-							{'status': self.source_status}
-							if self.source_status
-							else {}
-						),
-						fields=['chain_id']
-					)[0].chain_id
+					chain = Chain(
+						item=self.repository.get(
+							type=self.source_type,
+							where={
+								key: metadata[key]
+								for key in self.source_match
+							} | (
+								{'status': self.source_status}
+								if self.source_status
+								else {}
+							)
+						)[0]
+					)
 
 				except IndexError:
-					chain_id = composeChainId()
+					chain = Chain(data=data)
 			
 			else:
-				chain_id = composeChainId()
+				chain = Chain(data=data)
 
-			result = self.repository.create(
-				dataclasses.replace(
-					item,
-					type=self.output_type,
-					status=self.output_status,
-					chain_id=chain_id
-				)
+			item = Item(
+				type=self.output_type,
+				status=self.output_status,
+				data=data,
+				metadata=metadata,
+				chain=chain,
+				created=Created(datetime.datetime.utcnow()),
+				reserved=None
 			)
+
+			self.repository.create(item)
 			self.handleNoException(item)
-			return result
 		
 		except Exception as e:
-			self.handleException(Item(type=self.output_type, status=self.output_status), e, self.__class__.__name__)
+			self.handleException(None, e, self.__class__.__name__)

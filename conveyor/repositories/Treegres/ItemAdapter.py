@@ -1,30 +1,23 @@
+import peewee
+import pathlib
+import datetime
+import pydantic
+import functools
 import dataclasses
 from typing import Callable
-from functools import partial
-from datetime import datetime
-from peewee import Field, CharField, IntegerField, FloatField, DateTimeField, Database
+from __future__ import annotations
 
 from ...core import Item
-from ...common import Model
-
-from . import Path
+from ...common.Model import Model, BaseModel
 
 
 
-base_fields_mapping: dict[str, Callable[[], Field]] = {
-	'chain_id': partial(CharField, max_length=63, index=True),
-	'status': partial(CharField, max_length=63, index=True),
-	'data_digest': partial(CharField, max_length=63),
-	'reserved_by': partial(CharField, default=None, null=True, index=True, max_length=31),
-	'date_created': partial(DateTimeField, default=None, null=True, index=True)
-}
-
-metadata_fields_mapping: dict[type, Callable[[], Field]] = {
-	str: partial(CharField, default=None, null=True, index=True),
-	int: partial(IntegerField, default=None, null=True, index=True),
-	float: partial(FloatField, default=None, null=True, index=True),
-	datetime: partial(DateTimeField, default=None, null=True, index=True),
-	Path: partial(CharField, index=True)
+fields: dict[type, Callable[[], peewee.Field]] = {
+	str:               functools.partial(peewee.CharField,     index=True, default=None, null=True),
+	int:               functools.partial(peewee.IntegerField,  index=True, default=None, null=True),
+	float:             functools.partial(peewee.FloatField,    index=True, default=None, null=True),
+	pathlib.Path:      functools.partial(peewee.CharField,     index=True),
+	datetime.datetime: functools.partial(peewee.DateTimeField, index=True, default=None, null=True)
 }
 
 
@@ -32,59 +25,76 @@ metadata_fields_mapping: dict[type, Callable[[], Field]] = {
 class ItemAdapter:
 
 	item: Item
-	db: Database
+	db: peewee.Database
+
+	class OperationalError(Exception):
+		@pydantic.validate_arguments
+		def __init__(self, item: Item, action: str):
+			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.data.digest.string}) had no result')
 
 	def __post_init__(self):
-
 		for k in self.item.metadata:
 			if hasattr(self.item, k):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
-		object.__setattr__(
-			self,
-			'item',
-			dataclasses.replace(
-				self.item,
-				reserved_by=None
-			)
-		)
-
 	@property
-	def fields(self):
+	def fields(self) -> dict[str, str | int | float]:
 		return {
-			k: v if type(v) != type else None
-			for k, v in self.item.metadata.items()
-		} | {
-			k: getattr(self.item, k)
-			for k in base_fields_mapping
-		}
+			'status': self.item.status,
+			'chain': self.item.chain.value,
+			'created': str(self.item.created),
+		} | self.item.metadata
 
 	@property
-	def model(self):
+	def model(self) -> type[BaseModel]:
 		return Model(
 			db=self.db,
 			name=self.item.type,
 			columns={
-				k: metadata_fields_mapping[type(v) if type(v) != type else v]()
+				k: fields[type(v)]()
 				for k, v in self.item.metadata.items()
-			} | {
-				k: base_fields_mapping[k]()
-				for k in base_fields_mapping
 			}
 		)
 
-	def save(self):
-		return self.model(**self.fields).save(force_insert=True)
-	
-	def update(self):
+	def save(self) -> None:
+		if self.model(**self.fields).save(force_insert=True) != 1:
+			raise ItemAdapter.OperationalError(self.item, 'save')
 
-		if not (model := Model(self.db, self.item.type)):
-			return None
+	@pydantic.validate_arguments
+	def update(self, new: ItemAdapter) -> None:
 
-		return model.update(
-			**{
-				k: v
-				for k, v in self.fields.items()
-				if k not in ['file_path', 'date_created']
-			}
-		).where(model.id==self.item.id).execute()
+		model = Model(self.db, self.item.type)
+
+		if (
+			model
+			.update(**new.fields)
+			.where(
+				model.status==self.item.status,
+				model.digest==self.item.data.digest.string,
+				model.chain==self.item.chain,
+				model.reserved==self.item.reserved
+			).execute()
+		) != 1:
+			raise ItemAdapter.OperationalError(self.item, 'update')
+
+	def unreserve(self) -> None:
+
+		model = Model(self.db, self.item.type)
+
+		model.update(reserved=None).where(
+			model.status==self.item.status,
+			model.digest==self.item.data.digest.string,
+			model.chain==self.item.chain,
+			model.reserved==self.item.reserved
+		).execute()
+
+	def delete(self) -> None:
+
+		model = Model(self.db, self.item.type)
+
+		model.delete().where(
+			model.status==self.item.status,
+			model.digest==self.item.data.digest.string,
+			model.chain==self.item.chain,
+			model.reserved==self.item.reserved
+		)

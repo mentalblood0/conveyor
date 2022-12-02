@@ -1,36 +1,36 @@
-from typing import Callable, Any
-from abc import ABCMeta, abstractmethod
+import abc
+import typing
 
-from . import Item
+from . import Item, Metadata
 
 
 
-class Repository(metaclass=ABCMeta):
+class Repository(metaclass=abc.ABCMeta):
 
-	@abstractmethod
-	def create(self, item: Item, ref: Item) -> int:
+	@abc.abstractmethod
+	def create(self, item: Item) -> None:
 		pass
 
-	@abstractmethod
-	def reserve(self, type: str, status: str, id: str, limit: int) -> int:
+	@abc.abstractmethod
+	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> None:
 		pass
 
-	@abstractmethod
-	def unreserve(self, type: str, status: str, id: str) -> int:
+	@abc.abstractmethod
+	def unreserve(self, item: Item) -> None:
 		pass
 
-	@abstractmethod
-	def get(self, type: str, where: dict[str, Any]=None, fields: list[str]=None, limit: int=1, reserved_by: str=None) -> list[Item]:
+	@abc.abstractmethod
+	def get(self, type: str, where: Metadata | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
 		pass
 
-	@abstractmethod
-	def update(self, item: Item) -> int:
+	@abc.abstractmethod
+	def update(self, old: Item, new: Item) -> None:
 		pass
 
-	@abstractmethod
-	def delete(self, type: str, id: str) -> int:
+	@abc.abstractmethod
+	def delete(self, item: Item) -> None:
 		pass
 
-	@abstractmethod
-	def transaction(self) -> Callable[[Callable], Callable]:
+	@abc.abstractmethod
+	def transaction(self, f: typing.Callable) -> typing.Callable:
 		pass

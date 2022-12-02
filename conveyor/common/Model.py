@@ -1,66 +1,68 @@
-from playhouse.reflection import generate_models
-from playhouse.migrate import SqliteMigrator, PostgresqlMigrator, migrate
-from peewee import Model as Model_, SqliteDatabase, PostgresqlDatabase, Database
+import peewee
+import pydantic
+import playhouse.migrate
+import playhouse.reflection
 
 
 
-def composeMigrator(db):
+class BaseModel(peewee.Model):
+	status   = peewee.CharField(max_length=63, index=True),
+	digest   = peewee.CharField(max_length=63, index=True),
+	chain    = peewee.CharField(max_length=63, index=True),
+	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
 
-	if db.__class__ == SqliteDatabase:
-		migrator_class = SqliteMigrator
-	elif db.__class__ == PostgresqlDatabase:
-		migrator_class = PostgresqlMigrator
+
+@pydantic.validate_arguments
+def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
+
+	if db.__class__ == peewee.SqliteDatabase:
+		migrator_class = playhouse.migrate.SqliteMigrator
+	elif db.__class__ == peewee.PostgresqlDatabase:
+		migrator_class = playhouse.migrate.PostgresqlMigrator
 	else:
 		raise NotImplementedError(f'No migrator class for db class "{db.__class__}"')
 
 	return migrator_class(db)
 
 
-class Model(Model_):
+models_cache: dict[str, type[BaseModel]] = {}
 
-	@lambda C: C()
-	class cache(dict):
-		pass
 
-	def __new__(C, db: Database, name: str, columns=None, uniques: list[tuple[str]]=None):
+@pydantic.validate_arguments
+def Model(
+	db: peewee.Database,
+	name: str,
+	columns: dict[str, peewee.Field] | None=None
+) -> type[BaseModel]:
 
 		name = name.lower()
 
 		if not columns:
 
-			if name in Model.cache:
-				return Model.cache[name]
+			if name in models_cache:
+				return models_cache[name]
 
-			models = generate_models(db, table_names=[name])
+			models: dict[str, type[peewee.Model]] = playhouse.reflection.generate_models(db, table_names=[name])
 			if len(models):
-				Model.cache[name] = models[name]
+				models_cache[name] = models[name]
 				return models[name]
+
+			raise KeyError(f"No table with name '{name}' and columns {columns} found")
 
 		else:
 
-			result = type(
-				name,
-				(Model_,),
-				{
-					'Meta': type(
-						'Meta',
-						(),
-						{
-							'database': db,
-							'indexes': tuple(
-								(u, True)
-								for u in uniques or []
-							)
-						}
-					)
-				} | columns
-			)
+			class Result(BaseModel):
+				class Meta:
+					database = db
 
-			if not result.table_exists():
+			for k, v in columns:
+				Result._meta.add_field(k, v)
+
+			if not Result.table_exists():
 
 				with db.transaction():
 					try:
-						db.create_tables([result])
+						db.create_tables([Result])
 					except Exception:
 						pass
 
@@ -73,7 +75,7 @@ class Model(Model_):
 				migrator = composeMigrator(db)
 
 				with db.atomic():
-					migrate(*[
+					playhouse.migrate.migrate(*[
 						# migrator.drop_column(name, column_name)
 						# for column_name in current_columns
 						# if (column_name != 'id') and (column_name not in columns)
@@ -83,6 +85,6 @@ class Model(Model_):
 						if column_name not in current_columns
 					])
 
-			Model.cache[name] = result
+			models_cache[name] = Result
 
-			return result
+			return Result
