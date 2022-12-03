@@ -1,3 +1,4 @@
+import datetime
 import pydantic
 
 from .Data import Data
@@ -6,11 +7,14 @@ from .Created import Created
 
 
 
-Metadata = dict[str, str | int | float]
-
-
 @pydantic.dataclasses.dataclass(frozen=True)
 class Item:
+
+	BaseValue = str | datetime.datetime
+	MetadataValue = str | int | float | datetime.datetime
+	Value = BaseValue | MetadataValue
+
+	Metadata = dict[str, MetadataValue]
 
 	type: str
 	status: str

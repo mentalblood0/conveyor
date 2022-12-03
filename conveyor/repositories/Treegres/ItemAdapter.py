@@ -1,24 +1,11 @@
 import peewee
-import pathlib
-import datetime
 import pydantic
-import functools
 import dataclasses
-from typing import Callable
 from __future__ import annotations
 
 from ...core import Item
-from ...common.Model import Model, BaseModel
+from ...common.Model import Model, BaseModel, metadata_fields
 
-
-
-fields: dict[type, Callable[[], peewee.Field]] = {
-	str:               functools.partial(peewee.CharField,     index=True, default=None, null=True),
-	int:               functools.partial(peewee.IntegerField,  index=True, default=None, null=True),
-	float:             functools.partial(peewee.FloatField,    index=True, default=None, null=True),
-	pathlib.Path:      functools.partial(peewee.CharField,     index=True),
-	datetime.datetime: functools.partial(peewee.DateTimeField, index=True, default=None, null=True)
-}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -38,11 +25,10 @@ class ItemAdapter:
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
 	@property
-	def fields(self) -> dict[str, str | int | float]:
+	def fields(self) -> dict[str, Item.Value]:
 		return {
 			'status': self.item.status,
-			'chain': self.item.chain.value,
-			'created': str(self.item.created),
+			'chain': self.item.chain.value
 		} | self.item.metadata
 
 	@property
@@ -50,8 +36,8 @@ class ItemAdapter:
 		return Model(
 			db=self.db,
 			name=self.item.type,
-			columns={
-				k: fields[type(v)]()
+			metadata_columns={
+				k: metadata_fields[type(v)]()
 				for k, v in self.item.metadata.items()
 			}
 		)

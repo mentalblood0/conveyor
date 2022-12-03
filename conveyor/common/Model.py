@@ -1,14 +1,30 @@
+import typing
 import peewee
+import datetime
 import pydantic
+import functools
 import playhouse.migrate
 import playhouse.reflection
 
+from ..core import Item
+
+
+
+MetadataField = peewee.CharField | peewee.IntegerField | peewee.FloatField | peewee.DateTimeField
+
+metadata_fields: dict[type[Item.MetadataValue], typing.Callable[[], MetadataField]] = {
+	str:               functools.partial(peewee.CharField,     index=True, default=None, null=True),
+	int:               functools.partial(peewee.IntegerField,  index=True, default=None, null=True),
+	float:             functools.partial(peewee.FloatField,    index=True, default=None, null=True),
+	datetime.datetime: functools.partial(peewee.DateTimeField, index=True, default=None, null=True)
+}
 
 
 class BaseModel(peewee.Model):
 	status   = peewee.CharField(max_length=63, index=True),
 	digest   = peewee.CharField(max_length=63, index=True),
 	chain    = peewee.CharField(max_length=63, index=True),
+	created  = peewee.DateTimeField(index=True, null=False),
 	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
 
 
@@ -32,12 +48,12 @@ models_cache: dict[str, type[BaseModel]] = {}
 def Model(
 	db: peewee.Database,
 	name: str,
-	columns: dict[str, peewee.Field] | None=None
+	metadata_columns: dict[str, MetadataField] | None=None
 ) -> type[BaseModel]:
 
 		name = name.lower()
 
-		if not columns:
+		if not metadata_columns:
 
 			if name in models_cache:
 				return models_cache[name]
@@ -47,7 +63,7 @@ def Model(
 				models_cache[name] = models[name]
 				return models[name]
 
-			raise KeyError(f"No table with name '{name}' and columns {columns} found")
+			raise KeyError(f"No table with name '{name}' found")
 
 		else:
 
@@ -55,7 +71,7 @@ def Model(
 				class Meta:
 					database = db
 
-			for k, v in columns:
+			for k, v in metadata_columns:
 				Result._meta.add_field(k, v)
 
 			if not Result.table_exists():
@@ -78,10 +94,10 @@ def Model(
 					playhouse.migrate.migrate(*[
 						# migrator.drop_column(name, column_name)
 						# for column_name in current_columns
-						# if (column_name != 'id') and (column_name not in columns)
+						# if (column_name != 'id') and (column_name not in metadata_columns)
 					],*[
-						migrator.add_column(name, column_name, columns[column_name])
-						for column_name in columns
+						migrator.add_column(name, column_name, metadata_columns[column_name])
+						for column_name in metadata_columns
 						if column_name not in current_columns
 					])
 
