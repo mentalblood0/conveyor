@@ -8,10 +8,10 @@ from .Digest import Digest
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Data:
 
-	value: bytes
+	value: pydantic.StrictBytes
 	test: dataclasses.InitVar[Digest | None] = None
 
 	def __post_init__(self, test):
