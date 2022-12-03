@@ -1,4 +1,5 @@
 import abc
+import uuid
 import pydantic
 
 from . import Item, Repository
@@ -12,14 +13,11 @@ class Receiver(metaclass=abc.ABCMeta):
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __init__(self, repository: Repository, limit: int = 256) -> None:
-		
+
 		self.repository = repository
 		self.limit = limit
 
-		self.id = '__'.join([
-			self.input_type[:30],
-			self.input_status[:30]
-		])
+		self.id = uuid.uuid4().hex
 
 	def reserve(self) -> None:
 		self.repository.reserve(
