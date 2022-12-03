@@ -2,7 +2,7 @@ import abc
 import datetime
 import pydantic
 
-from . import Item, Repository, Chain, Data, Metadata, Created
+from . import Item, Repository, Chain, Data, Created
 
 
 
@@ -15,14 +15,14 @@ class Creator(metaclass=abc.ABCMeta):
 	source_status: str | None = None
 	source_match: list[str] = []
 
-	@pydantic.validate_arguments
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __init__(self, repository: Repository) -> None:
 		self.repository = repository
 
-	def create(self, *args, **kwargs) -> tuple[Data, Metadata]:
-		return Data(value=b''), Metadata()
+	def create(self, *args, **kwargs) -> tuple[Data, Item.Metadata]:
+		return Data(value=b''), Item.Metadata()
 
-	@pydantic.validate_arguments
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def handleException(self, item: Item | None, e: Exception, worker: str) -> None:
 		pass
 

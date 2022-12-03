@@ -16,7 +16,7 @@ class Processor(Receiver, metaclass=abc.ABCMeta):
 	def process(self, item: Item) -> None:
 		pass
 
-	@pydantic.validate_arguments
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def handleException(self, item: Item | None, e: Exception, worker: str) -> None:
 		pass
 

@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import pydantic
 import dataclasses
 from blake3 import blake3
-from __future__ import annotations
 
 from .Digest import Digest
 
@@ -30,6 +31,6 @@ class Data:
 	def string(self) -> str:
 		return self.value.decode()
 
-	@pydantic.validate_arguments
-	def __eq__(self, another: Data) -> bool:
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def __eq__(self, another) -> bool:
 		return self.value == another.value
