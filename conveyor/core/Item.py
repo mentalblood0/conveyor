@@ -7,7 +7,7 @@ from .Created import Created
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
 
 	BaseValue = str | datetime.datetime
@@ -28,7 +28,7 @@ class Item:
 	reserved: str | None
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Chain:
 
 	value: str = dataclasses.field(init=False)

@@ -8,7 +8,7 @@ from ...core import Digest, Data
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Files:
 
 	root: pathlib.Path

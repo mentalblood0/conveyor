@@ -7,7 +7,7 @@ import pydantic
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Digest:
 
 	value: pydantic.StrictBytes
