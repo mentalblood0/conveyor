@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import pydantic
-import dataclasses
 
 from .Digest import Digest
 
@@ -33,6 +32,5 @@ class Data:
 	def string(self) -> str:
 		return self.value.decode()
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __eq__(self, another) -> bool:
 		return self.value == another.value
