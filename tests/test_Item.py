@@ -62,12 +62,17 @@ def test_metadata_is_metadata(valid_item):
 	dataclasses.replace(valid_item, metadata={'a': datetime.datetime.utcnow()})
 
 
-def test_chain_ref_is_data(valid_item):
+def test_chain_ref_is_data_or_item(valid_item):
 
 	with pytest.raises(pydantic.ValidationError):
 		Chain(ref='lalala')
 
 	Chain(ref=valid_item.data)
+	Chain(ref=valid_item)
+
+
+def test_chain_equal(valid_item):
+	assert Chain(ref=valid_item.data) == Chain(ref=valid_item)
 
 
 def test_immutable(valid_item):
