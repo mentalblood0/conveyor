@@ -22,7 +22,7 @@ metadata_fields: dict[type[Item.MetadataValue], typing.Callable[[], MetadataFiel
 
 class BaseModel(peewee.Model):
 	status   = peewee.CharField(max_length=63, index=True),
-	digest   = peewee.CharField(max_length=63, index=True),
+	digest   = peewee.CharField(max_length=127, index=True),
 	chain    = peewee.CharField(max_length=63, index=True),
 	created  = peewee.DateTimeField(index=True, null=False),
 	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
