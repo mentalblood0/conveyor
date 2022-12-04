@@ -12,27 +12,22 @@ from .Digest import Digest
 class Data:
 
 	value: pydantic.StrictBytes
-	digest: Digest | None = None
 	test: Digest | None = None
-
-	@pydantic.validator('digest')
-	def digest_correct(cls, digest, values):
-		if 'value' in values:
-			if digest is None:
-				return Digest(
-					value=hashlib.sha3_512(
-						values['value']
-					).digest()
-				)
-			else:
-				return digest
 
 	@pydantic.validator('test')
 	def test_correct(cls, test, values):
 		if test is not None:
-			if values['digest'] != test:
+			if Data(value=values['value']).digest != test:
 				raise ValueError('Provided digest is not correct')
 		return test
+
+	@property
+	def digest(self) -> Digest:
+		return Digest(
+			value=hashlib.sha3_512(
+				self.value
+			).digest()
+		)
 
 	@property
 	def string(self) -> str:
