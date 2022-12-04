@@ -1,9 +1,10 @@
 import pytest
 import datetime
 import pydantic
+import frozendict
 import dataclasses
 
-from conveyor.core import Data, Digest, Item, Chain, Created
+from conveyor.core import Data, Item, Chain, Created
 
 
 
@@ -16,7 +17,7 @@ def valid_item():
 		type='type',
 		status='status',
 		data=data,
-		metadata={},
+		metadata={'a': 'a'},
 		chain=Chain(ref=data),
 		created=Created(value=datetime.datetime.utcnow()),
 		reserved=None
@@ -82,3 +83,12 @@ def test_immutable(valid_item):
 		del valid_item.value
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		valid_item.x = 'x'
+
+
+def test_metadata_immutable(valid_item):
+	with pytest.raises(TypeError):
+		valid_item.metadata['a'] = 'b'
+	with pytest.raises(TypeError):
+		del valid_item.metadata['a']
+	with pytest.raises(TypeError):
+		valid_item.metadata['b'] = 'b'

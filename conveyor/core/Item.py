@@ -1,6 +1,7 @@
 import typing
 import datetime
 import pydantic
+import frozendict
 
 from .Data import Data
 from .Created import Created
@@ -29,6 +30,10 @@ class Item:
 	chain: 'Chain'
 	created: Created
 	reserved: str | None
+
+	@pydantic.validator('metadata')
+	def metadata_correct(cls, metadata):
+		return frozendict.frozendict(metadata)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
