@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import pydantic
 import dataclasses
-from blake3 import blake3
 
 from .Digest import Digest
 
@@ -12,20 +12,27 @@ from .Digest import Digest
 class Data:
 
 	value: pydantic.StrictBytes
-	test: dataclasses.InitVar[Digest | None] = None
+	digest: Digest | None = None
+	test: Digest | None = None
 
-	def __post_init__(self, test):
+	@pydantic.validator('digest')
+	def digest_correct(cls, digest, values):
+		if 'value' in values:
+			if digest is None:
+				return Digest(
+					value=hashlib.sha3_512(
+						values['value']
+					).digest()
+				)
+			else:
+				return digest
+
+	@pydantic.validator('test')
+	def test_correct(cls, test, values):
 		if test is not None:
-			assert self.digest == test
-
-	@property
-	def digest(self) -> Digest:
-		return Digest(
-			value=blake3(
-				self.value,
-				max_threads=blake3.AUTO
-			).digest()
-		)
+			if values['digest'] != test:
+				raise ValueError('Provided digest is not correct')
+		return test
 
 	@property
 	def string(self) -> str:

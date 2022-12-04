@@ -10,12 +10,7 @@ import pydantic
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Digest:
 
-	value: pydantic.StrictBytes
-
-	@pydantic.validator('value')
-	def digest_length(cls, v):
-		assert len(v) >= 32
-		return v
+	value: pydantic.conbytes(min_length=32, strict=True)  # type: ignore
 
 	@property
 	def string(self) -> str:
@@ -37,7 +32,7 @@ class Digest:
 
 	@classmethod
 	@pydantic.validate_arguments
-	def _group(cls, l: typing.Iterable[str], size: int) -> typing.Iterable:
+	def _group(cls, l: typing.Iterable[str], size: int) -> typing.Iterable[str]:
 
 		buffer = ''
 

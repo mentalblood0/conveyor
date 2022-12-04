@@ -3,10 +3,13 @@ import pydantic
 
 
 
-class Created(datetime.datetime):
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Created:
 
-	@pydantic.validate_arguments
-	def __new__(cls, d: datetime.datetime):
+	value: datetime.datetime
 
-		assert d <= datetime.datetime.utcnow()
+	@pydantic.validator('value')
+	def value_not_greater_then_now(cls, d):
+		if d > datetime.datetime.utcnow():
+			raise ValueError('`Created` value must not be greater then now')
 		return d
