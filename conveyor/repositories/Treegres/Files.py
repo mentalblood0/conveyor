@@ -2,7 +2,6 @@ import pathlib
 import pydantic
 import dataclasses
 from typing import Callable
-from __future__ import annotations
 
 from ...core import Digest, Data
 
@@ -12,7 +11,7 @@ from ...core import Digest, Data
 class Files:
 
 	root: pathlib.Path
-	suffix: str
+	suffix: pydantic.StrictStr
 
 	transform: Callable[[Data], Data] = dataclasses.field(default=lambda d: Data(value=d.value + b' '))
 
@@ -24,6 +23,7 @@ class Files:
 	def append(self, data: Data) -> None:
 
 		path = self.path(data.digest)
+		path.parent.mkdir(parents=True, exist_ok=True)
 
 		try:
 			with path.open('xb') as f:
@@ -31,17 +31,29 @@ class Files:
 
 		except FileExistsError:
 			if data != Data(value=path.read_bytes()):
-				return self.append(
+				self.append(
 					self.transform(data)
 				)
 
 	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
-		return Data(
-			value=self.path(digest).read_bytes(),
-			test=digest
-		)
+		try:
+			return Data(
+				value=self.path(digest).read_bytes(),
+				test=digest
+			)
+		except:
+			raise KeyError(f'{self.root} {digest.string}')
 
 	@pydantic.validate_arguments
 	def __delitem__(self, digest: Digest) -> None:
-		self.path(digest).unlink(missing_ok=True)
+
+		p = self.path(digest)
+		p.unlink(missing_ok=True)
+
+		while len(p.parts) > 1:
+			p = p.parent
+			try:
+				p.rmdir()
+			except OSError:
+				break

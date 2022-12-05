@@ -4,7 +4,7 @@ import pydantic
 import dataclasses
 
 from ...common import Model
-from ...core import Item, Repository, Metadata
+from ...core import Item, Repository, Word, Chain
 
 from . import Files, ItemAdapter
 
@@ -19,12 +19,12 @@ class Treegres(Repository):
 	@pydantic.validate_arguments
 	def create(self, item: Item) -> None:
 		self.files.append(item.data)
-		ItemAdapter(item, self.db).save()
+		ItemAdapter(item=item, db=self.db).save()
 
 	@pydantic.validate_arguments
 	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> None:
 
-		model = Model(self.db, type)
+		model = Model(self.db, Word(type))
 
 		model.update(
 			reserved_by=id
@@ -43,23 +43,23 @@ class Treegres(Repository):
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
-		ItemAdapter(item, self.db).unreserve()
+		ItemAdapter(item=item, db=self.db).unreserve()
 
 	@pydantic.validate_arguments
-	def get(self, type: str, where: Metadata | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
+	def get(self, type: Word, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
 
 		if not (model := Model(self.db, type)):
 			return []
 
 		where = where or {}
 		if reserved:
-			where['reserved'] = reserved
+			where[Word('reserved')] = reserved
 
 		query = model.select()
 		if (conditions := [
-			getattr(model, k)==v
+			getattr(model, k.value)==v
 			for k, v in where.items()
-			if hasattr(model, k)
+			if hasattr(model, k.value)
 		]):
 			query = query.where(*conditions)
 
@@ -74,22 +74,22 @@ class Treegres(Repository):
 					for name in r.__data__
 					if name in Item.__dataclass_fields__
 				},
-				metadata={
-					name: getattr(r, name)
+				metadata=Item.Metadata({
+					Word(name): getattr(r, name)
 					for name in r.__data__
 					if name not in Item.__dataclass_fields__
-				}
+				})
 			)
 			for r in query
 		]
 
 	@pydantic.validate_arguments
 	def update(self, old: Item, new: Item) -> None:
-		ItemAdapter(old, self.db).update(ItemAdapter(new, self.db))
+		ItemAdapter(item=old, db=self.db).update(ItemAdapter(item=new, db=self.db))
 
 	@pydantic.validate_arguments
 	def delete(self, item: Item) -> None:
-		ItemAdapter(item, self.db).delete()
+		ItemAdapter(item=item, db=self.db).delete()
 		del self.files[item.data.digest]
 
 	@pydantic.validate_arguments
@@ -105,5 +105,5 @@ class Treegres(Repository):
 	@pydantic.validate_arguments
 	def _drop(self, type: str) -> None:
 		self.db.drop_tables([
-			Model(self.db, type)
+			Model(self.db, Word(type))
 		])

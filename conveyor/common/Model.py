@@ -6,13 +6,13 @@ import functools
 import playhouse.migrate
 import playhouse.reflection
 
-from ..core import Item
+from ..core import Item, Word
 
 
 
 MetadataField = peewee.CharField | peewee.IntegerField | peewee.FloatField | peewee.DateTimeField
 
-metadata_fields: dict[type[Item.MetadataValue], typing.Callable[[], MetadataField]] = {
+metadata_fields: dict[type[Item.Metadata.Value], typing.Callable[[], MetadataField]] = {
 	str:               functools.partial(peewee.CharField,     index=True, default=None, null=True),
 	int:               functools.partial(peewee.IntegerField,  index=True, default=None, null=True),
 	float:             functools.partial(peewee.FloatField,    index=True, default=None, null=True),
@@ -28,7 +28,7 @@ class BaseModel(peewee.Model):
 	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
 
 
-@pydantic.validate_arguments
+@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 
 	if db.__class__ == peewee.SqliteDatabase:
@@ -41,14 +41,14 @@ def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 	return migrator_class(db)
 
 
-models_cache: dict[str, type[BaseModel]] = {}
+models_cache: dict[Word, type[BaseModel]] = {}
 
 
-@pydantic.validate_arguments
+@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Model(
 	db: peewee.Database,
-	name: str,
-	metadata_columns: dict[str, MetadataField] | None=None
+	name: Word,
+	metadata_columns: dict[Word, MetadataField] | None=None
 ) -> type[BaseModel]:
 
 		name = name.lower()

@@ -1,14 +1,14 @@
-import peewee
-import pydantic
-import dataclasses
 from __future__ import annotations
 
-from ...core import Item
+import peewee
+import pydantic
+
+from ...core import Item, Word
 from ...common.Model import Model, BaseModel, metadata_fields
 
 
 
-@dataclasses.dataclass(frozen=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class ItemAdapter:
 
 	item: Item
@@ -20,12 +20,12 @@ class ItemAdapter:
 			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.data.digest.string}) had no result')
 
 	def __post_init__(self):
-		for k in self.item.metadata:
-			if hasattr(self.item, k):
+		for k in self.item.metadata.value:
+			if hasattr(self.item, k.value):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
 	@property
-	def fields(self) -> dict[str, Item.Value]:
+	def fields(self) -> dict[Word, Item.Value]:
 		return {
 			'status': self.item.status,
 			'chain': self.item.chain.value
@@ -38,22 +38,27 @@ class ItemAdapter:
 			name=self.item.type,
 			metadata_columns={
 				k: metadata_fields[type(v)]()
-				for k, v in self.item.metadata.items()
+				for k, v in self.item.metadata.value.items()
 			}
 		)
 
 	def save(self) -> None:
-		if self.model(**self.fields).save(force_insert=True) != 1:
+		if self.model(**{
+				word.value: value
+				for word, value in self.fields.items()
+			}).save(force_insert=True) != 1:
 			raise ItemAdapter.OperationalError(self.item, 'save')
 
-	@pydantic.validate_arguments
 	def update(self, new: ItemAdapter) -> None:
 
 		model = Model(self.db, self.item.type)
 
 		if (
 			model
-			.update(**new.fields)
+			.update(**{
+				word.value: value
+				for word, value in new.fields.items()
+			})
 			.where(
 				model.status==self.item.status,
 				model.digest==self.item.data.digest.string,
