@@ -1,8 +1,6 @@
 # Conveyor
 
-Library for creating cold-pipeline-oriented systems
-
-Cold pipeline is a pipeline which state stored in external database
+Library for creating pipeline-oriented systems
 
 
 
@@ -22,16 +20,16 @@ Cold pipeline is a pipeline which state stored in external database
 
 Each item has:
 
-| name               | type               | description                                 |
-| ------------------ | ------------------ | ------------------------------------------- |
-| data.digest.string | string             | constant unique identifier for item         |
-| chain.value        | string             | constant unique identifier for item's chain |
-| type               | string             | constant common identifier                  |
-| status             | string             | variable common identifier                  |
-| Data.value         | string             | constant storage                            |
-| metadata           | dictionary         | variable storage                            |
-| created            | datetime           | datetime when item was created              |
-| reserved           | optional string    | id of worker reserved this item if any      |
+| name               | description                                 |
+| ------------------ | ------------------------------------------- |
+| data.digest        | constant unique identifier for item         |
+| chain              | constant unique identifier for item's chain |
+| type               | constant common identifier                  |
+| status             | variable common identifier                  |
+| data.value         | constant data                               |
+| metadata           | variable data                               |
+| created            | when was item created                       |
+| reserved           | id of worker reserved item if any           |
 
 ### [Repository](conveyor/core/Repository.py)
 
@@ -80,3 +78,11 @@ Logs repository actions **to stderr**
 ### [DbLogging](conveyor/repository_effects/DbLogging)
 
 Logs repository actions **to peewee compatible database**
+
+### [ExceptionLogging](conveyor/processor_effects/ExceptionLogging/ExceptionLogging.py)
+
+Logs worker exceptions **to stderr**
+
+### [DbLogging](conveyor/processor_effects/ExceptionDbLogging/ExceptionDbLogging.py)
+
+Logs worker exceptions **to peewee compatible database**
