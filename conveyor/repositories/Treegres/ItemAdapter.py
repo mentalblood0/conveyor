@@ -25,11 +25,11 @@ class ItemAdapter:
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 
 	@property
-	def fields(self) -> dict[Word, Item.Value]:
-		return Item.Metadata({
-			Word('status'): self.item.status,
+	def fields(self) -> dict[Word, str | Item.Metadata.Value]:
+		return {
+			Word('status'): self.item.status.value,
 			Word('chain'): self.item.chain.value
-		}).value | self.item.metadata.value
+		} | self.item.metadata.value
 
 	@property
 	def model(self) -> type[BaseModel]:
@@ -44,9 +44,9 @@ class ItemAdapter:
 
 	def save(self) -> None:
 		if self.model(**{
-				word.value: value
-				for word, value in self.fields.items()
-			}).save(force_insert=True) != 1:
+			word.value: value
+			for word, value in self.fields.items()
+		}).save(force_insert=True) != 1:
 			raise ItemAdapter.OperationalError(self.item, 'save')
 
 	def update(self, new: ItemAdapter) -> None:

@@ -1,7 +1,7 @@
 import abc
 import typing
 
-from . import Item
+from . import Item, Word
 
 
 
@@ -20,7 +20,7 @@ class Repository(metaclass=abc.ABCMeta):
 		pass
 
 	@abc.abstractmethod
-	def get(self, type: str, where: Item.Metadata | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
+	def get(self, type: str, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
 		pass
 
 	@abc.abstractmethod

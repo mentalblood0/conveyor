@@ -27,7 +27,7 @@ class Item:
 	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 	class Metadata:
 
-		Value = pydantic.StrictStr | Word | int | float | datetime.datetime
+		Value = pydantic.StrictStr | int | float | datetime.datetime
 
 		value: dict[Word, Value]
 
