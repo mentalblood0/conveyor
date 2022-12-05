@@ -19,10 +19,12 @@ class ItemAdapter:
 		def __init__(self, item: Item, action: str):
 			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.data.digest.string}) had no result')
 
-	def __post_init__(self):
-		for k in self.item.metadata.value:
-			if hasattr(self.item, k.value):
+	@pydantic.validator('item')
+	def item_correct(cls, item):
+		for k in item.metadata.value:
+			if hasattr(item, k.value):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
+		return item
 
 	@property
 	def fields(self) -> dict[Word, str | Item.Metadata.Value]:
