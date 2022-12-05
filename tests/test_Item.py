@@ -4,7 +4,7 @@ import pydantic
 import frozendict
 import dataclasses
 
-from conveyor.core import Data, Item, Chain, Created
+from conveyor.core import Data, Item, Chain, Created, Word
 
 
 
@@ -14,10 +14,10 @@ def valid_item():
 	data = Data(value=b'')
 
 	return Item(
-		type='type',
-		status='status',
+		type=Word(value='type'),
+		status=Word(value='status'),
 		data=data,
-		metadata={'a': 'a'},
+		metadata=Item.Metadata(value={Word(value='a'): 'a'}),
 		chain=Chain(ref=data),
 		created=Created(value=datetime.datetime.utcnow()),
 		reserved=None
@@ -33,8 +33,8 @@ def test_type_is_word(valid_item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(valid_item, type='+')
 
-	dataclasses.replace(valid_item, type='l')
-	dataclasses.replace(valid_item, type='lalala')
+	dataclasses.replace(valid_item, type=Word(value='l'))
+	dataclasses.replace(valid_item, type=Word(value='lalala'))
 
 
 def test_status_is_word(valid_item):
@@ -42,25 +42,25 @@ def test_status_is_word(valid_item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(valid_item, status=b'lalala')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status='')
+		dataclasses.replace(valid_item, status=Word(value=''))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status='+')
+		dataclasses.replace(valid_item, status=Word(value='+'))
 
-	dataclasses.replace(valid_item, status='l')
-	dataclasses.replace(valid_item, status='lalala')
+	dataclasses.replace(valid_item, status=Word(value='l'))
+	dataclasses.replace(valid_item, status=Word(value='lalala'))
 
 
 def test_metadata_is_metadata(valid_item):
 
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata={'a': b''})
+		dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): b''}))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata={'a': {}})
+		dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): {}}))
 
-	dataclasses.replace(valid_item, metadata={'a': 'str'})
-	dataclasses.replace(valid_item, metadata={'a': 1})
-	dataclasses.replace(valid_item, metadata={'a': 1.0})
-	dataclasses.replace(valid_item, metadata={'a': datetime.datetime.utcnow()})
+	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 'str'}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 1}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 1.0}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): datetime.datetime.utcnow()}))
 
 
 def test_chain_ref_is_data_or_item(valid_item):

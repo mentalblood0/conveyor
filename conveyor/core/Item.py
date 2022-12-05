@@ -1,3 +1,4 @@
+import re
 import typing
 import datetime
 import pydantic
@@ -8,20 +9,37 @@ from .Created import Created
 
 
 
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Word:
+
+	value: pydantic.StrictStr
+
+	@pydantic.validator('value')
+	def value_correct(cls, value):
+		if re.match(r'\w+', value) is None:
+			raise ValueError('`Word` value must be word')
+		return value
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Item:
 
-	Word          = pydantic.constr(min_length=1, regex=r'\w+', strict=True)
-	# Word          = str
+	@pydantic.dataclasses.dataclass
+	class Metadata:
+
+		Value = pydantic.StrictStr | int | float | datetime.datetime
+
+		value: dict[Word, Value]
+
+		@pydantic.validator('value')
+		def value_correct(cls, value):
+			return frozendict.frozendict(value)
+
 	BaseValue     = typing.Union[Word, 'Chain', Created]
+	Value         = BaseValue | Metadata.Value
 
-	MetadataValue = pydantic.StrictStr | int | float | datetime.datetime
-	Metadata      = dict[Word, MetadataValue]
-
-	Value         = BaseValue | MetadataValue
-
-	type: Word  # type: ignore
-	status: Word  # type: ignore
+	type: Word
+	status: Word
 
 	data: Data
 
@@ -30,10 +48,6 @@ class Item:
 	chain: 'Chain'
 	created: Created
 	reserved: str | None
-
-	@pydantic.validator('metadata')
-	def metadata_correct(cls, metadata):
-		return frozendict.frozendict(metadata)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
