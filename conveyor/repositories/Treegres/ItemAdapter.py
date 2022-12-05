@@ -26,10 +26,10 @@ class ItemAdapter:
 
 	@property
 	def fields(self) -> dict[Word, Item.Value]:
-		return {
-			'status': self.item.status,
-			'chain': self.item.chain.value
-		} | self.item.metadata
+		return Item.Metadata({
+			Word('status'): self.item.status,
+			Word('chain'): self.item.chain.value
+		}).value | self.item.metadata.value
 
 	@property
 	def model(self) -> type[BaseModel]:
