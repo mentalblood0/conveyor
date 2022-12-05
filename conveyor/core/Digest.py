@@ -7,10 +7,16 @@ import pydantic
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Digest:
 
-	value: pydantic.conbytes(min_length=32, strict=True)  # type: ignore
+	value: pydantic.StrictBytes
+
+	@pydantic.validator('value')
+	def value_correct(cls, value):
+		if len(value) < 32:
+			raise ValueError('`Digest` value must be of minimum length 32')
+		return value
 
 	@property
 	def string(self) -> str:
@@ -57,6 +63,5 @@ class Digest:
 			)
 		)
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __eq__(self, another) -> bool:
 		return self.value == another.value

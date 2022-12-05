@@ -9,7 +9,7 @@ from .Created import Created
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Word:
 
 	value: pydantic.StrictStr
@@ -24,7 +24,7 @@ class Word:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Item:
 
-	@pydantic.dataclasses.dataclass
+	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 	class Metadata:
 
 		Value = pydantic.StrictStr | int | float | datetime.datetime
@@ -50,7 +50,7 @@ class Item:
 	reserved: str | None
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Chain:
 
 	ref: Data | Item

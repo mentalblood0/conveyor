@@ -1,7 +1,6 @@
 import pytest
 import datetime
 import pydantic
-import frozendict
 import dataclasses
 
 from conveyor.core import Data, Item, Chain, Created, Word
@@ -14,11 +13,11 @@ def valid_item():
 	data = Data(value=b'')
 
 	return Item(
-		type=Word(value='type'),
-		status=Word(value='status'),
+		type=Word('type'),
+		status=Word('status'),
 		data=data,
-		metadata=Item.Metadata(value={Word(value='a'): 'a'}),
-		chain=Chain(ref=data),
+		metadata=Item.Metadata({Word('a'): 'a'}),
+		chain=Chain(data),
 		created=Created(value=datetime.datetime.utcnow()),
 		reserved=None
 	)
@@ -33,8 +32,8 @@ def test_type_is_word(valid_item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(valid_item, type='+')
 
-	dataclasses.replace(valid_item, type=Word(value='l'))
-	dataclasses.replace(valid_item, type=Word(value='lalala'))
+	dataclasses.replace(valid_item, type=Word('l'))
+	dataclasses.replace(valid_item, type=Word('lalala'))
 
 
 def test_status_is_word(valid_item):
@@ -42,38 +41,38 @@ def test_status_is_word(valid_item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(valid_item, status=b'lalala')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status=Word(value=''))
+		dataclasses.replace(valid_item, status=Word(''))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status=Word(value='+'))
+		dataclasses.replace(valid_item, status=Word('+'))
 
-	dataclasses.replace(valid_item, status=Word(value='l'))
-	dataclasses.replace(valid_item, status=Word(value='lalala'))
+	dataclasses.replace(valid_item, status=Word('l'))
+	dataclasses.replace(valid_item, status=Word('lalala'))
 
 
 def test_metadata_is_metadata(valid_item):
 
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): b''}))
+		dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): b''}))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): {}}))
+		dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): {}}))
 
-	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 'str'}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 1}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): 1.0}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata(value={Word(value='a'): datetime.datetime.utcnow()}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 'str'}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 1}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 1.0}))
+	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): datetime.datetime.utcnow()}))
 
 
 def test_chain_ref_is_data_or_item(valid_item):
 
 	with pytest.raises(pydantic.ValidationError):
-		Chain(ref='lalala')
+		Chain('lalala')
 
-	Chain(ref=valid_item.data)
-	Chain(ref=valid_item)
+	Chain(valid_item.data)
+	Chain(valid_item)
 
 
 def test_chain_equal(valid_item):
-	assert Chain(ref=valid_item.data) == Chain(ref=valid_item)
+	assert Chain(valid_item.data) == Chain(valid_item)
 
 
 def test_immutable(valid_item):
