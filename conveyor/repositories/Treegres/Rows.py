@@ -88,7 +88,7 @@ class Rows:
 		model.delete().where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
-	def _clear(self, type: Word):
+	def _clear(self, type: Item.Type):
 		self.db.drop_tables([
 			Model(self.db, type)
 		])

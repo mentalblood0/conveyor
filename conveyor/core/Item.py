@@ -38,8 +38,12 @@ class Item:
 	BaseValue     = typing.Union[Word, 'Chain', Created]
 	Value         = BaseValue | Metadata.Value
 
-	type: Word
-	status: Word
+	Type = Word
+	Status = Word
+	Reserved = str | None
+
+	type: Type
+	status: Status
 
 	data: Data
 
@@ -47,7 +51,7 @@ class Item:
 
 	chain: 'Chain'
 	created: Created
-	reserved: str | None
+	reserved: Reserved
 
 
 

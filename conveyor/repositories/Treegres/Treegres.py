@@ -22,12 +22,12 @@ class Treegres(Repository):
 		self.rows.save(RowsItem(item))
 
 	@pydantic.validate_arguments
-	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> None:
+	def reserve(self, type: Item.Type, status: Item.Status, id: str, limit: int | None=None) -> None:
 
 		model = Model(self.rows.db, Word(type))
 
 		model.update(
-			reserved_by=id
+			reserved=id
 		).where(
 			model.digest.in_(
 				model
@@ -46,7 +46,7 @@ class Treegres(Repository):
 		self.rows.unreserve(RowsItem(item))
 
 	@pydantic.validate_arguments
-	def get(self, type: Word, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
+	def get(self, type: Item.Type, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
 
 		if not (model := Model(self.rows.db, type)):
 			return []
