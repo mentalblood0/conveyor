@@ -35,23 +35,23 @@ class Item:
 		def value_correct(cls, value):
 			return frozendict.frozendict(value)
 
-	BaseValue     = typing.Union[Word, 'Chain', Created]
+	Type          = Word
+	Status        = Word
+	Reserved      = str | None
+
+	BaseValue     = typing.Union[Type, Status, 'Chain', Created, Reserved]
 	Value         = BaseValue | Metadata.Value
 
-	Type = Word
-	Status = Word
-	Reserved = str | None
+	type:           Type
+	status:         Status
 
-	type: Type
-	status: Status
+	data:           Data
 
-	data: Data
+	metadata:       Metadata
 
-	metadata: Metadata
-
-	chain: 'Chain'
-	created: Created
-	reserved: Reserved
+	chain:          'Chain'
+	created:        Created
+	reserved:       Reserved
 
 
 
