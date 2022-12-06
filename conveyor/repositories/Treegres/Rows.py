@@ -8,6 +8,19 @@ from ...common.Model import Model, BaseModel, metadata_fields
 
 
 
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class RowsItem:
+
+	value: Item
+
+	@pydantic.validator('value')
+	def value_correct(cls, value):
+		for k in value.metadata.value:
+			if hasattr(value, k.value):
+				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
+		return value
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Rows:
 
@@ -15,23 +28,11 @@ class Rows:
 
 	class OperationalError(Exception):
 		@pydantic.validate_arguments
-		def __init__(self, item: Rows.Item, action: str):
+		def __init__(self, item: RowsItem, action: str):
 			super().__init__(f'Item {action} (type={item.value.type}, status={item.value.status}, digest={item.value.data.digest.string}) had no result')
 
-	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-	class Item:
-
-		value: Item
-
-		@pydantic.validator('value')
-		def value_correct(cls, value):
-			for k in value.metadata.value:
-				if hasattr(value, k.value):
-					raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
-			return value
-
 	@pydantic.validate_arguments
-	def _row(self, item: Rows.Item) -> dict[str, Item.Metadata.Value]:
+	def _row(self, item: RowsItem) -> dict[str, Item.Metadata.Value]:
 		return {
 			'status': item.value.status.value,
 			'chain': item.value.chain.value
@@ -41,7 +42,7 @@ class Rows:
 		}
 
 	@pydantic.validate_arguments
-	def _model(self, item: Rows.Item) -> type[BaseModel]:
+	def _model(self, item: RowsItem) -> type[BaseModel]:
 		return Model(
 			db=self.db,
 			name=item.value.type,
@@ -52,20 +53,20 @@ class Rows:
 		)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[BaseModel], item: Rows.Item) -> tuple:
+	def _where(self, model: type[BaseModel], item: RowsItem) -> tuple:
 		return (
-			model.status==item.value.status,
+			model.status==item.value.status.value,
 			model.digest==item.value.data.digest.string,
-			model.chain==item.value.chain,
+			model.chain==item.value.chain.value,
 			model.reserved==item.value.reserved
 		)
 
 	@pydantic.validate_arguments
-	def save(self, item: Rows.Item) -> None:
+	def save(self, item: RowsItem) -> None:
 		if self._model(item)(**self._row(item)).save(force_insert=True) != 1:
 			raise Rows.OperationalError(item, 'save')
 
-	def update(self, old: Rows.Item, new: Rows.Item) -> None:
+	def update(self, old: RowsItem, new: RowsItem) -> None:
 
 		model = Model(self.db, old.value.type)
 
@@ -77,11 +78,11 @@ class Rows:
 			raise Rows.OperationalError(old, 'update')
 
 	@pydantic.validate_arguments
-	def unreserve(self, item: Rows.Item) -> None:
+	def unreserve(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
 		model.update(reserved=None).where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
-	def delete(self, item: Rows.Item) -> None:
+	def delete(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
 		model.delete().where(self._where(model, item)).execute()

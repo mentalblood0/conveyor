@@ -6,7 +6,7 @@ import dataclasses
 from ...common import Model
 from ...core import Item, Repository, Word, Chain
 
-from . import Files, ItemAdapter
+from . import Files, Rows
 
 
 
@@ -18,7 +18,7 @@ class Treegres(Repository):
 
 	@pydantic.validate_arguments
 	def create(self, item: Item) -> None:
-		self.files.append(item.data)
+		self.files.add(item.data)
 		ItemAdapter(item=item, db=self.db).save()
 
 	@pydantic.validate_arguments
