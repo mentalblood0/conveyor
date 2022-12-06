@@ -3,7 +3,7 @@ from __future__ import annotations
 import peewee
 import pydantic
 
-from ...core import Item
+from ...core import Item, Word
 from ...common.Model import Model, BaseModel, metadata_fields
 
 
@@ -86,3 +86,9 @@ class Rows:
 	def delete(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
 		model.delete().where(self._where(model, item)).execute()
+
+	@pydantic.validate_arguments
+	def _clear(self, type: Word):
+		self.db.drop_tables([
+			Model(self.db, type)
+		])

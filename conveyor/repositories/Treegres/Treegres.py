@@ -4,27 +4,27 @@ import pydantic
 import dataclasses
 
 from ...common import Model
-from ...core import Item, Repository, Word, Chain
+from ...core import Item, Repository, Word
 
-from . import Files, Rows
+from . import Files, Rows, RowsItem
 
 
 
 @dataclasses.dataclass(frozen=True)
 class Treegres(Repository):
 
-	db: peewee.Database
+	rows: Rows
 	files: Files
 
 	@pydantic.validate_arguments
 	def create(self, item: Item) -> None:
 		self.files.add(item.data)
-		ItemAdapter(item=item, db=self.db).save()
+		self.rows.save(RowsItem(item))
 
 	@pydantic.validate_arguments
 	def reserve(self, type: str, status: str, id: str, limit: int | None=None) -> None:
 
-		model = Model(self.db, Word(type))
+		model = Model(self.rows.db, Word(type))
 
 		model.update(
 			reserved_by=id
@@ -43,12 +43,12 @@ class Treegres(Repository):
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
-		ItemAdapter(item=item, db=self.db).unreserve()
+		self.rows.unreserve(RowsItem(item))
 
 	@pydantic.validate_arguments
 	def get(self, type: Word, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
 
-		if not (model := Model(self.db, type)):
+		if not (model := Model(self.rows.db, type)):
 			return []
 
 		where = where or {}
@@ -85,25 +85,22 @@ class Treegres(Repository):
 
 	@pydantic.validate_arguments
 	def update(self, old: Item, new: Item) -> None:
-		ItemAdapter(item=old, db=self.db).update(ItemAdapter(item=new, db=self.db))
+		self.rows.update(
+			old=RowsItem(old),
+			new=RowsItem(new)
+		)
 
 	@pydantic.validate_arguments
 	def delete(self, item: Item) -> None:
-		ItemAdapter(item=item, db=self.db).delete()
+		self.rows.delete(RowsItem(item))
 		del self.files[item.data.digest]
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable[[typing.Callable], typing.Callable]:
 
 		def new_f(*args, **kwargs):
-			with self.db.transaction():
+			with self.rows.db.transaction():
 				result = f(*args, **kwargs)
 			return result
 
 		return new_f
-
-	@pydantic.validate_arguments
-	def _drop(self, type: str) -> None:
-		self.db.drop_tables([
-			Model(self.db, Word(type))
-		])
