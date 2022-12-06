@@ -21,7 +21,7 @@ class Word:
 		return value
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
 
 	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
@@ -50,24 +50,6 @@ class Item:
 	reserved: str | None
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
-class Chain:
 
-	ref: Data | Item
-
-	@property
-	def value(self) -> str:
-
-		if type(self.ref) is Data:
-			return self.ref.digest.string
-
-		if type(self.ref) is Item:
-			return self.ref.chain.value
-
-		raise ValueError
-
-	def __eq__(self, another: 'Chain') -> bool:
-		return self.value == another.value
-
-
+from .Chain import Chain
 Item.__pydantic_model__.update_forward_refs()

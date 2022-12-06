@@ -4,7 +4,7 @@ import pydantic
 import dataclasses
 
 from ...common import Model
-from ...core import Item, Repository, Word
+from ...core import Item, Chain, Repository, Word
 
 from . import Files, Rows, RowsItem
 
