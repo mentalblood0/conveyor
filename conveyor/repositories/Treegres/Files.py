@@ -20,7 +20,7 @@ class Files:
 		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
-	def append(self, data: Data) -> None:
+	def add(self, data: Data) -> None:
 
 		path = self.path(data.digest)
 		path.parent.mkdir(parents=True, exist_ok=True)
@@ -31,7 +31,7 @@ class Files:
 
 		except FileExistsError:
 			if data != Data(value=path.read_bytes()):
-				self.append(
+				self.add(
 					self.transform(data)
 				)
 

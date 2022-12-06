@@ -41,7 +41,7 @@ def test_path(valid_files, data):
 
 def test_append_get_delete(valid_files, data):
 
-	valid_files.append(data)
+	valid_files.add(data)
 	assert valid_files[data.digest] == data
 
 	del valid_files[data.digest]
