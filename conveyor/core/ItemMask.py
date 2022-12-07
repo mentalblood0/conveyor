@@ -1,4 +1,5 @@
 import pydantic
+import dataclasses
 
 from .Item import Item
 from .Data import Data
@@ -10,12 +11,12 @@ from .Chain import Chain
 class ItemMask:
 
 	type:        Item.Type
-	status:      Item.Status   | None
-	data:        Data          | None
-	metadata:    Item.Metadata | None
-	chain:       Chain         | None
-	created:     Item.Created  | None
-	reserved:    Item.Reserved | None
+	status:      Item.Status   | None = None
+	data:        Data          | None = None
+	metadata:    Item.Metadata | None = None
+	chain:       Chain         | None = None
+	created:     Item.Created  | None = None
+	reserved:    Item.Reserved | None = None
 
 	@property
 	def conditions(self) -> dict[str, Item.Metadata.Value]:

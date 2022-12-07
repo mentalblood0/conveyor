@@ -20,14 +20,6 @@ metadata_fields: dict[type[Item.Metadata.Value], typing.Callable[[], MetadataFie
 }
 
 
-class BaseModel(peewee.Model):
-	status   = peewee.CharField(max_length=63, index=True),
-	digest   = peewee.CharField(max_length=127, index=True),
-	chain    = peewee.CharField(max_length=63, index=True),
-	created  = peewee.DateTimeField(index=True, null=False),
-	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
-
-
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 
@@ -41,17 +33,17 @@ def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 	return migrator_class(db)
 
 
-models_cache: dict[Word, type[BaseModel]] = {}
+models_cache: dict[Word, type[peewee.Model]] = {}
 
 
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Model(
 	db: peewee.Database,
 	name: Word,
-	metadata_columns: dict[Word, MetadataField] | None=None
-) -> type[BaseModel]:
+	metadata_columns: dict[Item.Metadata.Key, MetadataField] | None=None
+) -> type[peewee.Model]:
 
-		name = name.lower()
+		name = Word(name.value.lower())
 
 		if not metadata_columns:
 
@@ -67,12 +59,38 @@ def Model(
 
 		else:
 
-			class Result(BaseModel):
-				class Meta:
-					database = db
+			# class Result(peewee.Model):
+			# 	status   = peewee.CharField(max_length=63, index=True),
+			# 	digest   = peewee.CharField(max_length=127, index=True),
+			# 	chain    = peewee.CharField(max_length=63, index=True),
+			# 	created  = peewee.DateTimeField(index=True, null=False),
+			# 	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
+			# 	class Meta:
+			# 		database = db
 
-			for k, v in metadata_columns:
-				Result._meta.add_field(k, v)
+			Result = type(
+				'Result',
+				(peewee.Model,),
+				{
+					'status'   : peewee.CharField(max_length=63, index=True),
+					'digest'   : peewee.CharField(max_length=127, index=True),
+					'chain'    : peewee.CharField(max_length=63, index=True),
+					'created'  : peewee.DateTimeField(index=True, null=False),
+					'reserved' : peewee.CharField(max_length=63, index=True, default=None, null=True),
+					'Meta': type(
+						'Meta',
+						(),
+						{
+							'database': db
+						}
+					)
+				} | {
+					k.value: v
+					for k, v in metadata_columns.items()
+				}
+			)
+
+			print('Result', Result.__dict__.keys())
 
 			if not Result.table_exists():
 

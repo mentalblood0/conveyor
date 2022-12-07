@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import hashlib
 import pydantic
 
@@ -16,14 +14,15 @@ class Data:
 	@pydantic.validator('test')
 	def test_correct(cls, test, values):
 		if test is not None:
-			if Data(value=values['value']).digest != test:
-				raise ValueError('Provided digest is not correct')
+			correct = Data(value=values['value']).digest
+			if correct != test:
+				raise ValueError(f'Provided digest "{test}" is not correct (correct is "{correct}")')
 		return test
 
 	@property
 	def digest(self) -> Digest:
 		return Digest(
-			value=hashlib.sha3_512(
+			hashlib.sha3_512(
 				self.value
 			).digest()
 		)

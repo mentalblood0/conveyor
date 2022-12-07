@@ -17,7 +17,7 @@ def valid_item():
 		status=Word('status'),
 		data=data,
 		metadata=Item.Metadata({Word('a'): 'a'}),
-		chain=Chain(data),
+		chain=Chain(ref=data),
 		created=Created(value=datetime.datetime.utcnow()),
 		reserved=None
 	)
@@ -65,14 +65,14 @@ def test_metadata_is_metadata(valid_item):
 def test_chain_ref_is_data_or_item(valid_item):
 
 	with pytest.raises(pydantic.ValidationError):
-		Chain('lalala')
+		Chain(ref='lalala')
 
-	Chain(valid_item.data)
-	Chain(valid_item)
+	Chain(ref=valid_item.data)
+	Chain(ref=valid_item)
 
 
 def test_chain_equal(valid_item):
-	assert Chain(valid_item.data) == Chain(valid_item)
+	assert Chain(ref=valid_item.data) == Chain(ref=valid_item)
 
 
 def test_immutable(valid_item):

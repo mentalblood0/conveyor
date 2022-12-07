@@ -28,7 +28,7 @@ class Item:
 	class Metadata:
 
 		Key = Word
-		Value = pydantic.StrictStr | int | float | datetime.datetime
+		Value = pydantic.StrictStr | int | float | datetime.datetime | None
 
 		value: dict[Key, Value]
 

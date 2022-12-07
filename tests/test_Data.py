@@ -26,7 +26,7 @@ def test_immutable():
 
 def test_checking_digest():
 	with pytest.raises(ValueError):
-		Data(value=b' ', test=Digest(value=b' ' * 32))
+		Data(value=b' ', test=Digest(b' ' * 32))
 
 
 def test_value():

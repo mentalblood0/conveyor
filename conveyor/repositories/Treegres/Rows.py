@@ -3,8 +3,8 @@ from __future__ import annotations
 import peewee
 import pydantic
 
-from ...core import Item, Word, ItemQuery, Digest
-from ...common.Model import Model, BaseModel, metadata_fields
+from ...core import Item, ItemQuery, Digest, Chain, Base64String
+from ...common.Model import Model, metadata_fields
 
 
 
@@ -24,11 +24,9 @@ class RowsItem:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Row(Item):
 
+	chain: str
 	digest: Digest
-
-	@property
-	def data(self):
-		raise NotImplementedError
+	data: None = None
 
 	@pydantic.validate_arguments
 	def item(self, data: Item.Data) -> Item:
@@ -37,7 +35,10 @@ class Row(Item):
 			status=self.status,
 			data=data,
 			metadata=self.metadata,
-			chain=self.chain,
+			chain=Chain(
+				ref=data,
+				test=self.chain
+			),
 			created=self.created,
 			reserved=self.reserved
 		)
@@ -55,16 +56,19 @@ class Rows:
 
 	@pydantic.validate_arguments
 	def _row(self, item: RowsItem) -> dict[str, Item.Metadata.Value]:
-		return {
+		return dict[str, Item.Metadata.Value]({
 			'status': item.value.status.value,
-			'chain': item.value.chain.value
-		} | {
+			'chain': item.value.chain.value,
+			'created': item.value.created.value,
+			'reserved': item.value.reserved,
+			'digest': item.value.data.digest.string
+		}) | {
 			word.value: value
 			for word, value in item.value.metadata.value.items()
 		}
 
 	@pydantic.validate_arguments
-	def _model(self, item: RowsItem) -> type[BaseModel]:
+	def _model(self, item: RowsItem) -> type[peewee.Model]:
 		return Model(
 			db=self.db,
 			name=item.value.type,
@@ -75,7 +79,7 @@ class Rows:
 		)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[BaseModel], item: RowsItem) -> tuple:
+	def _where(self, model: type[peewee.Model], item: RowsItem) -> tuple:
 		return (
 			model.status==item.value.status.value,
 			model.digest==item.value.data.digest.string,
@@ -110,8 +114,8 @@ class Rows:
 
 	@pydantic.validate_arguments
 	def add(self, item: RowsItem) -> None:
-		if self._model(item)(**self._row(item)).save(force_insert=True) != 1:
-			raise Rows.OperationalError(item, 'save')
+		if self._model(item).insert(**self._row(item)).execute() != 1:
+			raise Rows.OperationalError(item, 'insert')
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> list[Row]:
@@ -132,17 +136,16 @@ class Rows:
 		return [
 			Row(
 				type=item_query.mask.type,
-				digest=r.digest,
-				**{
-					name: getattr(r, name)
-					for name in r.__data__
-					if name in Item.__dataclass_fields__
-				},
+				status=Item.Status(r.status),
+				chain=r.chain,
+				created=Item.Created(r.created),
+				reserved=r.reserved,
+				digest=Digest(Base64String(r.digest)),
 				metadata=Item.Metadata({
 					Item.Metadata.Key(name): getattr(r, name)
 					for name in r.__data__
-					if name not in Item.__dataclass_fields__
-				})
+					if not (name in Item.__dataclass_fields__ or name in ['id', 'digest'])
+				}),
 			)
 			for r in db_query
 		]
@@ -162,7 +165,7 @@ class Rows:
 	@pydantic.validate_arguments
 	def __delitem__(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
-		model.delete().where(self._where(model, item)).execute()
+		model.delete().where(*self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
 	def _clear(self, type: Item.Type) -> None:
