@@ -62,4 +62,4 @@ class Item:
 
 
 from .Chain import Chain
-Item.__pydantic_model__.update_forward_refs()
+getattr(Item, '__pydantic_model__').update_forward_refs()
