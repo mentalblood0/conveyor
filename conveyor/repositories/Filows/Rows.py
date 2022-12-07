@@ -96,7 +96,7 @@ class Rows:
 		model.update(
 			reserved=reserver
 		).where(
-			model.digest.in_(
+			model.digest << (
 				model
 				.select(model.digest)
 				.where(
