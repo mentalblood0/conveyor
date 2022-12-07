@@ -25,16 +25,13 @@ class Digest:
 	@pydantic.validator('value_or_string')
 	def value_or_string_correct(cls, value_or_string):
 
-		value: bytes | None = None
-
-		if type(value_or_string) is bytes:
-			value = value_or_string
-
-		if type(value_or_string) is Base64String:
-			value = value_or_string.decoded
-
-		if value is None:
-			raise ValueError
+		match value_or_string:
+			case bytes():
+				value = value_or_string
+			case Base64String():
+				value = value_or_string.decoded
+			case _ as unreachable:
+				typing.assert_never(unreachable)
 
 		if len(value) < 32:
 			raise ValueError(f'`Digest` value must be of minimum length 32 (got {value} which is of length {len(value)})')
@@ -43,39 +40,36 @@ class Digest:
 
 	@property
 	def value(self) -> bytes:
-
-		if type(self.value_or_string) is bytes:
-			return self.value_or_string
-
-		if type(self.value_or_string) is Base64String:
-			return self.value_or_string.decoded
-
-		raise ValueError
+		match self.value_or_string:
+			case bytes():
+				return self.value_or_string
+			case Base64String():
+				return self.value_or_string.decoded
+			case _ as unreachable:
+				typing.assert_never(unreachable)
 
 	@property
 	def string(self) -> str:
-
-		if type(self.value_or_string) is Base64String:
-			return self.value_or_string.value
-
-		if type(self.value_or_string) is bytes:
-			return base64.b64encode(
-				self.value_or_string
-			).decode('ascii')
-
-		raise ValueError
+		match self.value_or_string:
+			case Base64String():
+				return self.value_or_string.value
+			case bytes():
+				return base64.b64encode(self.value_or_string).decode('ascii')
+			case _ as unreachable:
+				typing.assert_never(unreachable)
 
 	@classmethod
 	@pydantic.validate_arguments
 	def _segment(cls, s: str) -> str:
-		if s == '+':
-			return 'plus'
-		elif s == '/':
-			return 'slash'
-		elif s == '=':
-			return 'equal'
-		else:
-			return s
+		match s:
+			case '+':
+				return 'plus'
+			case '/':
+				return 'slash'
+			case '=':
+				return 'equal'
+			case _:
+				return s
 
 	@classmethod
 	@pydantic.validate_arguments
@@ -104,5 +98,5 @@ class Digest:
 			)
 		)
 
-	def __eq__(self, another) -> bool:
+	def __eq__(self, another: 'Digest') -> bool:
 		return self.value == another.value
