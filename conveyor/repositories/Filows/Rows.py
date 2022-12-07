@@ -125,11 +125,11 @@ class Rows:
 
 		db_query = model.select()
 
-		conditions = []
-		for k, v in item_query.mask.conditions.items():
-			if hasattr(model, k):
-				conditions.append(getattr(model, k)==v)
-		if conditions:
+		if conditions := [
+			getattr(model, k)==v
+			for k, v in item_query.mask.conditions.items()
+			if k != 'type'
+		]:
 			db_query = db_query.where(*conditions)
 
 		db_query = db_query.limit(item_query.limit)
