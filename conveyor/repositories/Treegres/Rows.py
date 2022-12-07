@@ -3,7 +3,7 @@ from __future__ import annotations
 import peewee
 import pydantic
 
-from ...core import Item, Word
+from ...core import Item, Word, ItemQuery, Digest
 from ...common.Model import Model, BaseModel, metadata_fields
 
 
@@ -19,6 +19,28 @@ class RowsItem:
 			if hasattr(value, k.value):
 				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
 		return value
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Row(Item):
+
+	digest: Digest
+
+	@property
+	def data(self):
+		raise NotImplementedError
+
+	@pydantic.validate_arguments
+	def item(self, data: Item.Data) -> Item:
+		return Item(
+			type=self.type,
+			status=self.status,
+			data=data,
+			metadata=self.metadata,
+			chain=self.chain,
+			created=self.created,
+			reserved=self.reserved
+		)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -62,11 +84,71 @@ class Rows:
 		)
 
 	@pydantic.validate_arguments
-	def save(self, item: RowsItem) -> None:
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
+
+		model = Model(self.db, item_query.mask.type)
+
+		model.update(
+			reserved=reserver
+		).where(
+			model.digest.in_(
+				model
+				.select(model.digest)
+				.where(
+					model.reserved==None,
+					model.status==item_query.mask.status
+				)
+				.order_by(peewee.fn.Random())
+				.limit(item_query.limit)
+			)
+		).execute()
+
+	@pydantic.validate_arguments
+	def unreserve(self, item: RowsItem) -> None:
+		model = Model(self.db, item.value.type)
+		model.update(reserved=None).where(self._where(model, item)).execute()
+
+	@pydantic.validate_arguments
+	def add(self, item: RowsItem) -> None:
 		if self._model(item)(**self._row(item)).save(force_insert=True) != 1:
 			raise Rows.OperationalError(item, 'save')
 
-	def update(self, old: RowsItem, new: RowsItem) -> None:
+	@pydantic.validate_arguments
+	def __getitem__(self, item_query: ItemQuery) -> list[Row]:
+
+		model = Model(self.db, item_query.mask.type)
+
+		db_query = model.select()
+
+		conditions = []
+		for k, v in item_query.mask.conditions.items():
+			if hasattr(model, k):
+				conditions.append(getattr(model, k)==v)
+		if conditions:
+			db_query = db_query.where(*conditions)
+
+		db_query = db_query.limit(item_query.limit)
+
+		return [
+			Row(
+				type=item_query.mask.type,
+				digest=r.digest,
+				**{
+					name: getattr(r, name)
+					for name in r.__data__
+					if name in Item.__dataclass_fields__
+				},
+				metadata=Item.Metadata({
+					Item.Metadata.Key(name): getattr(r, name)
+					for name in r.__data__
+					if name not in Item.__dataclass_fields__
+				})
+			)
+			for r in db_query
+		]
+
+	@pydantic.validate_arguments
+	def __setitem__(self, old: RowsItem, new: RowsItem) -> None:
 
 		model = Model(self.db, old.value.type)
 
@@ -78,17 +160,12 @@ class Rows:
 			raise Rows.OperationalError(old, 'update')
 
 	@pydantic.validate_arguments
-	def unreserve(self, item: RowsItem) -> None:
-		model = Model(self.db, item.value.type)
-		model.update(reserved=None).where(self._where(model, item)).execute()
-
-	@pydantic.validate_arguments
-	def delete(self, item: RowsItem) -> None:
+	def __delitem__(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
 		model.delete().where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
-	def _clear(self, type: Item.Type):
+	def _clear(self, type: Item.Type) -> None:
 		self.db.drop_tables([
 			Model(self.db, type)
 		])

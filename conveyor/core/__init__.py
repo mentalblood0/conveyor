@@ -3,6 +3,8 @@ from .Digest import Digest
 from .Created import Created
 from .Item import Item, Word
 from .Chain import Chain
+from .ItemMask import ItemMask
+from .ItemQuery import ItemQuery
 from .Repository import Repository
 from .Effect import Effect
 from .Creator import Creator

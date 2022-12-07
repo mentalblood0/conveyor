@@ -4,7 +4,7 @@ import pydantic
 import dataclasses
 
 from ...common import Model
-from ...core import Item, Chain, Repository, Word
+from ...core import Item, Chain, Repository, ItemQuery
 
 from . import Files, Rows, RowsItem
 
@@ -19,80 +19,30 @@ class Treegres(Repository):
 	@pydantic.validate_arguments
 	def create(self, item: Item) -> None:
 		self.files.add(item.data)
-		self.rows.save(RowsItem(item))
+		self.rows.add(RowsItem(item))
 
 	@pydantic.validate_arguments
-	def reserve(self, type: Item.Type, status: Item.Status, id: str, limit: int | None=None) -> None:
-
-		model = Model(self.rows.db, Word(type))
-
-		model.update(
-			reserved=id
-		).where(
-			model.digest.in_(
-				model
-				.select(model.digest)
-				.where(
-					model.reserved==None,
-					model.status==status
-				)
-				.order_by(peewee.fn.Random())
-				.limit(limit)
-			)
-		).execute()
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
+		self.rows.reserve(item_query, reserver)
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
 		self.rows.unreserve(RowsItem(item))
 
 	@pydantic.validate_arguments
-	def get(self, type: Item.Type, where: dict[Word, Item.Value] | None=None, limit: int | None=1, reserved: str | None=None) -> list[Item]:
+	def __setitem__(self, old: Item, new: Item) -> None:
+		self.rows[RowsItem(old)] = RowsItem(new)
 
-		if not (model := Model(self.rows.db, type)):
-			return []
-
-		where = where or {}
-		if reserved:
-			where[Word('reserved')] = reserved
-
-		query = model.select()
-		if (conditions := [
-			getattr(model, k.value)==v
-			for k, v in where.items()
-			if hasattr(model, k.value)
-		]):
-			query = query.where(*conditions)
-
-		query = query.limit(limit)
-
+	@pydantic.validate_arguments
+	def __getitem__(self, item_query: ItemQuery) -> list[Item]:
 		return [
-			Item(
-				type=type,
-				data=self.files[r.digest],
-				**{
-					name: getattr(r, name)
-					for name in r.__data__
-					if name in Item.__dataclass_fields__
-				},
-				metadata=Item.Metadata({
-					Word(name): getattr(r, name)
-					for name in r.__data__
-					if name not in Item.__dataclass_fields__
-				})
-			)
-			for r in query
+			r.item(self.files[r.digest])
+			for r in self.rows[item_query]
 		]
 
 	@pydantic.validate_arguments
-	def update(self, old: Item, new: Item) -> None:
-		self.rows.update(
-			old=RowsItem(old),
-			new=RowsItem(new)
-		)
-
-	@pydantic.validate_arguments
-	def delete(self, item: Item) -> None:
-		self.rows.delete(RowsItem(item))
+	def __delitem__(self, item: Item) -> None:
+		del self.rows[RowsItem(item)]
 		del self.files[item.data.digest]
 
 	@pydantic.validate_arguments

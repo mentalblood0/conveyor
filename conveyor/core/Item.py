@@ -27,31 +27,37 @@ class Item:
 	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 	class Metadata:
 
+		Key = Word
 		Value = pydantic.StrictStr | int | float | datetime.datetime
 
-		value: dict[Word, Value]
+		value: dict[Key, Value]
 
 		@pydantic.validator('value')
 		def value_correct(cls, value):
 			return frozendict.frozendict(value)
 
-	Type          = Word
-	Status        = Word
-	Reserved      = str | None
+	Type         = Word
+	Status       = Word
+	Data         = Data
+	Created      = Created
+	Reserved     = str | None
 
-	BaseValue     = typing.Union[Type, Status, 'Chain', Created, Reserved]
-	Value         = BaseValue | Metadata.Value
+	BaseKey      = Word
+	Key          = BaseKey | Metadata.Key
 
-	type:           Type
-	status:         Status
+	BaseValue    = typing.Union[Type, Status, 'Chain', Created, Reserved]
+	Value        = BaseValue | Metadata.Value
 
-	data:           Data
+	type:          Type
+	status:        Status
 
-	metadata:       Metadata
+	data:          Data
 
-	chain:          'Chain'
-	created:        Created
-	reserved:       Reserved
+	metadata:      Metadata
+
+	chain:         'Chain'
+	created:       Created
+	reserved:      Reserved
 
 
 
