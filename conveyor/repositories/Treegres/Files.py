@@ -57,3 +57,7 @@ class Files:
 				p.rmdir()
 			except OSError:
 				break
+
+	@pydantic.validate_arguments
+	def __contains__(self, digest: Digest) -> bool:
+		return self.path(digest).exists()
