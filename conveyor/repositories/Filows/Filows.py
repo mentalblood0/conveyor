@@ -2,14 +2,14 @@ import typing
 import pydantic
 import dataclasses
 
-from ...core import Item, Repository, ItemQuery
+from ...core import Item, ItemQuery
 
 from . import Files, Rows, RowsItem
 
 
 
 @dataclasses.dataclass(frozen=True)
-class Treegres(Repository):
+class Filows:
 
 	rows: Rows
 	files: Files

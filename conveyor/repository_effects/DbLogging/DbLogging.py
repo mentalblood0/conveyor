@@ -2,7 +2,7 @@ import pydantic
 from dataclasses import dataclass
 
 from .LogsRepository import LogsRepository
-from ...core import Repository, Effect, Item
+from ...core import Effect, Item
 
 
 

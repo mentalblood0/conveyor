@@ -2,7 +2,7 @@ import pytest
 import shutil
 from peewee import SqliteDatabase, PostgresqlDatabase
 
-from conveyor.repositories import Treegres
+from conveyor.repositories import Filows
 
 
 
@@ -15,7 +15,7 @@ db = SqliteDatabase(':memory:')
 # 	password='5924'
 # )
 dir_tree_root_path = 'dir_tree'
-repository = Treegres(db=db, dir_tree_root_path=dir_tree_root_path)
+repository = Filows(db=db, dir_tree_root_path=dir_tree_root_path)
 
 
 @pytest.fixture(autouse=True, scope='session')

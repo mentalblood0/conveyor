@@ -2,7 +2,7 @@ import abc
 import uuid
 import pydantic
 
-from . import Item, Repository
+from . import Item
 
 
 
