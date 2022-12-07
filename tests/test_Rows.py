@@ -53,7 +53,7 @@ def test_append_get_delete(rows: Rows, item: Item):
 		),
 		limit=None
 	)
-	saved_items = rows[query]
+	saved_items = [*rows[query]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
 	assert saved.type == item.type
@@ -65,7 +65,7 @@ def test_append_get_delete(rows: Rows, item: Item):
 	assert saved.reserved == item.reserved
 
 	del rows[RowsItem(item)]
-	assert not len(rows[query])
+	assert not len([*rows[query]])
 
 
 def test_delete_nonexistent(rows, item):
