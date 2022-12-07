@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import peewee
+import typing
 import pydantic
 
 from ...core import Item, ItemQuery, Digest, Chain, Base64String
@@ -166,6 +167,16 @@ class Rows:
 	def __delitem__(self, item: RowsItem) -> None:
 		model = Model(self.db, item.value.type)
 		model.delete().where(*self._where(model, item)).execute()
+
+	@pydantic.validate_arguments
+	def transaction(self, f: typing.Callable) -> typing.Callable[[typing.Callable], typing.Callable]:
+
+		def new_f(*args, **kwargs):
+			with self.db.transaction():
+				result = f(*args, **kwargs)
+			return result
+
+		return new_f
 
 	@pydantic.validate_arguments
 	def _clear(self, type: Item.Type) -> None:

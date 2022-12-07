@@ -1,10 +1,8 @@
-import peewee
 import typing
 import pydantic
 import dataclasses
 
-from ...common import Model
-from ...core import Item, Chain, Repository, ItemQuery
+from ...core import Item, Repository, ItemQuery
 
 from . import Files, Rows, RowsItem
 
@@ -47,10 +45,4 @@ class Treegres(Repository):
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable[[typing.Callable], typing.Callable]:
-
-		def new_f(*args, **kwargs):
-			with self.rows.db.transaction():
-				result = f(*args, **kwargs)
-			return result
-
-		return new_f
+		return self.rows.transaction(f)
