@@ -25,8 +25,6 @@ class Digest:
 	@pydantic.validator('value_or_string')
 	def value_or_string_correct(cls, value_or_string):
 
-		print('value_or_string', value_or_string)
-
 		value: bytes | None = None
 
 		if type(value_or_string) is bytes:

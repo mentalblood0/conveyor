@@ -1,3 +1,4 @@
+import sys
 import typing
 import peewee
 import datetime
@@ -20,6 +21,14 @@ metadata_fields: dict[type[Item.Metadata.Value], typing.Callable[[], MetadataFie
 }
 
 
+class BaseModel(peewee.Model):
+	status   = peewee.CharField(max_length=63, index=True),
+	digest   = peewee.CharField(max_length=127, index=True),
+	chain    = peewee.CharField(max_length=63, index=True),
+	created  = peewee.DateTimeField(index=True, null=False),
+	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
+
+
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 
@@ -33,7 +42,7 @@ def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 	return migrator_class(db)
 
 
-models_cache: dict[Word, type[peewee.Model]] = {}
+models_cache: dict[Word, type[BaseModel]] = {}
 
 
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
@@ -41,7 +50,7 @@ def Model(
 	db: peewee.Database,
 	name: Word,
 	metadata_columns: dict[Item.Metadata.Key, MetadataField] | None=None
-) -> type[peewee.Model]:
+) -> type[BaseModel]:
 
 		name = Word(name.value.lower())
 
@@ -50,7 +59,7 @@ def Model(
 			if name in models_cache:
 				return models_cache[name]
 
-			models: dict[str, type[peewee.Model]] = playhouse.reflection.generate_models(db, table_names=[name])
+			models: dict[str, type[BaseModel]] = playhouse.reflection.generate_models(db, table_names=[name])
 			if len(models):
 				models_cache[name] = models[name]
 				return models[name]
@@ -59,19 +68,14 @@ def Model(
 
 		else:
 
-			# class Result(peewee.Model):
-			# 	status   = peewee.CharField(max_length=63, index=True),
-			# 	digest   = peewee.CharField(max_length=127, index=True),
-			# 	chain    = peewee.CharField(max_length=63, index=True),
-			# 	created  = peewee.DateTimeField(index=True, null=False),
-			# 	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
-			# 	class Meta:
-			# 		database = db
-
 			Result = type(
 				'Result',
-				(peewee.Model,),
+				(BaseModel,),
 				{
+					k: v
+					for k, v in BaseModel.__dict__.items()
+					if not k.startswith('_') and k not in ['DoesNotExist']
+				} | {
 					'status'   : peewee.CharField(max_length=63, index=True),
 					'digest'   : peewee.CharField(max_length=127, index=True),
 					'chain'    : peewee.CharField(max_length=63, index=True),
@@ -89,8 +93,6 @@ def Model(
 					for k, v in metadata_columns.items()
 				}
 			)
-
-			print('Result', Result.__dict__.keys())
 
 			if not Result.table_exists():
 

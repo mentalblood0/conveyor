@@ -4,7 +4,7 @@ import peewee
 import pydantic
 
 from ...core import Item, ItemQuery, Digest, Chain, Base64String
-from ...common.Model import Model, metadata_fields
+from ...common.Model import Model, metadata_fields, BaseModel
 
 
 
@@ -68,7 +68,7 @@ class Rows:
 		}
 
 	@pydantic.validate_arguments
-	def _model(self, item: RowsItem) -> type[peewee.Model]:
+	def _model(self, item: RowsItem) -> type[BaseModel]:
 		return Model(
 			db=self.db,
 			name=item.value.type,
@@ -79,7 +79,7 @@ class Rows:
 		)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[peewee.Model], item: RowsItem) -> tuple:
+	def _where(self, model: type[BaseModel], item: RowsItem) -> tuple:
 		return (
 			model.status==item.value.status.value,
 			model.digest==item.value.data.digest.string,
