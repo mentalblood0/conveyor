@@ -119,7 +119,7 @@ class Rows:
 			raise Rows.OperationalError(item, 'insert')
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery) -> list[Row]:
+	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Row]:
 
 		model = Model(self.db, item_query.mask.type)
 
@@ -134,8 +134,8 @@ class Rows:
 
 		db_query = db_query.limit(item_query.limit)
 
-		return [
-			Row(
+		for r in db_query:
+			yield Row(
 				type=item_query.mask.type,
 				status=Item.Status(r.status),
 				chain=r.chain,
@@ -148,8 +148,6 @@ class Rows:
 					if not (name in Item.__dataclass_fields__ or name in ['id', 'digest'])
 				}),
 			)
-			for r in db_query
-		]
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: RowsItem, new: RowsItem) -> None:
