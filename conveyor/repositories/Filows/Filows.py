@@ -15,7 +15,7 @@ class Filows:
 	files: Files
 
 	@pydantic.validate_arguments
-	def create(self, item: Item) -> None:
+	def add(self, item: Item) -> None:
 		self.files.add(item.data)
 		self.rows.add(Row.from_item(item))
 
