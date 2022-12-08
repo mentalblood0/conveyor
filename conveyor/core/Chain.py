@@ -1,3 +1,4 @@
+import typing
 import pydantic
 
 from .Data import Data
@@ -21,14 +22,13 @@ class Chain:
 
 	@property
 	def value(self) -> str:
-
-		if type(self.ref) is Data:
-			return self.ref.digest.string
-
-		if type(self.ref) is Item:
-			return self.ref.chain.value
-
-		raise ValueError
+		match self.ref:
+			case Data():
+				return self.ref.digest.string
+			case Item():
+				return self.ref.chain.value
+			case _ as unreachable:
+				typing.assert_never(unreachable)
 
 	def __eq__(self, another: 'Chain') -> bool:
 		return self.value == another.value
