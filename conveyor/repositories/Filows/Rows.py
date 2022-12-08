@@ -9,25 +9,20 @@ from ...common.Model import Model, metadata_fields, BaseModel
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class RowsItem:
-
-	value: Item
-
-	@pydantic.validator('value')
-	def value_correct(cls, value):
-		for k in value.metadata.value:
-			if hasattr(value, k.value):
-				raise KeyError(f'Field name "{k}" reserved and can not be used in metadata')
-		return value
-
-
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Row(Item):
 
 	chain: str
 	digest: Digest
 	data: None = None
+	metadata: Item.Metadata
+
+	@pydantic.validator('metadata')
+	def metadata_correct(cls, metadata, values):
+		for k in metadata.value:
+			if k.value in values:
+				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
+		return metadata
 
 	@pydantic.validate_arguments
 	def item(self, data: Item.Data) -> Item:
@@ -44,6 +39,18 @@ class Row(Item):
 			reserved=self.reserved
 		)
 
+	@classmethod
+	@pydantic.validate_arguments
+	def from_item(cls, item: Item):
+		return Row(**{
+			k: v
+			for k, v in item.__dict__.items()
+			if k not in ['data', 'chain']
+		} | {
+			'digest': item.data.digest,
+			'chain': item.chain.value
+		})
+
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Rows:
@@ -52,40 +59,40 @@ class Rows:
 
 	class OperationalError(Exception):
 		@pydantic.validate_arguments
-		def __init__(self, item: RowsItem, action: str):
-			super().__init__(f'Item {action} (type={item.value.type}, status={item.value.status}, digest={item.value.data.digest.string}) had no result')
+		def __init__(self, item: Row, action: str):
+			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.digest.string}) had no result')
 
 	@pydantic.validate_arguments
-	def _row(self, item: RowsItem) -> dict[str, Item.Metadata.Value]:
+	def _row(self, item: Row) -> dict[str, Item.Metadata.Value]:
 		return dict[str, Item.Metadata.Value]({
-			'status': item.value.status.value,
-			'chain': item.value.chain.value,
-			'created': item.value.created.value,
-			'reserved': item.value.reserved,
-			'digest': item.value.data.digest.string
+			'status': item.status.value,
+			'chain': item.chain,
+			'created': item.created.value,
+			'reserved': item.reserved,
+			'digest': item.digest.string
 		}) | {
 			word.value: value
-			for word, value in item.value.metadata.value.items()
+			for word, value in item.metadata.value.items()
 		}
 
 	@pydantic.validate_arguments
-	def _model(self, item: RowsItem) -> type[BaseModel]:
+	def _model(self, item: Row) -> type[BaseModel]:
 		return Model(
 			db=self.db,
-			name=item.value.type,
+			name=item.type,
 			metadata_columns={
 				k: metadata_fields[type(v)]()
-				for k, v in item.value.metadata.value.items()
+				for k, v in item.metadata.value.items()
 			}
 		)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[BaseModel], item: RowsItem) -> tuple:
+	def _where(self, model: type[BaseModel], item: Row) -> tuple:
 		return (
-			model.status==item.value.status.value,
-			model.digest==item.value.data.digest.string,
-			model.chain==item.value.chain.value,
-			model.reserved==item.value.reserved
+			model.status==item.status.value,
+			model.digest==item.digest.string,
+			model.chain==item.chain,
+			model.reserved==item.reserved
 		)
 
 	@pydantic.validate_arguments
@@ -109,12 +116,12 @@ class Rows:
 		).execute()
 
 	@pydantic.validate_arguments
-	def unreserve(self, item: RowsItem) -> None:
-		model = Model(self.db, item.value.type)
+	def unreserve(self, item: Row) -> None:
+		model = Model(self.db, item.type)
 		model.update(reserved=None).where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
-	def add(self, item: RowsItem) -> None:
+	def add(self, item: Row) -> None:
 		if self._model(item).insert(**self._row(item)).execute() != 1:
 			raise Rows.OperationalError(item, 'insert')
 
@@ -146,13 +153,13 @@ class Rows:
 					Item.Metadata.Key(name): getattr(r, name)
 					for name in r.__data__
 					if not (name in Item.__dataclass_fields__ or name in ['id', 'digest'])
-				}),
+				})
 			)
 
 	@pydantic.validate_arguments
-	def __setitem__(self, old: RowsItem, new: RowsItem) -> None:
+	def __setitem__(self, old: Row, new: Row) -> None:
 
-		model = Model(self.db, old.value.type)
+		model = Model(self.db, old.type)
 
 		if (
 			model
@@ -162,8 +169,8 @@ class Rows:
 			raise Rows.OperationalError(old, 'update')
 
 	@pydantic.validate_arguments
-	def __delitem__(self, item: RowsItem) -> None:
-		model = Model(self.db, item.value.type)
+	def __delitem__(self, item: Row) -> None:
+		model = Model(self.db, item.type)
 		model.delete().where(*self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
