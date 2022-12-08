@@ -41,13 +41,13 @@ def test_path(valid_files, data):
 
 def test_append_get_delete(valid_files, data):
 
-	valid_files.add(data)
+	valid_files.add(Files.Item(data))
 	assert valid_files[data.digest] == data
 
-	del valid_files[data.digest]
+	del valid_files[Files.Item(data.digest)]
 	with pytest.raises(KeyError):
 		valid_files[data.digest]
 
 
 def test_delete_nonexistent(valid_files, data):
-	del valid_files[data.digest]
+	del valid_files[Files.Item(data.digest)]
