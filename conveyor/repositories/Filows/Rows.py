@@ -55,6 +55,8 @@ class Row(Item):
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Rows:
 
+	Item = Row
+
 	db: peewee.Database
 
 	class OperationalError(Exception):

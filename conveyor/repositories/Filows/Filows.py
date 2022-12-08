@@ -4,7 +4,7 @@ import dataclasses
 
 from ...core import Item, ItemQuery
 
-from . import Files, Rows, Row
+from . import Files, Rows
 
 
 
@@ -17,7 +17,7 @@ class Filows:
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
 		self.files.add(item.data)
-		self.rows.add(Row.from_item(item))
+		self.rows.add(Rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
 	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
@@ -25,11 +25,11 @@ class Filows:
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
-		self.rows.unreserve(Row.from_item(item))
+		self.rows.unreserve(Rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
-		self.rows[Row.from_item(old)] = Row.from_item(new)
+		self.rows[Rows.Item.from_item(old)] = Rows.Item.from_item(new)
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
@@ -38,7 +38,7 @@ class Filows:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		del self.rows[Row.from_item(item)]
+		del self.rows[Rows.Item.from_item(item)]
 		del self.files[item.data.digest]
 
 	@pydantic.validate_arguments

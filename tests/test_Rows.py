@@ -3,7 +3,7 @@ import pytest
 import datetime
 import dataclasses
 
-from conveyor.repositories.Filows import Rows, Row
+from conveyor.repositories.Filows import Rows
 from conveyor.core import Item, Chain, ItemQuery, ItemMask
 
 
@@ -45,7 +45,7 @@ def test_immutable(rows: Rows):
 
 def test_append_get_delete(rows: Rows, item: Item):
 
-	rows.add(Row.from_item(item))
+	rows.add(Rows.Item.from_item(item))
 
 	query = ItemQuery(
 		mask=ItemMask(
@@ -64,9 +64,9 @@ def test_append_get_delete(rows: Rows, item: Item):
 	assert saved.created == item.created
 	assert saved.reserved == item.reserved
 
-	del rows[Row.from_item(item)]
+	del rows[Rows.Item.from_item(item)]
 	assert not len([*rows[query]])
 
 
 def test_delete_nonexistent(rows, item):
-	del rows[Row.from_item(item)]
+	del rows[Rows.Item.from_item(item)]
