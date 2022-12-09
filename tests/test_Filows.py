@@ -5,7 +5,7 @@ import datetime
 import dataclasses
 
 from conveyor.core import Item, Chain, ItemQuery, ItemMask
-from conveyor.repositories.Filows import Filows, ItemsFiles, ItemsRows, Files, Rows
+from conveyor.repositories.Joint import Joint, ItemsFiles, ItemsRows, Files, Rows
 
 
 

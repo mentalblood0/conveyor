@@ -3,7 +3,7 @@ import pytest
 import datetime
 import dataclasses
 
-from conveyor.repositories.Filows import Rows
+from conveyor.repositories.Joint import Rows
 from conveyor.core import Item, Chain, ItemQuery, ItemMask
 
 

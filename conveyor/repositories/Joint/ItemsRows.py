@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing
 import pydantic
 
@@ -15,10 +13,7 @@ class ItemsRows:
 
 	@pydantic.validate_arguments
 	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
-		return self.rows.reserve(
-			item_query=item_query,
-			reserver=reserver
-		)
+		return self.rows.reserve(item_query, reserver)
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
