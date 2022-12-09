@@ -3,47 +3,11 @@ import pathlib
 import pydantic
 import dataclasses
 
-from ...core import Digest, Data, Item
-
-
-
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class File:
-
-	data_or_digest: Data | Digest
-
-	@property
-	def data(self):
-		match self.data_or_digest:
-			case Data():
-				return self.data_or_digest
-			case Digest():
-				raise AttributeError
-			case _ as unreachable:
-				typing.assert_never(unreachable)
-
-	@property
-	def digest(self):
-		match self.data_or_digest:
-			case Data():
-				return self.data_or_digest.digest
-			case Digest():
-				return self.data_or_digest
-			case _ as unreachable:
-				typing.assert_never(unreachable)
-
-	@classmethod
-	@pydantic.validate_arguments
-	def from_item(cls, item: Item):
-		return File(
-			item.data
-		)
+from ...core import Digest, Data
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Files:
-
-	Item = File
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
@@ -55,21 +19,19 @@ class Files:
 		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
-	def add(self, file: File) -> None:
+	def add(self, data: Data) -> None:
 
-		path = self.path(file.data.digest)
+		path = self.path(data.digest)
 		path.parent.mkdir(parents=True, exist_ok=True)
 
 		try:
 			with path.open('xb') as f:
-				f.write(file.data.value)
+				f.write(data.value)
 
 		except FileExistsError:
-			if file.data != Data(value=path.read_bytes()):
+			if data != Data(value=path.read_bytes()):
 				self.add(
-					File(
-						self.transform(file.data)
-					)
+					self.transform(data)
 				)
 
 	@pydantic.validate_arguments
@@ -83,9 +45,9 @@ class Files:
 			raise KeyError(f'{self.root} {digest.string}')
 
 	@pydantic.validate_arguments
-	def __delitem__(self, file: File) -> None:
+	def __delitem__(self, digest: Digest) -> None:
 
-		p = self.path(file.digest)
+		p = self.path(digest)
 		p.unlink(missing_ok=True)
 
 		while len(p.parts) > 1:
@@ -96,5 +58,5 @@ class Files:
 				break
 
 	@pydantic.validate_arguments
-	def __contains__(self, file: File) -> bool:
-		return self.path(file.digest).exists()
+	def __contains__(self, digest: Digest) -> bool:
+		return self.path(digest).exists()

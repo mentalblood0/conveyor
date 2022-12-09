@@ -176,7 +176,7 @@ class Rows:
 		model.delete().where(*self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable[[typing.Callable], typing.Callable]:
+	def transaction(self, f: typing.Callable) -> typing.Callable:
 
 		def new_f(*args, **kwargs):
 			with self.db.transaction():

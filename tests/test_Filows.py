@@ -4,8 +4,8 @@ import pathlib
 import datetime
 import dataclasses
 
-from conveyor.repositories.Filows import Filows, Files, Rows
 from conveyor.core import Item, Chain, ItemQuery, ItemMask
+from conveyor.repositories.Filows import Filows, ItemsFiles, ItemsRows, Files, Rows
 
 
 
@@ -32,8 +32,8 @@ def item():
 @pytest.fixture
 def filows():
 	return Filows(
-		rows=Rows(db),
-		files=Files(root=pathlib.Path('.'), suffix='.txt')
+		rows=ItemsRows(Rows(db)),
+		files=ItemsFiles(Files(root=pathlib.Path('.'), suffix='.txt'))
 	)
 
 

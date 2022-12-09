@@ -4,20 +4,20 @@ import dataclasses
 
 from ...core import Item, ItemQuery
 
-from . import Files, Rows
+from . import ItemsFiles, ItemsRows
 
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Filows:
 
-	rows: Rows
-	files: Files
+	rows: ItemsRows
+	files: ItemsFiles
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
-		self.files.add(self.files.Item.from_item(item))
-		self.rows.add(self.rows.Item.from_item(item))
+		self.files.add(item)
+		self.rows.add(item)
 
 	@pydantic.validate_arguments
 	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
@@ -25,11 +25,11 @@ class Filows:
 
 	@pydantic.validate_arguments
 	def unreserve(self, item: Item) -> None:
-		self.rows.unreserve(self.rows.Item.from_item(item))
+		self.rows.unreserve(item)
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
-		self.rows[self.rows.Item.from_item(old)] = self.rows.Item.from_item(new)
+		self.rows[old] = new
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
@@ -38,9 +38,11 @@ class Filows:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		del self.rows[self.rows.Item.from_item(item)]
-		del self.files[self.files.Item.from_item(item)]
+		del self.rows[item]
+		del self.files[item]
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable[[typing.Callable], typing.Callable]:
-		return self.rows.transaction(f)
+	def transaction(self, f: typing.Callable) -> typing.Callable:
+		return self.rows.transaction(
+			self.files.transaction(f)
+		)
