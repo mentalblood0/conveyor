@@ -13,7 +13,7 @@ class Rows(PartRepository):
 	rows: _Rows
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
 		return self.rows.reserve(item_query, reserver)
 
 	@pydantic.validate_arguments

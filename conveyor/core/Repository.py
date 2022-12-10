@@ -13,7 +13,7 @@ class Repository:
 	parts: typing.Sequence[PartRepository]
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
 		for p in reversed(self.parts):
 			p.reserve(item_query, reserver)
 

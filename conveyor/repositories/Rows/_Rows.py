@@ -84,18 +84,19 @@ class _Rows:
 		)
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
 
 		model = Model(self.db, item_query.mask.type)
 
 		model.update(
-			reserved=reserver
+			reserved=True,
+			reserver=reserver
 		).where(
 			model.digest << (
 				model
 				.select(model.digest)
 				.where(
-					model.reserved==None,
+					model.reserved==False,
 					model.status==item_query.mask.status
 				)
 				.order_by(peewee.fn.Random())
