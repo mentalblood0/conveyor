@@ -2,7 +2,7 @@ import pytest
 import pydantic
 import dataclasses
 
-from conveyor.core import Data, Digest
+from conveyor.core.Item import Data, Digest
 
 
 

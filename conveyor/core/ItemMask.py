@@ -1,7 +1,7 @@
 import pydantic
 
-from .Item import Item
-from .Data import Data
+from .Item.Item import Item
+from .Item.Data import Data
 from .Chain import Chain
 
 

@@ -3,22 +3,22 @@ import datetime
 import pydantic
 import dataclasses
 
-from conveyor.core import Data, Item, Chain, Created, Word
+from conveyor.core import Chain, Item
 
 
 
 @pytest.fixture
 def item() -> Item:
 
-	data = Data(value=b'')
+	data = Item.Data(value=b'')
 
 	return Item(
-		type=Word('type'),
-		status=Word('status'),
+		type=Item.Type('type'),
+		status=Item.Status('status'),
 		data=data,
-		metadata=Item.Metadata({Word('a'): 'a'}),
+		metadata=Item.Metadata({Item.Metadata.Key('a'): 'a'}),
 		chain=Chain(ref=data),
-		created=Created(value=datetime.datetime.utcnow()),
+		created=Item.Created(value=datetime.datetime.utcnow()),
 		reserved=False,
 		reserver=None
 	)
@@ -34,8 +34,8 @@ def test_type_is_word(item: Item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(item, type='+')
 
-	dataclasses.replace(item, type=Word('l'))
-	dataclasses.replace(item, type=Word('lalala'))
+	dataclasses.replace(item, type=Item.Type('l'))
+	dataclasses.replace(item, type=Item.Type('lalala'))
 
 
 @pydantic.validate_arguments
@@ -44,26 +44,26 @@ def test_status_is_word(item: Item):
 	with pytest.raises(pydantic.ValidationError):
 		dataclasses.replace(item, status=b'lalala')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(item, status=Word(''))
+		dataclasses.replace(item, status=Item.Status(''))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(item, status=Word('+'))
+		dataclasses.replace(item, status=Item.Status('+'))
 
-	dataclasses.replace(item, status=Word('l'))
-	dataclasses.replace(item, status=Word('lalala'))
+	dataclasses.replace(item, status=Item.Status('l'))
+	dataclasses.replace(item, status=Item.Status('lalala'))
 
 
 @pydantic.validate_arguments
 def test_metadata_is_metadata(item: Item):
 
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(item, metadata=Item.Metadata({Word('a'): b''}))
+		dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): b''}))
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(item, metadata=Item.Metadata({Word('a'): {}}))
+		dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): {}}))
 
-	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 'str'}))
-	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 1}))
-	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 1.0}))
-	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): datetime.datetime.utcnow()}))
+	dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): 'str'}))
+	dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): 1}))
+	dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): 1.0}))
+	dataclasses.replace(item, metadata=Item.Metadata({Item.Metadata.Key('a'): datetime.datetime.utcnow()}))
 
 
 @pydantic.validate_arguments
@@ -94,8 +94,8 @@ def test_immutable(item: Item):
 @pydantic.validate_arguments
 def test_metadata_immutable(item: Item):
 	with pytest.raises(TypeError):
-		item.metadata['a'] = 'b'
+		item.metadata.value['a'] = 'b'
 	with pytest.raises(TypeError):
-		del item.metadata['a']
+		del item.metadata.value['a']
 	with pytest.raises(TypeError):
-		item.metadata['b'] = 'b'
+		item.metadata.value['b'] = 'b'

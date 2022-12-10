@@ -4,7 +4,8 @@ import peewee
 import typing
 import pydantic
 
-from ...core import Item, ItemQuery, Digest, Chain, Base64String
+from ...core.Item import Base64String
+from ...core import Item, ItemQuery, Chain
 from ...common.Model import Model, metadata_fields, BaseModel
 
 
@@ -13,7 +14,7 @@ from ...common.Model import Model, metadata_fields, BaseModel
 class Row(Item):
 
 	chain: str
-	digest: Digest
+	digest: Item.Data.Digest
 	data: None = None
 	metadata: Item.Metadata
 
@@ -136,7 +137,7 @@ class _Rows:
 				created=Item.Created(r.created),
 				reserved=r.reserved,
 				reserver=r.reserver,
-				digest=Digest(Base64String(r.digest)),
+				digest=Item.Data.Digest(Base64String(r.digest)),
 				metadata=Item.Metadata({
 					Item.Metadata.Key(name): getattr(r, name)
 					for name in r.__data__

@@ -3,7 +3,7 @@ import pathlib
 import pydantic
 import dataclasses
 
-from conveyor.core import Data
+from conveyor.core.Item import Data
 from conveyor.repositories.Files import _Files
 
 

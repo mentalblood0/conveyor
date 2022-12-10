@@ -3,7 +3,7 @@ import pathlib
 import pydantic
 import dataclasses
 
-from ...core import Digest, Data
+from ...core.Item import Digest, Data
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
