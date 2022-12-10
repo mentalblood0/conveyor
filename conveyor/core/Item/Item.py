@@ -1,8 +1,8 @@
 import re
+import types
 import typing
 import datetime
 import pydantic
-import frozendict
 
 from .Data import Data
 from .Created import Created
@@ -34,7 +34,7 @@ class Item:
 
 		@pydantic.validator('value')
 		def value_correct(cls, value):
-			return frozendict.frozendict(value)
+			return types.MappingProxyType(value)
 
 	Type         = Word
 	Status       = Word
