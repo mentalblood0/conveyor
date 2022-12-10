@@ -19,7 +19,8 @@ def valid_item():
 		metadata=Item.Metadata({Word('a'): 'a'}),
 		chain=Chain(ref=data),
 		created=Created(value=datetime.datetime.utcnow()),
-		reserved=None
+		reserved=False,
+		reserver=None
 	)
 
 

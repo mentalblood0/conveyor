@@ -1,8 +1,9 @@
 import typing
 import pydantic
+import dataclasses
 
 from . import Files
-from ...core import Digest, Data, Item, ItemQuery
+from ...core import Item, ItemQuery, ItemPart, Chain
 
 
 
@@ -24,8 +25,13 @@ class ItemsFiles:
 		return self.files.add(item.data)
 
 	@pydantic.validate_arguments
-	def __getitem__(self, digest: Digest) -> Data:
-		return self.files[digest]
+	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
+		data = self.files[accumulator.digest]
+		yield dataclasses.replace(
+			accumulator,
+			data_=data,
+			chain_=Chain(ref=data)
+		)
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:

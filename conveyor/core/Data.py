@@ -8,6 +8,8 @@ from .Digest import Digest
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Data:
 
+	Digest = Digest
+
 	value: pydantic.StrictBytes
 	test: Digest | None = None
 

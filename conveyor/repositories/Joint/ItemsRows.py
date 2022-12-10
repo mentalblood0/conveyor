@@ -1,8 +1,9 @@
 import typing
 import pydantic
+import dataclasses
 
-from . import Rows, Row
-from ...core import Item, ItemQuery
+from . import Rows
+from ...core import Item, ItemQuery, ItemPart, Chain
 
 
 
@@ -24,8 +25,18 @@ class ItemsRows:
 		return self.rows.add(self.rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Row]:
-		return self.rows[item_query]
+	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
+		for r in self.rows[item_query]:
+			yield dataclasses.replace(
+				accumulator,
+				type_=r.type,
+				status_=r.status,
+				digest_=r.digest,
+				metadata_=r.metadata,
+				created_=r.created,
+				reserved_=r.reserved,
+				reserver_=r.reserver
+			)
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:

@@ -26,29 +26,30 @@ def item():
 		}),
 		chain=Chain(ref=data),
 		created=Item.Created(datetime.datetime.utcnow()),
-		reserved=None
+		reserved=False,
+		reserver=None
 	)
 
 @pytest.fixture
-def filows():
-	return Filows(
-		rows=ItemsRows(Rows(db)),
-		files=ItemsFiles(Files(root=pathlib.Path('.'), suffix='.txt'))
-	)
+def joint():
+	return Joint([
+		ItemsRows(Rows(db)),
+		ItemsFiles(Files(root=pathlib.Path('.'), suffix='.txt'))
+	])
 
 
-def test_immutable(filows: Filows):
+def test_immutable(joint: Joint):
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		filows.db = b'x'
+		joint.parts = b'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		del filows.db
+		del joint.parts
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		filows.x = b'x'
+		joint.x = b'x'
 
 
-def test_append_get_delete(filows: Filows, item: Item):
+def test_append_get_delete(joint: Joint, item: Item):
 
-	filows.add(item)
+	joint.add(item)
 
 	query = ItemQuery(
 		mask=ItemMask(
@@ -56,7 +57,7 @@ def test_append_get_delete(filows: Filows, item: Item):
 		),
 		limit=None
 	)
-	saved_items = [*filows[query]]
+	saved_items = [*joint[query]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
 	assert saved.type == item.type
@@ -67,9 +68,9 @@ def test_append_get_delete(filows: Filows, item: Item):
 	assert saved.created == item.created
 	assert saved.reserved == item.reserved
 
-	del filows[item]
-	assert not len([*filows[query]])
+	del joint[item]
+	assert not len([*joint[query]])
 
 
-def test_delete_nonexistent(filows, item):
-	del filows[item]
+def test_delete_nonexistent(joint, item):
+	del joint[item]

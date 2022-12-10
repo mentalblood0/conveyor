@@ -26,7 +26,8 @@ class BaseModel(peewee.Model):
 	digest   = peewee.CharField(max_length=127, index=True),
 	chain    = peewee.CharField(max_length=63, index=True),
 	created  = peewee.DateTimeField(index=True, null=False),
-	reserved = peewee.CharField(max_length=63, index=True, default=None, null=True)
+	reserved = peewee.BooleanField(index=True, default=False, null=False),
+	reserver = peewee.CharField(max_length=63, index=True, default=None, null=True)
 
 
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
@@ -80,7 +81,8 @@ def Model(
 					'digest'   : peewee.CharField(max_length=127, index=True),
 					'chain'    : peewee.CharField(max_length=63, index=True),
 					'created'  : peewee.DateTimeField(index=True, null=False),
-					'reserved' : peewee.CharField(max_length=63, index=True, default=None, null=True),
+					'reserved' : peewee.BooleanField(index=True, default=False, null=False),
+					'reserver' : peewee.CharField(max_length=63, index=True, default=None, null=True),
 					'Meta': type(
 						'Meta',
 						(),

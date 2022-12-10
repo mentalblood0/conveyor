@@ -30,7 +30,8 @@ def item():
 		}),
 		chain=Chain(ref=data),
 		created=Item.Created(datetime.datetime.utcnow()),
-		reserved=None
+		reserved=False,
+		reserver=None
 	)
 
 

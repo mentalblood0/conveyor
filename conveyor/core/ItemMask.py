@@ -1,5 +1,4 @@
 import pydantic
-import dataclasses
 
 from .Item import Item
 from .Data import Data
@@ -17,6 +16,7 @@ class ItemMask:
 	chain:       Chain         | None = None
 	created:     Item.Created  | None = None
 	reserved:    Item.Reserved | None = None
+	reserver:    Item.Reserver | None = None
 
 	@property
 	def conditions(self) -> dict[str, Item.Metadata.Value]:
@@ -40,5 +40,6 @@ class ItemMask:
 			result['created'] = self.created.value
 		if self.reserved is not None:
 			result['reserved'] = self.reserved
+			result['reserver'] = self.reserver
 
 		return result

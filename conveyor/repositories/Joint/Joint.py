@@ -2,13 +2,13 @@ import typing
 import pydantic
 import dataclasses
 
-from ...core import Item, ItemQuery
+from ...core import Item, ItemQuery, ItemPart
 
 from . import ItemsFiles, ItemsRows
 
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Joint:
 
 	parts: list[ItemsRows | ItemsFiles]
@@ -30,8 +30,22 @@ class Joint:
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
-		for r in self.rows[item_query]:
-			yield r.item(self.files[r.digest])
+
+		result: tuple[ItemPart] = (ItemPart(),)
+
+		for repository in self.parts:
+			new_result = []
+			for item_part in result:
+				new_result.extend(
+					repository.get(
+						item_query,
+						item_part
+					)
+				)
+			result = tuple(new_result)
+
+		for r in result:
+			yield r.item
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:

@@ -40,7 +40,8 @@ class Item:
 	Status       = Word
 	Data         = Data
 	Created      = Created
-	Reserved     = str | None
+	Reserved     = bool
+	Reserver     = str | None
 
 	BaseKey      = Word
 	Key          = BaseKey | Metadata.Key
@@ -58,6 +59,14 @@ class Item:
 	chain:         'Chain'
 	created:       Created
 	reserved:      Reserved
+	reserver:      Reserver
+
+	@pydantic.validator('reserver')
+	def reserver_correct(cls, reserver, values):
+		if values['reserved']:
+			if reserver is None:
+				raise ValueError('Item marked as reserved but reserver is not specified')
+		return reserver
 
 
 

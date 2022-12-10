@@ -24,21 +24,6 @@ class Row(Item):
 				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
 		return metadata
 
-	@pydantic.validate_arguments
-	def item(self, data: Item.Data) -> Item:
-		return Item(
-			type=self.type,
-			status=self.status,
-			data=data,
-			metadata=self.metadata,
-			chain=Chain(
-				ref=data,
-				test=self.chain
-			),
-			created=self.created,
-			reserved=self.reserved
-		)
-
 	@classmethod
 	@pydantic.validate_arguments
 	def from_item(cls, item: Item):
@@ -150,6 +135,7 @@ class Rows:
 				chain=r.chain,
 				created=Item.Created(r.created),
 				reserved=r.reserved,
+				reserver=r.reserver,
 				digest=Digest(Base64String(r.digest)),
 				metadata=Item.Metadata({
 					Item.Metadata.Key(name): getattr(r, name)
