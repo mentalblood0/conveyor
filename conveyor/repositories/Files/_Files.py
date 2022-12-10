@@ -7,7 +7,7 @@ from ...core import Digest, Data
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Files:
+class _Files:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr

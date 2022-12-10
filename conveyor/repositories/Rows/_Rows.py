@@ -38,7 +38,7 @@ class Row(Item):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
-class Rows:
+class _Rows:
 
 	Item = Row
 
@@ -110,7 +110,7 @@ class Rows:
 	@pydantic.validate_arguments
 	def add(self, item: Row) -> None:
 		if self._model(item).insert(**self._row(item)).execute() != 1:
-			raise Rows.OperationalError(item, 'insert')
+			raise _Rows.OperationalError(item, 'insert')
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Row]:
@@ -154,7 +154,7 @@ class Rows:
 			.update(**self._row(new))
 			.where(self._where(model, old)).execute()
 		) != 1:
-			raise Rows.OperationalError(old, 'update')
+			raise _Rows.OperationalError(old, 'update')
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Row) -> None:

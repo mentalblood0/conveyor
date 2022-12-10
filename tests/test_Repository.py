@@ -2,10 +2,12 @@ import peewee
 import pytest
 import pathlib
 import datetime
+import pydantic
 import dataclasses
 
-from conveyor.core import Item, Chain, ItemQuery, ItemMask
-from conveyor.repositories.Joint import Joint, ItemsFiles, ItemsRows, Files, Rows
+from conveyor.core import Item, Chain, ItemQuery, ItemMask, Repository
+from conveyor.repositories.Rows import _Rows, Rows
+from conveyor.repositories.Files import _Files, Files
 
 
 
@@ -13,7 +15,7 @@ db = peewee.SqliteDatabase(':memory:')
 
 
 @pytest.fixture
-def item():
+def item() -> Item:
 
 	data = Item.Data(value=b'')
 
@@ -31,25 +33,27 @@ def item():
 	)
 
 @pytest.fixture
-def joint():
-	return Joint([
-		ItemsRows(Rows(db)),
-		ItemsFiles(Files(root=pathlib.Path('.'), suffix='.txt'))
+def repository() -> Repository:
+	return Repository([
+		Rows(_Rows(db)),
+		Files(_Files(root=pathlib.Path('.'), suffix='.txt'))
 	])
 
 
-def test_immutable(joint: Joint):
+@pydantic.validate_arguments
+def test_immutable(repository: Repository):
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		joint.parts = b'x'
+		repository.parts = b'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		del joint.parts
+		del repository.parts
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		joint.x = b'x'
+		repository.x = b'x'
 
 
-def test_append_get_delete(joint: Joint, item: Item):
+@pydantic.validate_arguments
+def test_append_get_delete(repository: Repository, item: Item):
 
-	joint.add(item)
+	repository.add(item)
 
 	query = ItemQuery(
 		mask=ItemMask(
@@ -57,7 +61,7 @@ def test_append_get_delete(joint: Joint, item: Item):
 		),
 		limit=None
 	)
-	saved_items = [*joint[query]]
+	saved_items = [*repository[query]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
 	assert saved.type == item.type
@@ -68,9 +72,10 @@ def test_append_get_delete(joint: Joint, item: Item):
 	assert saved.created == item.created
 	assert saved.reserved == item.reserved
 
-	del joint[item]
-	assert not len([*joint[query]])
+	del repository[item]
+	assert not len([*repository[query]])
 
 
-def test_delete_nonexistent(joint, item):
-	del joint[item]
+@pydantic.validate_arguments
+def test_delete_nonexistent(repository: Repository, item: Item):
+	del repository[item]

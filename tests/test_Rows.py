@@ -1,10 +1,11 @@
 import peewee
 import pytest
 import datetime
+import pydantic
 import dataclasses
 
-from conveyor.repositories.Joint import Rows
-from conveyor.core import Item, Chain, ItemQuery, ItemMask
+from conveyor.repositories.Rows._Rows import _Rows, Row
+from conveyor.core import Data, Chain, ItemQuery, ItemMask
 
 
 
@@ -12,30 +13,31 @@ db = peewee.SqliteDatabase(':memory:')
 
 
 @pytest.fixture
-def rows():
-	return Rows(db)
+def rows() -> _Rows:
+	return _Rows(db)
 
 
 @pytest.fixture
-def item():
+def row() -> Row:
 
-	data = Item.Data(value=b'')
+	data = Data(value=b'')
 
-	return Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		data=data,
-		metadata=Item.Metadata({
-			Item.Metadata.Key('key'): 'value'
+	return Row(
+		type=Row.Type('type'),
+		status=Row.Status('status'),
+		digest=data.digest,
+		metadata=Row.Metadata({
+			Row.Metadata.Key('key'): 'value'
 		}),
-		chain=Chain(ref=data),
-		created=Item.Created(datetime.datetime.utcnow()),
+		chain=Chain(ref=data).value,
+		created=Row.Created(datetime.datetime.utcnow()),
 		reserved=False,
 		reserver=None
 	)
 
 
-def test_immutable(rows: Rows):
+@pydantic.validate_arguments
+def test_immutable(rows: _Rows):
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		rows.db = b'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
@@ -44,30 +46,32 @@ def test_immutable(rows: Rows):
 		rows.x = b'x'
 
 
-def test_append_get_delete(rows: Rows, item: Item):
+@pydantic.validate_arguments
+def test_append_get_delete(rows: _Rows, row: Row):
 
-	rows.add(Rows.Item.from_item(item))
+	rows.add(row)
 
 	query = ItemQuery(
 		mask=ItemMask(
-			type=item.type
+			type=row.type
 		),
 		limit=None
 	)
 	saved_items = [*rows[query]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
-	assert saved.type == item.type
-	assert saved.status == item.status
-	assert saved.digest == item.data.digest
-	assert saved.metadata == item.metadata
-	assert saved.chain == item.chain.value
-	assert saved.created == item.created
-	assert saved.reserved == item.reserved
+	assert saved.type == row.type
+	assert saved.status == row.status
+	assert saved.digest == row.digest
+	assert saved.metadata == row.metadata
+	assert saved.chain == row.chain
+	assert saved.created == row.created
+	assert saved.reserved == row.reserved
 
-	del rows[Rows.Item.from_item(item)]
+	del rows[row]
 	assert not len([*rows[query]])
 
 
-def test_delete_nonexistent(rows, item):
-	del rows[Rows.Item.from_item(item)]
+@pydantic.validate_arguments
+def test_delete_nonexistent(rows: _Rows, row: Row):
+	del rows[row]

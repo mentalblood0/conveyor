@@ -8,7 +8,7 @@ from conveyor.core import Data, Item, Chain, Created, Word
 
 
 @pytest.fixture
-def valid_item():
+def item() -> Item:
 
 	data = Data(value=b'')
 
@@ -24,71 +24,78 @@ def valid_item():
 	)
 
 
-def test_type_is_word(valid_item):
+@pydantic.validate_arguments
+def test_type_is_word(item: Item):
 
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, type=b'lalala')
+		dataclasses.replace(item, type=b'lalala')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, type='')
+		dataclasses.replace(item, type='')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, type='+')
+		dataclasses.replace(item, type='+')
 
-	dataclasses.replace(valid_item, type=Word('l'))
-	dataclasses.replace(valid_item, type=Word('lalala'))
-
-
-def test_status_is_word(valid_item):
-
-	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status=b'lalala')
-	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status=Word(''))
-	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, status=Word('+'))
-
-	dataclasses.replace(valid_item, status=Word('l'))
-	dataclasses.replace(valid_item, status=Word('lalala'))
+	dataclasses.replace(item, type=Word('l'))
+	dataclasses.replace(item, type=Word('lalala'))
 
 
-def test_metadata_is_metadata(valid_item):
+@pydantic.validate_arguments
+def test_status_is_word(item: Item):
 
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): b''}))
+		dataclasses.replace(item, status=b'lalala')
 	with pytest.raises(pydantic.ValidationError):
-		dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): {}}))
+		dataclasses.replace(item, status=Word(''))
+	with pytest.raises(pydantic.ValidationError):
+		dataclasses.replace(item, status=Word('+'))
 
-	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 'str'}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 1}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): 1.0}))
-	dataclasses.replace(valid_item, metadata=Item.Metadata({Word('a'): datetime.datetime.utcnow()}))
+	dataclasses.replace(item, status=Word('l'))
+	dataclasses.replace(item, status=Word('lalala'))
 
 
-def test_chain_ref_is_data_or_item(valid_item):
+@pydantic.validate_arguments
+def test_metadata_is_metadata(item: Item):
+
+	with pytest.raises(pydantic.ValidationError):
+		dataclasses.replace(item, metadata=Item.Metadata({Word('a'): b''}))
+	with pytest.raises(pydantic.ValidationError):
+		dataclasses.replace(item, metadata=Item.Metadata({Word('a'): {}}))
+
+	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 'str'}))
+	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 1}))
+	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): 1.0}))
+	dataclasses.replace(item, metadata=Item.Metadata({Word('a'): datetime.datetime.utcnow()}))
+
+
+@pydantic.validate_arguments
+def test_chain_ref_is_data_or_item(item: Item):
 
 	with pytest.raises(pydantic.ValidationError):
 		Chain(ref='lalala')
 
-	Chain(ref=valid_item.data)
-	Chain(ref=valid_item)
+	Chain(ref=item.data)
+	Chain(ref=item)
 
 
-def test_chain_equal(valid_item):
-	assert Chain(ref=valid_item.data) == Chain(ref=valid_item)
+@pydantic.validate_arguments
+def test_chain_equal(item: Item):
+	assert Chain(ref=item.data) == Chain(ref=item)
 
 
-def test_immutable(valid_item):
+@pydantic.validate_arguments
+def test_immutable(item: Item):
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		valid_item.type = 'x'
+		item.type = 'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		del valid_item.value
+		del item.value
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		valid_item.x = 'x'
+		item.x = 'x'
 
 
-def test_metadata_immutable(valid_item):
+@pydantic.validate_arguments
+def test_metadata_immutable(item: Item):
 	with pytest.raises(TypeError):
-		valid_item.metadata['a'] = 'b'
+		item.metadata['a'] = 'b'
 	with pytest.raises(TypeError):
-		del valid_item.metadata['a']
+		del item.metadata['a']
 	with pytest.raises(TypeError):
-		valid_item.metadata['b'] = 'b'
+		item.metadata['b'] = 'b'

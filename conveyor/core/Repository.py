@@ -3,16 +3,14 @@ import pydantic
 import itertools
 import dataclasses
 
-from ...core import Item, ItemQuery, ItemPart
-
-from . import ItemsFiles, ItemsRows
+from . import Item, ItemQuery, ItemPart, PartRepository
 
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
-class Joint:
+class Repository:
 
-	parts: list[ItemsRows | ItemsFiles]
+	parts: typing.Sequence[PartRepository]
 
 	@pydantic.validate_arguments
 	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:

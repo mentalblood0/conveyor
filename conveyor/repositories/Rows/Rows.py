@@ -2,15 +2,15 @@ import typing
 import pydantic
 import dataclasses
 
-from . import Rows
-from ...core import Item, ItemQuery, ItemPart, Chain
+from ._Rows import _Rows
+from ...core import Item, ItemQuery, ItemPart, PartRepository
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class ItemsRows:
+class Rows(PartRepository):
 
-	rows: Rows
+	rows: _Rows
 
 	@pydantic.validate_arguments
 	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:

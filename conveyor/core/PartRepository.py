@@ -1,19 +1,15 @@
 import typing
 import pydantic
-import dataclasses
 
-from . import Files
-from ...core import Item, ItemQuery, ItemPart, Chain
+from . import Item, ItemQuery, ItemPart
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class ItemsFiles:
-
-	files: Files
+@pydantic.dataclasses.dataclass(frozen=True)
+class PartRepository:
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved):
+	def reserve(self, item_query: ItemQuery, reserver: Item.Reserved) -> None:
 		pass
 
 	@pydantic.validate_arguments
@@ -22,16 +18,11 @@ class ItemsFiles:
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
-		return self.files.add(item.data)
+		pass
 
 	@pydantic.validate_arguments
 	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
-		data = self.files[accumulator.digest]
-		yield dataclasses.replace(
-			accumulator,
-			data_=data,
-			chain_=Chain(ref=data)
-		)
+		raise NotImplemented
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
@@ -39,8 +30,8 @@ class ItemsFiles:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		return self.files.__delitem__(item.data.digest)
+		pass
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable:
-		return f
+		raise NotImplemented
