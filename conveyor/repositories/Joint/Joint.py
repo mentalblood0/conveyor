@@ -1,5 +1,6 @@
 import typing
 import pydantic
+import itertools
 import dataclasses
 
 from ...core import Item, ItemQuery, ItemPart
@@ -31,18 +32,16 @@ class Joint:
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
 
-		result: tuple[ItemPart] = (ItemPart(),)
+		result: itertools.chain[ItemPart] = itertools.chain((ItemPart(),))
 
 		for repository in self.parts:
-			new_result = []
-			for item_part in result:
-				new_result.extend(
-					repository.get(
-						item_query,
-						item_part
-					)
+			result = itertools.chain.from_iterable([
+				repository.get(
+					item_query,
+					item_part
 				)
-			result = tuple(new_result)
+				for item_part in result
+			])
 
 		for r in result:
 			yield r.item
