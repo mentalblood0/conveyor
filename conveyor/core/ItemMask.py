@@ -15,7 +15,6 @@ class ItemMask:
 	metadata:    Item.Metadata | None = None
 	chain:       Chain         | None = None
 	created:     Item.Created  | None = None
-	reserved:    Item.Reserved | None = None
 	reserver:    Item.Reserver | None = None
 
 	@property
@@ -38,8 +37,7 @@ class ItemMask:
 			result['chain'] = self.chain.value
 		if self.created is not None:
 			result['created'] = self.created.value
-		if self.reserved is not None:
-			result['reserved'] = self.reserved
-			result['reserver'] = self.reserver
+		if self.reserver is not None:
+			result['reserver'] = self.reserver.value
 
 		return result

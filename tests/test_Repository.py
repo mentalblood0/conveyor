@@ -9,28 +9,12 @@ from conveyor.repositories.Rows import _Rows, Rows
 from conveyor.repositories.Files import _Files, Files
 from conveyor.core import Item, Chain, ItemQuery, ItemMask, Repository
 
+from .common import *
+
 
 
 db = peewee.SqliteDatabase(':memory:')
 
-
-@pytest.fixture
-def item() -> Item:
-
-	data = Item.Data(value=b'')
-
-	return Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		data=data,
-		metadata=Item.Metadata({
-			Item.Metadata.Key('key'): 'value'
-		}),
-		chain=Chain(ref=data),
-		created=Item.Created(datetime.datetime.utcnow()),
-		reserved=False,
-		reserver=None
-	)
 
 @pytest.fixture
 def repository() -> Repository:
@@ -70,7 +54,7 @@ def test_append_get_delete(repository: Repository, item: Item):
 	assert saved.metadata == item.metadata
 	assert saved.chain == item.chain
 	assert saved.created == item.created
-	assert saved.reserved == item.reserved
+	assert saved.reserver == item.reserver
 
 	del repository[item]
 	assert not len([*repository[query]])

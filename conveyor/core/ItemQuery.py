@@ -7,8 +7,10 @@ from .ItemMask import ItemMask
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class ItemQuery:
 
+	Limit = int | None
+
 	mask: ItemMask
-	limit: int | None
+	limit: Limit
 
 	@pydantic.validator('limit')
 	def limit_correct(cls, limit):

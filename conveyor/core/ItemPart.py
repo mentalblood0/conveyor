@@ -20,7 +20,6 @@ class ItemPart:
 	metadata_:    Item.Metadata    | None = None
 	chain_:       Chain            | None = None
 	created_:     Item.Created     | None = None
-	reserved_:    Item.Reserved    | None = None
 	reserver_:    Item.Reserver    | None = None
 
 	@pydantic.validator('digest_')
@@ -53,7 +52,6 @@ class ItemPart:
 			metadata=self.metadata,
 			chain=self.chain,
 			created=self.created,
-			reserved=self.reserved,
 			reserver=self.reserver
 		)
 
@@ -61,7 +59,7 @@ class ItemPart:
 	def type(self) -> Item.Type:
 		match self.type_:
 			case None:
-				raise AccessError('Field `type` not specified yet')
+				raise AccessError('Item part has no field `type` yet')
 			case _:
 				return self.type_
 
@@ -69,7 +67,7 @@ class ItemPart:
 	def status(self) -> Item.Status:
 		match self.status_:
 			case None:
-				raise AccessError('Field `status` not specified yet')
+				raise AccessError('Item part has no field `status` yet')
 			case _:
 				return self.status_
 
@@ -77,7 +75,7 @@ class ItemPart:
 	def data(self) -> Item.Data:
 		match self.data_:
 			case None:
-				raise AccessError('Field `data` not specified yet')
+				raise AccessError('Item part has no field `data` yet')
 			case _:
 				return self.data_
 
@@ -85,7 +83,7 @@ class ItemPart:
 	def digest(self) -> Item.Data.Digest:
 		match self.digest_:
 			case None:
-				raise AccessError('Field `digest` not specified yet')
+				raise AccessError('Item part has no field `digest` yet')
 			case _:
 				return self.digest_
 
@@ -93,7 +91,7 @@ class ItemPart:
 	def metadata(self) -> Item.Metadata:
 		match self.metadata_:
 			case None:
-				raise AccessError('Field `metadata` not specified yet')
+				raise AccessError('Item part has no field `metadata` yet')
 			case _:
 				return self.metadata_
 
@@ -101,7 +99,7 @@ class ItemPart:
 	def chain(self) -> Chain:
 		match self.chain_:
 			case None:
-				raise AccessError('Field `chain` not specified yet')
+				raise AccessError('Item part has no field `chain` yet')
 			case _:
 				return self.chain_
 
@@ -109,18 +107,14 @@ class ItemPart:
 	def created(self) -> Item.Created:
 		match self.created_:
 			case None:
-				raise AccessError('Field `created` not specified yet')
+				raise AccessError('Item part has no field `created` yet')
 			case _:
 				return self.created_
 
 	@property
-	def reserved(self) -> Item.Reserved:
-		match self.reserved_:
-			case None:
-				raise AccessError('Field `reserved` not specified yet')
-			case _:
-				return self.reserved_
-
-	@property
 	def reserver(self) -> Item.Reserver:
-		return self.reserver_
+		match self.reserver_:
+			case None:
+				raise AccessError('Item part has no field `reserver` yet')
+			case _:
+				return self.reserver_

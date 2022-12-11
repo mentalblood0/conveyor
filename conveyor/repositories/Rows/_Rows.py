@@ -56,7 +56,7 @@ class _Rows:
 			'status': item.status.value,
 			'chain': item.chain,
 			'created': item.created.value,
-			'reserved': item.reserved,
+			'reserver': item.reserver.value,
 			'digest': item.digest.string
 		}) | {
 			word.value: value
@@ -80,7 +80,7 @@ class _Rows:
 			model.status==item.status.value,
 			model.digest==item.digest.string,
 			model.chain==item.chain,
-			model.reserved==item.reserved
+			model.reserver==item.reserver.value
 		)
 
 	@pydantic.validate_arguments
@@ -89,14 +89,13 @@ class _Rows:
 		model = Model(self.db, item_query.mask.type)
 
 		model.update(
-			reserved=True,
-			reserver=reserver
+			reserver=reserver.value
 		).where(
 			model.digest << (
 				model
 				.select(model.digest)
 				.where(
-					model.reserved==False,
+					model.reserver==None,
 					model.status==item_query.mask.status
 				)
 				.order_by(peewee.fn.Random())
@@ -107,7 +106,7 @@ class _Rows:
 	@pydantic.validate_arguments
 	def unreserve(self, item: Row) -> None:
 		model = Model(self.db, item.type)
-		model.update(reserved=None).where(self._where(model, item)).execute()
+		model.update(reserver=None).where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
 	def add(self, item: Row) -> None:
@@ -136,8 +135,10 @@ class _Rows:
 				status=Item.Status(r.status),
 				chain=r.chain,
 				created=Item.Created(r.created),
-				reserved=r.reserved,
-				reserver=r.reserver,
+				reserver=Item.Reserver(
+					exists=bool(r.reserver),
+					value=r.reserver
+				),
 				digest=Item.Data.Digest(Base64String(r.digest)),
 				metadata=Item.Metadata({
 					Item.Metadata.Key(name): getattr(r, name)

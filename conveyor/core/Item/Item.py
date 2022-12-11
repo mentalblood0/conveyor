@@ -6,6 +6,7 @@ import pydantic
 
 from .Data import Data
 from .Created import Created
+from .Reserver import Reserver
 
 
 
@@ -40,13 +41,12 @@ class Item:
 	Status       = Word
 	Data         = Data
 	Created      = Created
-	Reserved     = bool
-	Reserver     = str | None
+	Reserver     = Reserver
 
 	BaseKey      = Word
 	Key          = BaseKey | Metadata.Key
 
-	BaseValue    = typing.Union[Type, Status, 'Chain', Created, Reserved]
+	BaseValue    = typing.Union[Type, Status, 'Chain', Created, Reserver]
 	Value        = BaseValue | Metadata.Value
 
 	type:          Type
@@ -58,15 +58,7 @@ class Item:
 
 	chain:         'Chain'
 	created:       Created
-	reserved:      Reserved
 	reserver:      Reserver
-
-	@pydantic.validator('reserver')
-	def reserver_correct(cls, reserver, values):
-		if values['reserved']:
-			if reserver is None:
-				raise ValueError('Item marked as reserved but reserver is not specified')
-		return reserver
 
 
 

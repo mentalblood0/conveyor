@@ -4,7 +4,7 @@ import datetime
 import pydantic
 import dataclasses
 
-from conveyor.core.Item import Data
+from conveyor.core.Item import Data, Reserver
 from conveyor.core import Chain, ItemQuery, ItemMask
 from conveyor.repositories.Rows._Rows import _Rows, Row
 
@@ -32,8 +32,7 @@ def row() -> Row:
 		}),
 		chain=Chain(ref=data).value,
 		created=Row.Created(datetime.datetime.utcnow()),
-		reserved=False,
-		reserver=None
+		reserver=Reserver(exists=False)
 	)
 
 
@@ -67,7 +66,7 @@ def test_append_get_delete(rows: _Rows, row: Row):
 	assert saved.metadata == row.metadata
 	assert saved.chain == row.chain
 	assert saved.created == row.created
-	assert saved.reserved == row.reserved
+	assert saved.reserver == row.reserver
 
 	del rows[row]
 	assert not len([*rows[query]])

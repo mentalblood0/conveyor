@@ -1,0 +1,21 @@
+import pytest
+import datetime
+
+from conveyor.core import Chain, Item
+
+
+
+@pytest.fixture
+def item() -> Item:
+
+	data = Item.Data(value=b'')
+
+	return Item(
+		type=Item.Type('type'),
+		status=Item.Status('status'),
+		data=data,
+		metadata=Item.Metadata({Item.Metadata.Key('a'): 'a'}),
+		chain=Chain(ref=data),
+		created=Item.Created(value=datetime.datetime.utcnow()),
+		reserver=Item.Reserver(exists=False)
+	)

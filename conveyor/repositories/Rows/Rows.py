@@ -34,7 +34,6 @@ class Rows(PartRepository):
 				digest_=r.digest,
 				metadata_=r.metadata,
 				created_=r.created,
-				reserved_=r.reserved,
 				reserver_=r.reserver
 			)
 

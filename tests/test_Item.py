@@ -5,23 +5,8 @@ import dataclasses
 
 from conveyor.core import Chain, Item
 
+from .common import *
 
-
-@pytest.fixture
-def item() -> Item:
-
-	data = Item.Data(value=b'')
-
-	return Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		data=data,
-		metadata=Item.Metadata({Item.Metadata.Key('a'): 'a'}),
-		chain=Chain(ref=data),
-		created=Item.Created(value=datetime.datetime.utcnow()),
-		reserved=False,
-		reserver=None
-	)
 
 
 @pydantic.validate_arguments
