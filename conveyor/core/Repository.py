@@ -12,13 +12,19 @@ class Repository:
 
 	parts: typing.Sequence[PartRepository]
 
+	@pydantic.validator('parts')
+	def parts_correct(cls, parts):
+		if len(parts) < 1:
+			raise ValueError(f'Repository must have at least 1 part ({len(parts)} provided)')
+		return parts
+
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
+	def _reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
 		for p in reversed(self.parts):
 			p.reserve(item_query, reserver)
 
 	@pydantic.validate_arguments
-	def unreserve(self, item: Item) -> None:
+	def _unreserve(self, item: Item) -> None:
 		for p in reversed(self.parts):
 			p.unreserve(item)
 
@@ -30,8 +36,9 @@ class Repository:
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
 
-		result: itertools.chain[ItemPart] = itertools.chain((ItemPart(),))
+		self._reserve(item_query, Item.Reserver(exists=False))
 
+		result = (ItemPart(),)
 		for repository in self.parts:
 			result = itertools.chain.from_iterable([
 				repository.get(
@@ -41,8 +48,12 @@ class Repository:
 				for item_part in result
 			])
 
+		previous: Item | None = None
 		for r in result:
 			yield r.item
+			if previous is not None:
+				self._unreserve(previous)
+			previous = r.item
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
