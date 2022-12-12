@@ -3,7 +3,7 @@ import pydantic
 import dataclasses
 
 from ._Files import _Files
-from ...core import Item, ItemQuery, ItemPart, Chain, PartRepository
+from ...core import Item, ItemQuery, ItemPart, PartRepository
 
 
 
@@ -30,7 +30,7 @@ class Files(PartRepository):
 		yield dataclasses.replace(
 			accumulator,
 			data_=data,
-			chain_=Chain(ref=data)
+			chain_=Item.Chain(ref=data)
 		)
 
 	@pydantic.validate_arguments

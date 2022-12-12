@@ -5,7 +5,7 @@ import typing
 import pydantic
 
 from ...core.Item import Base64String
-from ...core import Item, ItemQuery, Chain
+from ...core import Item, ItemQuery
 from ...common.Model import Model, metadata_fields, BaseModel
 
 

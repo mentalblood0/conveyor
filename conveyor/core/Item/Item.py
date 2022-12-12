@@ -5,6 +5,7 @@ import datetime
 import pydantic
 
 from .Data import Data
+from .Chain import Chain
 from .Created import Created
 from .Reserver import Reserver
 
@@ -40,13 +41,14 @@ class Item:
 	Type         = Word
 	Status       = Word
 	Data         = Data
+	Chain        = Chain
 	Created      = Created
 	Reserver     = Reserver
 
 	BaseKey      = Word
 	Key          = BaseKey | Metadata.Key
 
-	BaseValue    = typing.Union[Type, Status, 'Chain', Created, Reserver]
+	BaseValue    = typing.Union[Type, Status, Chain, Created, Reserver]
 	Value        = BaseValue | Metadata.Value
 
 	type:          Type
@@ -56,11 +58,6 @@ class Item:
 
 	metadata:      Metadata
 
-	chain:         'Chain'
+	chain:         Chain
 	created:       Created
 	reserver:      Reserver
-
-
-
-from ..Chain import Chain
-getattr(Item, '__pydantic_model__').update_forward_refs()

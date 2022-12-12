@@ -7,7 +7,7 @@ import functools
 import playhouse.migrate
 import playhouse.reflection
 
-from ..core import Item, Word
+from ..core import Item
 
 
 
@@ -42,17 +42,17 @@ def composeMigrator(db: peewee.Database) -> playhouse.migrate.SchemaMigrator:
 	return migrator_class(db)
 
 
-models_cache: dict[Word, type[BaseModel]] = {}
+models_cache: dict[Item.Type, type[BaseModel]] = {}
 
 
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Model(
 	db: peewee.Database,
-	name: Word,
+	name: Item.Type,
 	metadata_columns: dict[Item.Metadata.Key, MetadataField] | None=None
 ) -> type[BaseModel]:
 
-		name = Word(name.value.lower())
+		name = Item.Type(name.value.lower())
 
 		if not metadata_columns:
 
@@ -61,8 +61,8 @@ def Model(
 
 			models: dict[str, type[BaseModel]] = playhouse.reflection.generate_models(db, table_names=[name])
 			if len(models):
-				models_cache[name] = models[name]
-				return models[name]
+				models_cache[name] = models[name.value]
+				return models[name.value]
 
 			raise KeyError(f"No table with name '{name}' found")
 

@@ -3,7 +3,7 @@ import datetime
 import pydantic
 import dataclasses
 
-from conveyor.core import Chain, Item
+from conveyor.core import Item
 
 from .common import *
 
@@ -52,26 +52,11 @@ def test_metadata_is_metadata(item: Item):
 
 
 @pydantic.validate_arguments
-def test_chain_ref_is_data_or_item(item: Item):
-
-	with pytest.raises(pydantic.ValidationError):
-		Chain(ref='lalala')
-
-	Chain(ref=item.data)
-	Chain(ref=item)
-
-
-@pydantic.validate_arguments
-def test_chain_equal(item: Item):
-	assert Chain(ref=item.data) == Chain(ref=item)
-
-
-@pydantic.validate_arguments
 def test_immutable(item: Item):
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		item.type = 'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		del item.value
+		del item.type
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		item.x = 'x'
 
@@ -79,8 +64,8 @@ def test_immutable(item: Item):
 @pydantic.validate_arguments
 def test_metadata_immutable(item: Item):
 	with pytest.raises(TypeError):
-		item.metadata.value['a'] = 'b'
+		item.metadata.value[Item.Metadata.Key('a')] = 'b'
 	with pytest.raises(TypeError):
-		del item.metadata.value['a']
+		del item.metadata.value[Item.Metadata.Key('a')]
 	with pytest.raises(TypeError):
-		item.metadata.value['b'] = 'b'
+		item.metadata.value[Item.Metadata.Key('b')] = 'b'

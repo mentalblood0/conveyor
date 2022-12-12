@@ -1,15 +1,13 @@
-import typing
 import pydantic
 
-from .Item.Data import Data
-from .Item.Item import Item
+from .Data import Data
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Chain:
 
-	ref: Data | Item
+	ref: Data
 	test: str | None = None
 
 	@pydantic.validator('test')
@@ -22,13 +20,7 @@ class Chain:
 
 	@property
 	def value(self) -> str:
-		match self.ref:
-			case Data():
-				return self.ref.digest.string
-			case Item():
-				return self.ref.chain.value
-			case _ as unreachable:
-				typing.assert_never(unreachable)
+		return self.ref.digest.string
 
 	def __eq__(self, another: 'Chain') -> bool:
 		return self.value == another.value

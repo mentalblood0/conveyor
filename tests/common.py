@@ -1,7 +1,7 @@
 import pytest
 import datetime
 
-from conveyor.core import Chain, Item
+from conveyor.core import Item
 
 
 
@@ -15,7 +15,7 @@ def item() -> Item:
 		status=Item.Status('status'),
 		data=data,
 		metadata=Item.Metadata({Item.Metadata.Key('a'): 'a'}),
-		chain=Chain(ref=data),
+		chain=Item.Chain(ref=data),
 		created=Item.Created(value=datetime.datetime.utcnow()),
 		reserver=Item.Reserver(exists=False)
 	)

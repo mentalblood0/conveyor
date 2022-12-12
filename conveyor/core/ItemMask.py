@@ -1,8 +1,6 @@
 import pydantic
 
-from .Item.Item import Item
-from .Item.Data import Data
-from .Chain import Chain
+from .Item import Item
 
 
 
@@ -11,9 +9,9 @@ class ItemMask:
 
 	type:        Item.Type
 	status:      Item.Status   | None = None
-	data:        Data          | None = None
+	data:        Item.Data     | None = None
 	metadata:    Item.Metadata | None = None
-	chain:       Chain         | None = None
+	chain:       Item.Chain    | None = None
 	created:     Item.Created  | None = None
 	reserver:    Item.Reserver | None = None
 

@@ -1,6 +1,6 @@
 import pydantic
 
-from . import Item, Chain
+from . import Item
 
 
 
@@ -18,7 +18,7 @@ class ItemPart:
 	data_:        Item.Data        | None = None
 	digest_:      Item.Data.Digest | None = None
 	metadata_:    Item.Metadata    | None = None
-	chain_:       Chain            | None = None
+	chain_:       Item.Chain       | None = None
 	created_:     Item.Created     | None = None
 	reserver_:    Item.Reserver    | None = None
 
@@ -34,10 +34,10 @@ class ItemPart:
 		return digest
 
 	@pydantic.validator('chain_')
-	def chain__correct(cls, chain_: Chain, values) -> Chain:
+	def chain__correct(cls, chain_: Item.Chain, values) -> Item.Chain:
 		if chain_ is not None:
 			if values['data_'] is not None:
-				return Chain(
+				return Item.Chain(
 					ref=values['data_'],
 					test=chain_.value
 				)
@@ -96,7 +96,7 @@ class ItemPart:
 				return self.metadata_
 
 	@property
-	def chain(self) -> Chain:
+	def chain(self) -> Item.Chain:
 		match self.chain_:
 			case None:
 				raise AccessError('Item part has no field `chain` yet')
