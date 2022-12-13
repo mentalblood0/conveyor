@@ -24,6 +24,21 @@ class Repository:
 			p.add(item)
 
 	@pydantic.validate_arguments
+	def _get(self, query: ItemQuery, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[ItemPart] = (ItemPart(),)) -> typing.Iterable[Item]:
+
+		if not len(repositories):
+			for p in parts:
+				yield p.item
+
+		for p in parts:
+			for item in self._get(
+				query=query,
+				repositories=repositories[1:],
+				parts=repositories[0].get(query, p)
+			):
+				yield item
+
+	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
 
 		if not for_reserve:
@@ -50,18 +65,10 @@ class Repository:
 				)
 			)
 
-		result = (ItemPart(),)
-		for repository in self.parts:
-			result = itertools.chain.from_iterable([
-				repository.get(
-					item_query,
-					item_part
-				)
-				for item_part in result
-			])
-
-		for r in result:
-			yield r.item
+		return self._get(
+			query=item_query,
+			repositories=self.parts
+		)
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve=False) -> None:
