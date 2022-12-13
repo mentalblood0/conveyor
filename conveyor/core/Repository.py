@@ -44,30 +44,34 @@ class Repository:
 				yield item
 
 	@pydantic.validate_arguments
-	def _reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
+	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
 
+		reserver = Item.Reserver(exists=True)
 		reserved = 0
 
 		while True:
 
 			reserved_before = reserved
 
-			for i in self.__getitem__(
-				item_query=dataclasses.replace(
+			for i in self._get(
+				query=dataclasses.replace(
 					item_query,
 					mask=dataclasses.replace(
 						item_query.mask,
 						reserver=Item.Reserver(exists=False)
 					)
 				),
-				for_reserve=True
+				repositories=self.parts
 			):
 
+				i_reserved = dataclasses.replace(i, reserver=reserver)
 				try:
-					self[i] = dataclasses.replace(i, reserver=reserver)
+					self[i] = i_reserved
 				except KeyError:
 					continue
+				yield i_reserved
 
+				reserved += 1
 				if reserved == item_query.limit:
 					return
 
@@ -75,28 +79,7 @@ class Repository:
 				return
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
-
-		if not for_reserve:
-
-			reserver = Item.Reserver(exists=True)
-			self._reserve(item_query, reserver)
-
-			item_query = dataclasses.replace(
-				item_query,
-				mask=dataclasses.replace(
-					item_query.mask,
-					reserver=reserver
-				)
-			)
-
-		return self._get(
-			query=item_query,
-			repositories=self.parts
-		)
-
-	@pydantic.validate_arguments
-	def __setitem__(self, old: Item, new: Item, for_reserve=False) -> None:
+	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
 		new = dataclasses.replace(new, reserver=Item.Reserver(exists=False)) if for_reserve else new
 		for p in reversed(self.parts):
 			p[old] = new
