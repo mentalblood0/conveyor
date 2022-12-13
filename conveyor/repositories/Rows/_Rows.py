@@ -3,10 +3,9 @@ from __future__ import annotations
 import peewee
 import typing
 import pydantic
-import dataclasses
 
-from ...core.Item import Base64String
 from ...core import Item, ItemQuery
+from ...core.Item import Base64String
 from ...common.Model import Model, metadata_fields, BaseModel
 
 
@@ -20,7 +19,7 @@ class Row(Item):
 	metadata: Item.Metadata
 
 	@pydantic.validator('metadata')
-	def metadata_correct(cls, metadata, values):
+	def metadata_correct(cls, metadata: Item.Metadata, values) -> Item.Metadata:
 		for k in metadata.value:
 			if k.value in values:
 				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')

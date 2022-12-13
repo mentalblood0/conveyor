@@ -11,7 +11,7 @@ class Chain:
 	test: str | None = None
 
 	@pydantic.validator('test')
-	def test_correct(cls, test, values):
+	def test_correct(cls, test: str | None, values) -> str | None:
 		if test is not None:
 			correct = Chain(ref=values['ref']).value
 			if correct != test:

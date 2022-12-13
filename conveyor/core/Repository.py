@@ -7,13 +7,18 @@ from . import Item, ItemQuery, ItemPart, PartRepository
 
 
 
+Parts = typing.Sequence[PartRepository]
+
+
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Repository:
 
-	parts: typing.Sequence[PartRepository]
+	Parts = Parts
+
+	parts: Parts
 
 	@pydantic.validator('parts')
-	def parts_correct(cls, parts):
+	def parts_correct(cls, parts: Parts) -> Parts:
 		if len(parts) < 1:
 			raise ValueError(f'Repository must have at least 1 part ({len(parts)} provided)')
 		return parts
@@ -39,11 +44,13 @@ class Repository:
 				yield item
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
+	def _reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
 
-		if not for_reserve:
+		reserved = 0
 
-			reserver = Item.Reserver(exists=True)
+		while True:
+
+			reserved_before = reserved
 
 			for i in self.__getitem__(
 				item_query=dataclasses.replace(
@@ -55,7 +62,25 @@ class Repository:
 				),
 				for_reserve=True
 			):
-				self[i] = dataclasses.replace(i, reserver=reserver)
+
+				try:
+					self[i] = dataclasses.replace(i, reserver=reserver)
+				except KeyError:
+					continue
+
+				if reserved == item_query.limit:
+					return
+
+			if reserved == reserved_before:
+				return
+
+	@pydantic.validate_arguments
+	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
+
+		if not for_reserve:
+
+			reserver = Item.Reserver(exists=True)
+			self._reserve(item_query, reserver)
 
 			item_query = dataclasses.replace(
 				item_query,

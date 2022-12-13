@@ -9,7 +9,7 @@ class Created:
 	value: datetime.datetime
 
 	@pydantic.validator('value')
-	def value_correct(cls, value):
+	def value_correct(cls, value: datetime.datetime) -> datetime.datetime:
 		if value > datetime.datetime.utcnow():
 			raise ValueError('`Created` value must not be greater then now')
 		return value

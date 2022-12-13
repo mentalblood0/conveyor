@@ -55,7 +55,7 @@ def test_append_get_delete(rows: _Rows, row: Row):
 		mask=ItemMask(
 			type=row.type
 		),
-		limit=None
+		limit=128
 	)
 	saved_items = [*rows[query]]
 	assert len(saved_items) == 1

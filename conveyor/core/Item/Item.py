@@ -17,7 +17,7 @@ class Word:
 	value: pydantic.StrictStr
 
 	@pydantic.validator('value')
-	def value_correct(cls, value):
+	def value_correct(cls, value: pydantic.StrictStr) -> pydantic.StrictStr:
 		if re.match(r'\w+', value) is None:
 			raise ValueError('`Word` value must be word')
 		return value
@@ -26,17 +26,17 @@ class Word:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
 
-	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 	class Metadata:
 
 		Key = Word
 		Value = pydantic.StrictStr | int | float | datetime.datetime | None
 
-		value: dict[Key, Value]
+		value_: dict[Key, Value] | types.MappingProxyType
 
-		@pydantic.validator('value')
-		def value_correct(cls, value):
-			return types.MappingProxyType(value)
+		@property
+		def value(self) -> types.MappingProxyType:
+			return types.MappingProxyType(self.value_)
 
 	Type         = Word
 	Status       = Word

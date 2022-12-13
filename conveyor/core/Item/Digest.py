@@ -23,7 +23,7 @@ class Digest:
 	value_or_string: pydantic.StrictBytes | Base64String
 
 	@pydantic.validator('value_or_string')
-	def value_or_string_correct(cls, value_or_string):
+	def value_or_string_correct(cls, value_or_string: pydantic.StrictBytes | Base64String) -> pydantic.StrictBytes | Base64String:
 
 		match value_or_string:
 			case bytes():

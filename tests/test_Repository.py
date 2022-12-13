@@ -43,7 +43,7 @@ def test_append_get_delete(repository: Repository, item: Item):
 		mask=ItemMask(
 			type=item.type
 		),
-		limit=None
+		limit=128
 	)
 	saved_items = [*repository[query]]
 	assert len(saved_items) == 1
