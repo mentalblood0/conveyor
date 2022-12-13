@@ -86,4 +86,4 @@ class Repository:
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable:
-		return functools.reduce(lambda result, f: f.transaction(result), reversed(self.parts), f)
+		return functools.reduce(lambda result, t: t.transaction(result), reversed(self.parts), f)
