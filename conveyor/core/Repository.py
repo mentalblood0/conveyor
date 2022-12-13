@@ -1,6 +1,6 @@
 import typing
 import pydantic
-import itertools
+import functools
 import dataclasses
 
 from . import Item, ItemQuery, ItemPart, PartRepository
@@ -86,9 +86,4 @@ class Repository:
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable:
-
-		result = self.parts[-1].transaction(f)
-		for p in reversed(self.parts[:-1]):
-			result = p.transaction(result)
-
-		return result
+		return functools.reduce(lambda result, f: f.transaction(result), reversed(self.parts), f)
