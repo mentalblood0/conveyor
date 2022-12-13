@@ -13,14 +13,6 @@ class Files(PartRepository):
 	files: _Files
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver):
-		pass
-
-	@pydantic.validate_arguments
-	def unreserve(self, item: Item) -> None:
-		pass
-
-	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
 		return self.files.add(item.data)
 

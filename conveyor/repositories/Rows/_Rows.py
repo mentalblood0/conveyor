@@ -3,6 +3,7 @@ from __future__ import annotations
 import peewee
 import typing
 import pydantic
+import dataclasses
 
 from ...core.Item import Base64String
 from ...core import Item, ItemQuery
@@ -28,14 +29,15 @@ class Row(Item):
 	@classmethod
 	@pydantic.validate_arguments
 	def from_item(cls, item: Item):
-		return Row(**{
+		init_dict = {
 			k: v
 			for k, v in item.__dict__.items()
 			if k not in ['data', 'chain']
 		} | {
 			'digest': item.data.digest,
 			'chain': item.chain.value
-		})
+		}
+		return Row(**init_dict)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -45,7 +47,7 @@ class _Rows:
 
 	db: peewee.Database
 
-	class OperationalError(Exception):
+	class OperationalError(KeyError):
 		@pydantic.validate_arguments
 		def __init__(self, item: Row, action: str):
 			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.digest.string}) had no result')
@@ -82,31 +84,6 @@ class _Rows:
 			model.chain==item.chain,
 			model.reserver==item.reserver.value
 		)
-
-	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
-
-		model = Model(self.db, item_query.mask.type)
-
-		model.update(
-			reserver=reserver.value
-		).where(
-			model.digest << (
-				model
-				.select(model.digest)
-				.where(
-					model.reserver==None,
-					model.status==item_query.mask.status
-				)
-				.order_by(peewee.fn.Random())
-				.limit(item_query.limit)
-			)
-		).execute()
-
-	@pydantic.validate_arguments
-	def unreserve(self, item: Row) -> None:
-		model = Model(self.db, item.type)
-		model.update(reserver=None).where(self._where(model, item)).execute()
 
 	@pydantic.validate_arguments
 	def add(self, item: Row) -> None:
@@ -152,17 +129,16 @@ class _Rows:
 
 		model = Model(self.db, old.type)
 
-		if (
-			model
-			.update(**self._row(new))
-			.where(self._where(model, old)).execute()
-		) != 1:
+		query = model.update(**self._row(new)).where(*self._where(model, old))
+
+		if query.execute() != 1:
 			raise _Rows.OperationalError(old, 'update')
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Row) -> None:
 		model = Model(self.db, item.type)
-		model.delete().where(*self._where(model, item)).execute()
+		if model.delete().where(*self._where(model, item)).execute() != 1:
+			raise _Rows.OperationalError(item, 'delete')
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable:

@@ -20,14 +20,12 @@ class Repository:
 
 	@pydantic.validate_arguments
 	def _reserve(self, item_query: ItemQuery) -> None:
-		reserver = Item.Reserver(exists=True)
-		for p in reversed(self.parts):
-			p.reserve(item_query, reserver)
-
-	@pydantic.validate_arguments
-	def _unreserve(self, item: Item) -> None:
-		for p in reversed(self.parts):
-			p.unreserve(item)
+		for i in self.__getitem__(
+			item_query=dataclasses.replace(item_query, reserver=Item.Reserver(exists=False)),
+			for_reserve=True
+		):
+			new = dataclasses.replace(i, reserver=Item.Reserver(exists=True))
+			self[i] = new
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
@@ -35,9 +33,10 @@ class Repository:
 			p.add(item)
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
+	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
 
-		self._reserve(item_query)
+		if not for_reserve:
+			self._reserve(item_query)
 
 		result = (ItemPart(),)
 		for repository in self.parts:
@@ -49,22 +48,22 @@ class Repository:
 				for item_part in result
 			])
 
-		previous: Item | None = None
 		for r in result:
 			yield r.item
-			if previous is not None:
-				self._unreserve(previous)
-			previous = r.item
 
 	@pydantic.validate_arguments
-	def __setitem__(self, old: Item, new: Item) -> None:
+	def __setitem__(self, old: Item, new: Item, for_reserve=False) -> None:
+		new = dataclasses.replace(new, reserver=Item.Reserver(exists=False)) if for_reserve else new
 		for p in reversed(self.parts):
 			p[old] = new
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
 		for p in self.parts:
-			del p[item]
+			try:
+				del p[item]
+			except KeyError:
+				break
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable) -> typing.Callable:

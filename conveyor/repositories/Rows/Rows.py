@@ -13,14 +13,6 @@ class Rows(PartRepository):
 	rows: _Rows
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
-		return self.rows.reserve(item_query, reserver)
-
-	@pydantic.validate_arguments
-	def unreserve(self, item: Item) -> None:
-		return self.rows.unreserve(self.rows.Item.from_item(item))
-
-	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
 		return self.rows.add(self.rows.Item.from_item(item))
 

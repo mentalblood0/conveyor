@@ -69,7 +69,7 @@ def Model(
 		else:
 
 			Result = type(
-				'Result',
+				name.value,
 				(BaseModel,),
 				{
 					k: v

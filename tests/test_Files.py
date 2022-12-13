@@ -31,7 +31,7 @@ def test_immutable(files: _Files):
 @pydantic.validate_arguments
 def test_path(files: _Files, data: Data):
 
-	p = files.path(data.digest)
+	p = files._path(data.digest)
 
 	p.parent.mkdir(parents=True, exist_ok=True)
 	p.touch(exist_ok=True)

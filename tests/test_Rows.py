@@ -74,4 +74,5 @@ def test_append_get_delete(rows: _Rows, row: Row):
 
 @pydantic.validate_arguments
 def test_delete_nonexistent(rows: _Rows, row: Row):
-	del rows[row]
+	with pytest.raises(rows.OperationalError):
+		del rows[row]

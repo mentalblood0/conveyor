@@ -9,14 +9,6 @@ from . import Item, ItemQuery, ItemPart
 class PartRepository:
 
 	@pydantic.validate_arguments
-	def reserve(self, item_query: ItemQuery, reserver: Item.Reserver) -> None:
-		pass
-
-	@pydantic.validate_arguments
-	def unreserve(self, item: Item) -> None:
-		pass
-
-	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
 		pass
 
