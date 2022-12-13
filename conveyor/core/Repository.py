@@ -19,15 +19,6 @@ class Repository:
 		return parts
 
 	@pydantic.validate_arguments
-	def _reserve(self, item_query: ItemQuery) -> None:
-		for i in self.__getitem__(
-			item_query=dataclasses.replace(item_query, reserver=Item.Reserver(exists=False)),
-			for_reserve=True
-		):
-			new = dataclasses.replace(i, reserver=Item.Reserver(exists=True))
-			self[i] = new
-
-	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
 		for p in reversed(self.parts):
 			p.add(item)
@@ -36,7 +27,28 @@ class Repository:
 	def __getitem__(self, item_query: ItemQuery, for_reserve=False) -> typing.Iterable[Item]:
 
 		if not for_reserve:
-			self._reserve(item_query)
+
+			reserver = Item.Reserver(exists=True)
+
+			for i in self.__getitem__(
+				item_query=dataclasses.replace(
+					item_query,
+					mask=dataclasses.replace(
+						item_query.mask,
+						reserver=Item.Reserver(exists=False)
+					)
+				),
+				for_reserve=True
+			):
+				self[i] = dataclasses.replace(i, reserver=reserver)
+
+			item_query = dataclasses.replace(
+				item_query,
+				mask=dataclasses.replace(
+					item_query.mask,
+					reserver=reserver
+				)
+			)
 
 		result = (ItemPart(),)
 		for repository in self.parts:
