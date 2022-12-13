@@ -66,7 +66,7 @@ class Repository:
 
 				i_reserved = dataclasses.replace(i, reserver=reserver)
 				try:
-					self[i] = i_reserved
+					self.__setitem__(i, i_reserved, True)
 				except KeyError:
 					continue
 				yield i_reserved
@@ -80,7 +80,8 @@ class Repository:
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
-		new = dataclasses.replace(new, reserver=Item.Reserver(exists=False)) if for_reserve else new
+		if not for_reserve:
+			new = dataclasses.replace(new, reserver=Item.Reserver(exists=False))
 		for p in reversed(self.parts):
 			p[old] = new
 
