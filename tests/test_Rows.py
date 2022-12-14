@@ -1,4 +1,3 @@
-import peewee
 import pytest
 import datetime
 import pydantic
@@ -8,13 +7,13 @@ from conveyor.core import ItemQuery, ItemMask
 from conveyor.core.Item import Data, Reserver, Chain
 from conveyor.repositories.Rows._Rows import _Rows, Row
 
+from .common import *
 
-
-db = peewee.SqliteDatabase(':memory:')
 
 
 @pytest.fixture
-def rows() -> _Rows:
+@pydantic.validate_arguments
+def rows(db) -> _Rows:
 	return _Rows(db)
 
 

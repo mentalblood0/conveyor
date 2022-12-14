@@ -1,8 +1,20 @@
+import peewee
 import pytest
 import datetime
 
 from conveyor.core import Item
 
+
+
+@pytest.fixture
+def db() -> peewee.Database:
+	return peewee.SqliteDatabase(':memory:')
+
+
+@pytest.fixture(autouse=True)
+def clear():
+	repository._drop(type)
+	repository._drop('new')
 
 
 @pytest.fixture

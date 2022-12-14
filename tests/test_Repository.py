@@ -1,7 +1,6 @@
 import peewee
 import pytest
 import pathlib
-import datetime
 import pydantic
 import dataclasses
 
@@ -12,12 +11,9 @@ from conveyor.core import Item, ItemQuery, ItemMask, Repository
 from .common import *
 
 
-
-db = peewee.SqliteDatabase(':memory:')
-
-
 @pytest.fixture
-def repository() -> Repository:
+@pydantic.validate_arguments
+def repository(db) -> Repository:
 	return Repository([
 		Rows(_Rows(db)),
 		Files(_Files(root=pathlib.Path('.'), suffix='.txt'))
