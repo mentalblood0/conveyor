@@ -11,12 +11,6 @@ def db() -> peewee.Database:
 	return peewee.SqliteDatabase(':memory:')
 
 
-@pytest.fixture(autouse=True)
-def clear():
-	repository._drop(type)
-	repository._drop('new')
-
-
 @pytest.fixture
 def item() -> Item:
 

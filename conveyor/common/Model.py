@@ -106,8 +106,9 @@ def Model(
 
 				current_columns = [
 					c.name
-					for c in db.get_columns(name)
+					for c in db.get_columns(name.value)
 				]
+
 				migrator = composeMigrator(db)
 
 				with db.atomic():
@@ -116,9 +117,9 @@ def Model(
 						# for column_name in current_columns
 						# if (column_name != 'id') and (column_name not in metadata_columns)
 					],*[
-						migrator.add_column(name, column_name, metadata_columns[column_name])
+						migrator.add_column(name.value, column_name.value, metadata_columns[column_name])
 						for column_name in metadata_columns
-						if column_name not in current_columns
+						if column_name.value not in current_columns
 					])
 
 			models_cache[name] = Result

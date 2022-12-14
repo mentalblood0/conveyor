@@ -49,7 +49,7 @@ class _Rows:
 	class OperationalError(KeyError):
 		@pydantic.validate_arguments
 		def __init__(self, item: Row, action: str):
-			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.digest.string}) had no result')
+			super().__init__(f'Item {action} (type={item.type}, status={item.status}, digest={item.digest.string}) resulted in more then 1 change')
 
 	@pydantic.validate_arguments
 	def _row(self, item: Row) -> dict[str, Item.Metadata.Value]:
@@ -76,17 +76,21 @@ class _Rows:
 		)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[BaseModel], item: Row) -> tuple:
-		return (
+	def _where(self, model: type[BaseModel], item: Row) -> typing.Iterable:
+		return [
 			model.status==item.status.value,
 			model.digest==item.digest.string,
 			model.chain==item.chain,
+			model.created==item.created.value,
 			model.reserver==item.reserver.value
-		)
+		] + [
+			getattr(model, k.value)==v
+			for k, v in item.metadata.value.items()
+		]
 
 	@pydantic.validate_arguments
 	def add(self, item: Row) -> None:
-		if self._model(item).insert(**self._row(item)).execute() != 1:
+		if not self._model(item).insert(**self._row(item)).execute():
 			raise _Rows.OperationalError(item, 'insert')
 
 	@pydantic.validate_arguments
