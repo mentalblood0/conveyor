@@ -38,6 +38,4 @@ class ItemMask:
 		if self.reserver is not None:
 			result['reserver'] = self.reserver.value
 
-		# print(f'mask {id(self)}: {result}')
-
 		return result

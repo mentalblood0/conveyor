@@ -32,11 +32,8 @@ class Repository:
 	@pydantic.validate_arguments
 	def _get(self, query: ItemQuery, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[ItemPart] = (ItemPart(),)) -> typing.Iterable[Item]:
 
-		print(f'GET {2-len(repositories)}')
-
 		if not len(repositories):
 			for p in parts:
-				print(f'{2-len(repositories)} YIELD {p.item}')
 				yield p.item
 			return
 
@@ -46,7 +43,6 @@ class Repository:
 				repositories=repositories[1:],
 				parts=repositories[0].get(query, p)
 			):
-				print(f'{2-len(repositories)} YIELD {item}')
 				yield item
 
 	@pydantic.validate_arguments

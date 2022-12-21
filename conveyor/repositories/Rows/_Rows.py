@@ -101,7 +101,6 @@ class _Rows:
 	@pydantic.validate_arguments
 	def add(self, row: Row) -> None:
 		query = self._model(row).insert(**self._row(row))
-		print(query)
 		query.execute()
 
 	@pydantic.validate_arguments
@@ -119,10 +118,8 @@ class _Rows:
 			db_query = db_query.where(*conditions)
 
 		db_query = db_query.limit(item_query.limit)
-		print(f'__getitem__ query: {db_query}')
 
 		for r in db_query:
-			print(f'YIELD ROW {r.chain}')
 			yield Row(
 				type=item_query.mask.type,
 				status=Item.Status(r.status),
@@ -142,13 +139,8 @@ class _Rows:
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
-
 		model = Model(self.db, old.type)
-
-		query = model.update(**self._row(new)).where(*self._where(model, old))
-		print(f'__setitem__ {query}')
-
-		self._check(old, 'update', query.execute())
+		self._check(old, 'update', model.update(**self._row(new)).where(*self._where(model, old)).execute())
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:

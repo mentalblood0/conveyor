@@ -85,24 +85,17 @@ def test_delete_nonexistent(repository: Repository, item: Item):
 @pydantic.validate_arguments
 def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
 
-	print(f'add item {item.chain.value}')
 	repository.add(item)
 
-	print('\nquery both')
 	for index, i in enumerate([*repository[query_all]]):
-		print(index, i.chain.value)
 		repository[i] = i
 
 	changed_item = dataclasses.replace(item, **changes(item))
-	print(f'\nadd changed item {changed_item.chain.value}')
 	repository.add(changed_item)
 
-	print('\nquery both')
 	for index, i in enumerate([*repository[query_all]]):
-		print(index, i.chain.value)
 		repository[i] = i
 
-	print()
 	both = [*repository[query_all]]
 	assert len(both) == 2
 	for i in both:
