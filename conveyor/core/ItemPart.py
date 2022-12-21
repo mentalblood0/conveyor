@@ -23,7 +23,7 @@ class ItemPart:
 	reserver_:    Item.Reserver    | None = None
 
 	@pydantic.validator('digest_')
-	def digest__correct(cls, digest: Item.Data.Digest, values) -> Item.Data.Digest:
+	def digest__valid(cls, digest: Item.Data.Digest, values) -> Item.Data.Digest:
 		if digest is None:
 			if values['data_'] is not None:
 				return values['data_'].digest
@@ -32,16 +32,6 @@ class ItemPart:
 				if values['data_'].digest != digest:
 					raise ValueError('Data digest not match separate digest')
 		return digest
-
-	@pydantic.validator('chain_')
-	def chain__correct(cls, chain_: Item.Chain, values) -> Item.Chain:
-		if chain_ is not None:
-			if values['data_'] is not None:
-				return Item.Chain(
-					ref=values['data_'],
-					test=chain_.value
-				)
-		return chain_
 
 	@property
 	def item(self) -> Item:

@@ -24,6 +24,7 @@ class Rows(PartRepository):
 				type_=r.type,
 				status_=r.status,
 				digest_=r.digest,
+				chain_=Item.Chain(ref=r.chain),
 				metadata_=r.metadata,
 				created_=r.created,
 				reserver_=r.reserver

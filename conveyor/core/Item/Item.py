@@ -17,7 +17,7 @@ class Word:
 	value: pydantic.StrictStr
 
 	@pydantic.validator('value')
-	def value_correct(cls, value: pydantic.StrictStr) -> pydantic.StrictStr:
+	def value_valid(cls, value: pydantic.StrictStr) -> pydantic.StrictStr:
 		if re.match(r'\w+', value) is None:
 			raise ValueError('`Word` value must be word')
 		return value
@@ -61,3 +61,13 @@ class Item:
 	chain:         Chain
 	created:       Created
 	reserver:      Reserver
+
+	def __eq__(self, another: 'Item') -> bool:
+		return (
+			self.type     == another.type and
+			self.status   == another.status and
+			self.data     == another.data and
+			self.metadata == another.metadata and
+			self.chain    == another.chain and
+			self.created  == another.created
+		)

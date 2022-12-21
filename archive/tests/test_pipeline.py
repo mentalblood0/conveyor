@@ -28,7 +28,7 @@ def crash(*args, **kwargs):
 	raise Exception
 
 
-def test_correct():
+def test_valid():
 
 	saver = Saver(repository)
 	square_saver = AnotherSaver(repository)

@@ -20,11 +20,12 @@ def test_immutable(item: Item):
 
 
 @pydantic.validate_arguments
-def test_chain_ref_is_data_or_item(item: Item):
+def test_chain_ref_is_data_or_string(item: Item):
 
 	with pytest.raises(pydantic.ValidationError):
-		Item.Chain(ref='lalala')
+		Item.Chain(ref=1234)
 
+	Item.Chain(ref='lalala')
 	Item.Chain(ref=item.data)
 
 

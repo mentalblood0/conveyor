@@ -4,7 +4,7 @@ import datetime
 import pydantic
 import dataclasses
 
-from conveyor.core import ItemQuery, ItemMask
+from conveyor.core import ItemQuery, ItemMask, Item
 from conveyor.repositories.Rows._Rows import _Rows, Row
 
 from .common import *
@@ -20,18 +20,18 @@ def rows(db) -> _Rows:
 @pytest.fixture
 def row() -> Row:
 
-	data = Row.Data(value=b'')
+	data = Item.Data(value=b'')
 
 	return Row(
-		type=Row.Type('type'),
-		status=Row.Status('status'),
+		type=Item.Type('type'),
+		status=Item.Status('status'),
 		digest=data.digest,
-		metadata=Row.Metadata({
-			Row.Metadata.Key('key'): 'value'
+		metadata=Item.Metadata({
+			Item.Metadata.Key('key'): 'value'
 		}),
-		chain=Row.Chain(ref=data).value,
-		created=Row.Created(datetime.datetime.utcnow()),
-		reserver=Row.Reserver(exists=False)
+		chain=Item.Chain(ref=data).value,
+		created=Item.Created(datetime.datetime.utcnow()),
+		reserver=Item.Reserver(exists=False)
 	)
 
 
@@ -90,15 +90,15 @@ def test_delete_nonexistent(rows: _Rows, row: Row):
 @pytest.mark.parametrize(
 	'changes',
 	[
-		lambda r: {'status':  Row.Status(r.status.value + '_')},
-		lambda r: {'chain':   Row.Chain(ref=Row.Data(value=b'_')).value},
-		lambda r: {'digest':  Row.Data.Digest(r.digest.value + b'_')},
-		lambda r: {'created': Row.Created(r.created.value - datetime.timedelta(seconds=1))},
-		lambda r: {'metadata':  Row.Metadata(r.metadata.value | {Row.Metadata.Key('key'): r.metadata.value[Row.Metadata.Key('key')] + '_'})}
+		lambda r: {'status':   Item.Status(r.status.value + '_')},
+		lambda r: {'chain':    Item.Chain(ref=Item.Data(value=b'_')).value},
+		lambda r: {'digest':   Item.Data.Digest(r.digest.value + b'_')},
+		lambda r: {'created':  Item.Created(r.created.value - datetime.timedelta(seconds=1))},
+		lambda r: {'metadata': Item.Metadata(r.metadata.value | {Item.Metadata.Key('key'): r.metadata.value[Item.Metadata.Key('key')] + '_'})}
 	]
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.Callable[[Row], dict[str, Row.Value]]):
+def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
 
 	rows.add(row)
 	rows.add(dataclasses.replace(row, **changes(row)))

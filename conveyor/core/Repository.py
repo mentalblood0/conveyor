@@ -1,6 +1,7 @@
 import typing
 import pydantic
 import functools
+import itertools
 import dataclasses
 
 from . import Item, ItemQuery, ItemPart, PartRepository
@@ -18,7 +19,7 @@ class Repository:
 	parts: Parts
 
 	@pydantic.validator('parts')
-	def parts_correct(cls, parts: Parts) -> Parts:
+	def parts_valid(cls, parts: Parts) -> Parts:
 		if len(parts) < 1:
 			raise ValueError(f'Repository must have at least 1 part ({len(parts)} provided)')
 		return parts
@@ -31,9 +32,13 @@ class Repository:
 	@pydantic.validate_arguments
 	def _get(self, query: ItemQuery, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[ItemPart] = (ItemPart(),)) -> typing.Iterable[Item]:
 
+		print(f'GET {2-len(repositories)}')
+
 		if not len(repositories):
 			for p in parts:
+				print(f'{2-len(repositories)} YIELD {p.item}')
 				yield p.item
+			return
 
 		for p in parts:
 			for item in self._get(
@@ -41,19 +46,16 @@ class Repository:
 				repositories=repositories[1:],
 				parts=repositories[0].get(query, p)
 			):
+				print(f'{2-len(repositories)} YIELD {item}')
 				yield item
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
 
 		reserver = Item.Reserver(exists=True)
-		reserved = 0
 
-		while True:
-
-			reserved_before = reserved
-
-			for i in self._get(
+		for i in [*itertools.islice(
+			self._get(
 				query=dataclasses.replace(
 					item_query,
 					mask=dataclasses.replace(
@@ -62,21 +64,16 @@ class Repository:
 					)
 				),
 				repositories=self.parts
-			):
-
-				i_reserved = dataclasses.replace(i, reserver=reserver)
-				try:
-					self.__setitem__(i, i_reserved, True)
-				except KeyError:
-					continue
-				yield i_reserved
-
-				reserved += 1
-				if reserved == item_query.limit:
-					return
-
-			if reserved == reserved_before:
-				return
+			),
+			item_query.limit
+		)]:
+			i_reserved = dataclasses.replace(i, reserver=reserver)
+			try:
+				self.__setitem__(i, i_reserved, True)
+			except KeyError:
+				raise
+				continue
+			yield i_reserved
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:

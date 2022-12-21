@@ -14,7 +14,7 @@ class Data:
 	test: Digest | None = None
 
 	@pydantic.validator('test')
-	def test_correct(cls, test: Digest | None, values) -> Digest | None:
+	def test_valid(cls, test: Digest | None, values) -> Digest | None:
 		if test is not None:
 			correct = Data(value=values['value']).digest
 			if correct != test:

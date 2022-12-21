@@ -8,7 +8,7 @@ from benchmarks.common import *
 
 
 
-class blake3_(Benchmark, WithOutputMetrics):
+class WithRandomInput:
 
 	def prepare(self):
 		self.input_
@@ -19,12 +19,15 @@ class blake3_(Benchmark, WithOutputMetrics):
 			random.choice('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890!@#$%^&*(){}[]')
 			for i in range(self.config.kwargs['input_size_kilobytes'] * 1024)
 		).encode()
-	
+
+
+class blake3_(Benchmark, WithOutputMetrics, WithRandomInput):
+
 	def run(self):
-		return blake3(self.input_).digest()
+		return blake3(self.input_, max_threads=blake3.AUTO).digest()
 
 
-class sha3_512(Benchmark, WithOutputMetrics):
+class sha3_512(Benchmark, WithOutputMetrics, WithRandomInput):
 
 	def prepare(self):
 		self.input_
@@ -35,14 +38,14 @@ class sha3_512(Benchmark, WithOutputMetrics):
 			random.choice('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890!@#$%^&*(){}[]')
 			for i in range(self.config.kwargs['input_size_kilobytes'] * 1024)
 		).encode()
-	
+
 	def run(self):
 		return hashlib.sha3_512(
 			self.input_
 		).digest()
 
 
-class sha3_256(Benchmark, WithOutputMetrics):
+class sha3_256(Benchmark, WithOutputMetrics, WithRandomInput):
 
 	def prepare(self):
 		self.input_
@@ -53,7 +56,7 @@ class sha3_256(Benchmark, WithOutputMetrics):
 			random.choice('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890!@#$%^&*(){}[]')
 			for i in range(self.config.kwargs['input_size_kilobytes'] * 1024)
 		).encode()
-	
+
 	def run(self):
 		return hashlib.sha3_256(
 			self.input_

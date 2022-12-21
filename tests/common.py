@@ -2,7 +2,7 @@ import peewee
 import pytest
 import datetime
 
-from conveyor.core import Item
+from conveyor.core import Item, ItemQuery, ItemMask
 
 
 
@@ -20,7 +20,7 @@ def item() -> Item:
 		type=Item.Type('type'),
 		status=Item.Status('status'),
 		data=data,
-		metadata=Item.Metadata({Item.Metadata.Key('a'): 'a'}),
+		metadata=Item.Metadata({Item.Metadata.Key('key'): 'value'}),
 		chain=Item.Chain(ref=data),
 		created=Item.Created(value=datetime.datetime.utcnow()),
 		reserver=Item.Reserver(exists=False)

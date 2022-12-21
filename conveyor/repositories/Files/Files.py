@@ -21,8 +21,7 @@ class Files(PartRepository):
 		data = self.files[accumulator.digest]
 		yield dataclasses.replace(
 			accumulator,
-			data_=data,
-			chain_=Item.Chain(ref=data)
+			data_=data
 		)
 
 	@pydantic.validate_arguments

@@ -1,4 +1,4 @@
-import peewee
+import typing
 import pytest
 import pathlib
 import pydantic
@@ -18,6 +18,17 @@ def repository(db) -> Repository:
 		Rows(_Rows(db)),
 		Files(_Files(root=pathlib.Path('.'), suffix='.txt'))
 	])
+
+
+@pytest.fixture
+@pydantic.validate_arguments
+def query_all(item: Item) -> ItemQuery:
+	return ItemQuery(
+		mask=ItemMask(
+			type=item.type
+		),
+		limit=128
+	)
 
 
 @pydantic.validate_arguments
@@ -59,3 +70,53 @@ def test_append_get_delete(repository: Repository, item: Item):
 @pydantic.validate_arguments
 def test_delete_nonexistent(repository: Repository, item: Item):
 	del repository[item]
+
+
+@pytest.mark.parametrize(
+	'changes',
+	[
+		lambda r: {'status':   Item.Status(r.status.value + '_')},
+		lambda r: {'chain':    Item.Chain(ref=Item.Data(value=b'_'))},
+		lambda r: {'data':     Item.Data(value=r.data.value + b'_')},
+		lambda r: {'created':  Item.Created(r.created.value - datetime.timedelta(seconds=1))},
+		lambda r: {'metadata': Item.Metadata(r.metadata.value | {Item.Metadata.Key('key'): r.metadata.value[Item.Metadata.Key('key')] + '_'})}
+	]
+)
+@pydantic.validate_arguments
+def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
+
+	print(f'add item {item.chain.value}')
+	repository.add(item)
+
+	print('\nquery both')
+	for index, i in enumerate([*repository[query_all]]):
+		print(index, i.chain.value)
+		repository[i] = i
+
+	changed_item = dataclasses.replace(item, **changes(item))
+	print(f'\nadd changed item {changed_item.chain.value}')
+	repository.add(changed_item)
+
+	print('\nquery both')
+	for index, i in enumerate([*repository[query_all]]):
+		print(index, i.chain.value)
+		repository[i] = i
+
+	print()
+	both = [*repository[query_all]]
+	assert len(both) == 2
+	for i in both:
+		repository[i] = i
+
+	assert [*repository[
+		ItemQuery(
+			mask=ItemMask(
+				type=item.type,
+				status=item.status
+			),
+			limit=1
+		)
+	]][0] == item
+
+	for r in repository[query_all]:
+		del repository[r]

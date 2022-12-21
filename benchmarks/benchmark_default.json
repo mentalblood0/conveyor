@@ -2,15 +2,15 @@
 	"digest": {
 		"blake3_": {
 			"__n__": 10000,
-			"input_size_kilobytes": 100
+			"input_size_kilobytes": 1000
 		},
 		"sha3_512": {
 			"__n__": 1000,
-			"input_size_kilobytes": 100
+			"input_size_kilobytes": 1000
 		},
 		"sha3_256": {
 			"__n__": 1000,
-			"input_size_kilobytes": 100
+			"input_size_kilobytes": 1000
 		}
 	}
 }

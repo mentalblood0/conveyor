@@ -12,7 +12,7 @@ class Reserver:
 	value: str | None = None
 
 	@pydantic.validator('value')
-	def value_correct(cls, value: str | None, values) -> str | None:
+	def value_valid(cls, value: str | None, values) -> str | None:
 		if values['exists']:
 			match value:
 				case str():
