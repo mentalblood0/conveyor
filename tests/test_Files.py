@@ -10,7 +10,7 @@ from conveyor.repositories.Files import _Files
 
 @pytest.fixture
 def files() -> _Files:
-	return _Files(root=pathlib.Path('.'), suffix='.txt')
+	return _Files(root=pathlib.Path('tests/files'), suffix='.txt')
 
 
 @pytest.fixture
@@ -39,7 +39,10 @@ def test_path(files: _Files, data: Data):
 	p.unlink()
 	while len(p.parts) > 1:
 		p = p.parent
-		p.rmdir()
+		try:
+			p.rmdir()
+		except:
+			pass
 
 
 @pydantic.validate_arguments

@@ -16,7 +16,7 @@ from .common import *
 def repository(db) -> Repository:
 	return Repository([
 		Rows(_Rows(db)),
-		Files(_Files(root=pathlib.Path('.'), suffix='.txt'))
+		Files(_Files(root=pathlib.Path('tests/files'), suffix='.txt'))
 	])
 
 
@@ -34,11 +34,11 @@ def query_all(item: Item) -> ItemQuery:
 @pydantic.validate_arguments
 def test_immutable(repository: Repository):
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		repository.parts = b'x'
+		repository.__setattr__('parts', b'x')
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		del repository.parts
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		repository.x = b'x'
+		repository.__setattr__('x', b'x')
 
 
 @pydantic.validate_arguments
@@ -86,9 +86,7 @@ def test_delete_nonexistent(repository: Repository, item: Item):
 def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
 
 	repository.add(item)
-
-	changed_item = dataclasses.replace(item, **changes(item))
-	repository.add(changed_item)
+	repository.add(dataclasses.replace(item, **changes(item)))
 
 	both = [*repository[query_all]]
 	assert len(both) == 2

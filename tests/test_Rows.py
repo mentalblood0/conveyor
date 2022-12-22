@@ -48,11 +48,11 @@ def query_all(row) -> ItemQuery:
 @pydantic.validate_arguments
 def test_immutable(rows: _Rows):
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		rows.db = b'x'
+		rows.__setattr__('db', b'x')
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		del rows.db
 	with pytest.raises(dataclasses.FrozenInstanceError):
-		rows.x = b'x'
+		rows.__setattr__('x', b'x')
 
 
 @pydantic.validate_arguments
@@ -98,10 +98,11 @@ def test_delete_nonexistent(rows: _Rows, row: Row):
 	]
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
+def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.Callable[[Row], dict[str, Item.Value]]):
 
 	rows.add(row)
 	rows.add(dataclasses.replace(row, **changes(row)))
+
 	assert len([*rows[query_all]]) == 2
 
 	result = [*rows[
