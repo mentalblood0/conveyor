@@ -113,7 +113,7 @@ class _Rows:
 		if conditions := [
 			getattr(model, k)==v
 			for k, v in item_query.mask.conditions.items()
-			if k != 'type'
+			if k not in ['type', 'data']
 		]:
 			db_query = db_query.where(*conditions)
 

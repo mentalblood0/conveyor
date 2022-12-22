@@ -87,29 +87,29 @@ def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, cha
 
 	repository.add(item)
 
-	for index, i in enumerate([*repository[query_all]]):
-		repository[i] = i
-
 	changed_item = dataclasses.replace(item, **changes(item))
 	repository.add(changed_item)
-
-	for index, i in enumerate([*repository[query_all]]):
-		repository[i] = i
 
 	both = [*repository[query_all]]
 	assert len(both) == 2
 	for i in both:
 		repository[i] = i
 
-	assert [*repository[
+	result = [*repository[
 		ItemQuery(
 			mask=ItemMask(
-				type=item.type,
-				status=item.status
+				type     = item.type,
+				status   = item.status,
+				chain    = item.chain,
+				data     = item.data,
+				created  = item.created,
+				metadata = item.metadata
 			),
-			limit=1
+			limit=128
 		)
-	]][0] == item
+	]]
+	assert len(result) == 1
+	assert result[0] == item
 
-	for r in repository[query_all]:
-		del repository[r]
+	for i in repository[query_all]:
+		del repository[i]

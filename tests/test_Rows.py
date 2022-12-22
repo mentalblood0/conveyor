@@ -104,15 +104,17 @@ def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.
 	rows.add(dataclasses.replace(row, **changes(row)))
 	assert len([*rows[query_all]]) == 2
 
-	assert [*rows[
+	result = [*rows[
 		ItemQuery(
 			mask=ItemMask(
-				type=row.type,
-				status=row.status
+				type     = row.type,
+				status   = row.status,
+				chain    = Item.Chain(ref=row.chain),
+				created  = row.created,
+				metadata = row.metadata
 			),
 			limit=1
 		)
-	]][0] == row
-
-	for r in rows[query_all]:
-		del rows[r]
+	]]
+	assert len(result) == 1
+	assert result[0] == row
