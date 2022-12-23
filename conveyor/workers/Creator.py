@@ -1,11 +1,27 @@
+import typing
 import pydantic
 
-from ..core import Item
+from ..core import Item, Repository
 
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class CreatorProcessor:
+
+	def __call__(self, source: object) -> typing.Iterable[Item]:
+		return ()
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Creator:
 
-	def __call__(self, *args, **kwargs) -> tuple[Item]:
-		return tuple()
+	Processor = CreatorProcessor
+
+	repository: Repository
+	processor: CreatorProcessor
+	output_statuses: tuple[Item.Status]
+
+	@pydantic.validate_arguments
+	def __call__(self, source: object) -> None:
+		for i in self.processor(source):
+			self.repository.add(i)

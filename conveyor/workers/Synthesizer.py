@@ -1,6 +1,7 @@
+import typing
 import pydantic
 
-from ..core import Item
+from ..core import Item, Repository
 
 
 
@@ -8,8 +9,8 @@ from ..core import Item
 class SynthesizerProcessor:
 
 	@pydantic.validate_arguments
-	def __call__(self, item: Item, source: Item) -> tuple[Item]:
-		return tuple()
+	def __call__(self, item: Item, source: Item) -> typing.Iterable[Item]:
+		return ()
 
 
 
@@ -18,4 +19,11 @@ class Synthesizer:
 
 	Processor = SynthesizerProcessor
 
-	processor: Processor
+	repository: Repository
+	processor: SynthesizerProcessor
+	output_statuses: tuple[Item.Status]
+
+	@pydantic.validate_arguments
+	def __call__(self, item: Item, source: Item) -> None:
+		for i in self.processor(item, source):
+			self.repository.add(i)
