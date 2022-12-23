@@ -8,6 +8,7 @@ from .ItemMask import ItemMask
 class ItemQuery:
 
 	Limit = int
+	Mask = ItemMask
 
 	mask: ItemMask
 	limit: Limit

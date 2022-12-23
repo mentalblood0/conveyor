@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import types
 import peewee
 import typing
 import pydantic
@@ -41,6 +42,34 @@ class Row:
 			'digest': item.data.digest,
 			'chain': item.chain.value
 		}))
+
+
+def Conditions(mask: ItemQuery.Mask) -> dict[str, Item.Value]:
+
+	result: dict[str, Item.Value] = {}
+
+	if mask.type is not None:
+		result['type'] = mask.type.value
+	if mask.status is not None:
+		result['status'] = mask.status.value
+	if mask.data is not None:
+		result['data'] = mask.data.string
+		result['digest'] = mask.data.digest.string
+	elif mask.digest is not None:
+		result['digest'] = mask.digest.string
+
+	if mask.metadata is not None:
+		for k, v in mask.metadata.value.items():
+			result[k.value] = v
+
+	if mask.chain is not None:
+		result['chain'] = mask.chain.value
+	if mask.created is not None:
+		result['created'] = mask.created.value
+	if mask.reserver is not None:
+		result['reserver'] = mask.reserver.value
+
+	return result
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -111,7 +140,7 @@ class Rows_:
 
 		if conditions := [
 			getattr(model, k)==v
-			for k, v in item_query.mask.conditions.items()
+			for k, v in Conditions(item_query.mask).items()
 			if k not in ['type', 'data']
 		]:
 			db_query = db_query.where(*conditions)

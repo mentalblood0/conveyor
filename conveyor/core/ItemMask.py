@@ -29,31 +29,3 @@ class ItemMask:
 					return data
 				case _:
 					raise ValueError('`digest_` must be of types `None` or `Digest`')
-
-	@property
-	def conditions(self) -> dict[str, Item.Value]:
-
-		result: dict[str, Item.Value] = {}
-
-		if self.type is not None:
-			result['type'] = self.type.value
-		if self.status is not None:
-			result['status'] = self.status.value
-		if self.data is not None:
-			result['data'] = self.data.string
-			result['digest'] = self.data.digest.string
-		elif self.digest is not None:
-			result['digest'] = self.digest.string
-
-		if self.metadata is not None:
-			for k, v in self.metadata.value.items():
-				result[k.value] = v
-
-		if self.chain is not None:
-			result['chain'] = self.chain.value
-		if self.created is not None:
-			result['created'] = self.created.value
-		if self.reserver is not None:
-			result['reserver'] = self.reserver.value
-
-		return result
