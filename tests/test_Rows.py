@@ -13,7 +13,7 @@ from .common import *
 
 
 @pytest.fixture
-@pydantic.validate_arguments
+@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def rows(db: peewee.Database) -> Rows_:
 	return Rows_(db)
 
