@@ -2,6 +2,7 @@ import pytest
 import typing
 import datetime
 import pydantic
+import itertools
 import dataclasses
 
 from conveyor.core import ItemQuery, ItemMask, Item
@@ -13,7 +14,7 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments
-def rows(db) -> Rows_:
+def rows(db: peewee.Database) -> Rows_:
 	return Rows_(db)
 
 
@@ -36,7 +37,7 @@ def row() -> Row:
 
 
 @pytest.fixture
-def query_all(row) -> ItemQuery:
+def query_all(row: Row) -> ItemQuery:
 	return ItemQuery(
 		mask=ItemMask(
 			type=row.type
@@ -87,21 +88,55 @@ def test_delete_nonexistent(rows: Rows_, row: Row):
 		del rows[row]
 
 
+@pytest.fixture
+def changed_row(row: Row, changes_list: typing.Iterable[str]) -> Row:
+
+	changes: dict[str, Item.Value | Item.Metadata] = {}
+
+	for key in changes_list:
+		value: Item.Value | Item.Metadata | None = None
+		match key:
+			case 'status':
+				value = Item.Status(row.status.value + '_')
+			case 'chain':
+				value = row.chain + '_'
+			case 'created':
+				value = Item.Created(row.created.value - datetime.timedelta(seconds=1))
+			case 'metadata':
+				current = row.metadata.value[Item.Metadata.Key('key')]
+				match current:
+					case str():
+						new = '_'
+					case _:
+						raise ValueError
+				value = Item.Metadata(row.metadata.value | {Item.Metadata.Key('key'): new})
+			case _:
+				continue
+		changes[key] = value
+
+	return dataclasses.replace(row, **changes)
+
+
 @pytest.mark.parametrize(
-	'changes',
-	[
-		lambda r: {'status':   Item.Status(r.status.value + '_')},
-		lambda r: {'chain':    Item.Chain(ref=Item.Data(value=b'_')).value},
-		lambda r: {'digest':   Item.Data.Digest(r.digest.value + b'_')},
-		lambda r: {'created':  Item.Created(r.created.value - datetime.timedelta(seconds=1))},
-		lambda r: {'metadata': Item.Metadata(r.metadata.value | {Item.Metadata.Key('key'): r.metadata.value[Item.Metadata.Key('key')] + '_'})}
-	]
+	'changes_list',
+	itertools.chain(*(
+		itertools.combinations(
+			(
+				'status',
+				'chain',
+				'created',
+				'metadata'
+			),
+			n
+		)
+		for n in range(1, 5)
+	))
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: Rows_, row: Row, query_all: ItemQuery, changes: typing.Callable[[Row], dict[str, Item.Value]]):
+def test_get_exact(rows: Rows_, row: Row, query_all: ItemQuery, changed_row: Row):
 
 	rows.add(row)
-	rows.add(dataclasses.replace(row, **changes(row)))
+	rows.add(changed_row)
 
 	assert len([*rows[query_all]]) == 2
 

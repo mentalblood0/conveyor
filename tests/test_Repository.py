@@ -2,6 +2,7 @@ import typing
 import pytest
 import pathlib
 import pydantic
+import itertools
 import dataclasses
 
 from conveyor.repositories.Rows import Rows_, Rows
@@ -105,13 +106,19 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 
 @pytest.mark.parametrize(
 	'changes_list',
-	(
-		('status',),
-		('chain',),
-		('data',),
-		('created',),
-		('metadata',),
-	)
+	itertools.chain(*(
+		itertools.combinations(
+			(
+				'status',
+				'chain',
+				'data',
+				'created',
+				'metadata'
+			),
+			n
+		)
+		for n in range(1, 6)
+	))
 )
 @pydantic.validate_arguments
 def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changed_item: Item):
