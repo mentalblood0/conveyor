@@ -1,6 +1,6 @@
 import pydantic
 
-from . import Item
+from .Item import Item
 
 
 
