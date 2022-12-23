@@ -4,7 +4,10 @@ import functools
 import itertools
 import dataclasses
 
-from . import Item, ItemQuery, ItemPart, PartRepository
+from .Item.Item import Item
+from .ItemPart import ItemPart
+from .ItemQuery import ItemQuery
+from .PartRepository import PartRepository
 
 
 
@@ -86,5 +89,5 @@ class Repository:
 				break
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable:
-		return functools.reduce(lambda result, t: t.transaction(result), reversed(self.parts), f)
+	def transaction(self, f: typing.Callable[[], None]):
+		functools.reduce(lambda result, t: functools.partial(t.transaction, result), reversed(self.parts), f)
