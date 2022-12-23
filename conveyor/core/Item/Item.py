@@ -3,6 +3,7 @@ import types
 import typing
 import datetime
 import pydantic
+import dataclasses
 
 from .Data import Data
 from .Chain import Chain
@@ -60,18 +61,4 @@ class Item:
 
 	chain:         Chain
 	created:       Created
-	reserver:      Reserver
-
-	def __eq__(self, another: object) -> bool:
-		match another:
-			case Item():
-				return (
-					self.type     == another.type and
-					self.status   == another.status and
-					self.data     == another.data and
-					self.metadata == another.metadata and
-					self.chain    == another.chain and
-					self.created  == another.created
-				)
-			case _:
-				return False
+	reserver:      Reserver = dataclasses.field(compare=False)

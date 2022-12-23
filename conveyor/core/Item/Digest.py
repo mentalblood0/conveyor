@@ -98,7 +98,6 @@ class Digest:
 			)
 		)
 
-	@pydantic.validate_arguments
 	def __eq__(self, another: object) -> bool:
 		match another:
 			case Digest():

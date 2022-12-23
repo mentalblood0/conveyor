@@ -1,5 +1,6 @@
 import hashlib
 import pydantic
+import dataclasses
 
 from .Digest import Digest
 
@@ -11,7 +12,7 @@ class Data:
 	Digest = Digest
 
 	value: pydantic.StrictBytes
-	test: Digest | None = None
+	test: Digest | None = dataclasses.field(default=None, compare=False)
 
 	@pydantic.validator('test')
 	def test_valid(cls, test: Digest | None, values: dict[str, pydantic.StrictBytes]) -> Digest | None:
@@ -32,11 +33,3 @@ class Data:
 	@property
 	def string(self) -> str:
 		return self.value.decode()
-
-	@pydantic.validate_arguments
-	def __eq__(self, another: object) -> bool:
-		match another:
-			case Data():
-				return self.value == another.value
-			case _:
-				return False
