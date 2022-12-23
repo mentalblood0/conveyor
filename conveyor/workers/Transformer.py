@@ -1,37 +1,26 @@
 import pydantic
-import dataclasses
-from copy import deepcopy
-from abc import ABCMeta, abstractmethod
 
-from ..core import Item, Processor
+from ..core import Item, Repository
 
 
 
-class Transformer(Processor, metaclass=ABCMeta):
-
-	possible_output_statuses: list[str]
-
-	@abstractmethod
-	def transform(self, item: Item) -> Item | str:
-		pass
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class TransformerProcessor:
 
 	@pydantic.validate_arguments
-	def processItem(self, input_item: Item):
+	def __call__(self, item: Item) -> Item:
+		return item
 
-		if (output := self.transform(deepcopy(input_item))) is None:
-			return None
 
-		if type(output) == Item:
-			new = {
-				'status': output.status,
-				'metadata': output.metadata
-			}
-		elif type(output) == str:
-			new = {
-				'status': output
-			}
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Transformer:
 
-		if new['status'] not in self.possible_output_statuses:
-			return None
+	Processor = TransformerProcessor
 
-		return self.repository.update(dataclasses.replace(input_item, **new))
+	repository: Repository
+	processor: TransformerProcessor
+	output_statuses: tuple[Item.Status]
+
+	@pydantic.validate_arguments
+	def __call__(self, item: Item) -> None:
+		self.repository[item] = self.processor(item)

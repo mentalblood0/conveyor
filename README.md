@@ -52,10 +52,10 @@ All workers should be inherited from [abstract workers](#abstract-workers)
 |                                                | takes arguments | gets item | creates items | changes item status | changes item metadata | deletes item |
 |------------------------------------------------|:---------------:|:---------:|:-------------:|:-------------------:|:---------------------:|:------------:|
 | [Creator](conveyor/core/Creator.py)            |        +        |           |       +       |                     |                       |              |
-| [Transformer](conveyor/workers/Transformer.py) |                 |     1     |               |          +          |           +           |              |
-| [Mover](conveyor/workers/Mover.py)             |                 |     1     |       +       |          +          |                       |              |
-| [Destroyer](conveyor/workers/Destroyer.py)     |                 |     1     |               |                     |                       |       +      |
-| [Synthesizer](conveyor/workers/Synthesizer.py) |                 |     2     |       +       |          +          |                       |              |
+| [Transformer](conveyor/workers/archive/Transformer.py) |                 |     1     |               |          +          |           +           |              |
+| [Mover](conveyor/workers/archive/Mover.py)             |                 |     1     |       +       |          +          |                       |              |
+| [Destroyer](conveyor/workers/archive/Destroyer.py)     |                 |     1     |               |                     |                       |       +      |
+| [Synthesizer](conveyor/workers/archive/Synthesizer.py) |                 |     2     |       +       |          +          |                       |              |
 
 
 

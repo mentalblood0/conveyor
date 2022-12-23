@@ -72,21 +72,52 @@ def test_delete_nonexistent(repository: Repository, item: Item):
 	del repository[item]
 
 
+@pytest.fixture
+def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
+
+	changes: dict[str, Item.Value | Item.Metadata | Item.Data] = {}
+
+	for key in changes_list:
+		value: Item.Value | Item.Metadata | Item.Data | None = None
+		match key:
+			case 'status':
+				value = Item.Status(item.status.value + '_')
+			case 'chain':
+				value = Item.Chain(ref=Item.Data(value=item.data.value + b'_'))
+			case 'data':
+				value = Item.Data(value=item.data.value + b'_')
+			case 'created':
+				value = Item.Created(item.created.value - datetime.timedelta(seconds=1))
+			case 'metadata':
+				current = item.metadata.value[Item.Metadata.Key('key')]
+				match current:
+					case str():
+						new = '_'
+					case _:
+						raise ValueError
+				value = Item.Metadata(item.metadata.value | {Item.Metadata.Key('key'): new})
+			case _:
+				continue
+		changes[key] = value
+
+	return dataclasses.replace(item, **changes)
+
+
 @pytest.mark.parametrize(
-	'changes',
-	[
-		lambda r: {'status':   Item.Status(r.status.value + '_')},
-		lambda r: {'chain':    Item.Chain(ref=Item.Data(value=b'_'))},
-		lambda r: {'data':     Item.Data(value=r.data.value + b'_')},
-		lambda r: {'created':  Item.Created(r.created.value - datetime.timedelta(seconds=1))},
-		lambda r: {'metadata': Item.Metadata(r.metadata.value | {Item.Metadata.Key('key'): r.metadata.value[Item.Metadata.Key('key')] + '_'})}
-	]
+	'changes_list',
+	(
+		('status',),
+		('chain',),
+		('data',),
+		('created',),
+		('metadata',),
+	)
 )
 @pydantic.validate_arguments
-def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changes: typing.Callable[[Item], dict[str, Item.Value]]):
+def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changed_item: Item):
 
 	repository.add(item)
-	repository.add(dataclasses.replace(item, **changes(item)))
+	repository.add(changed_item)
 
 	both = [*repository[query_all]]
 	assert len(both) == 2
