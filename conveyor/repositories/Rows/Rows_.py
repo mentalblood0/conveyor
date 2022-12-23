@@ -24,7 +24,7 @@ class Row:
 	reserver:      Item.Reserver
 
 	@pydantic.validator('metadata')
-	def metadata_valid(cls, metadata: Item.Metadata, values) -> Item.Metadata:
+	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
 		for k in metadata.value:
 			if k.value in values:
 				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
@@ -33,15 +33,14 @@ class Row:
 	@classmethod
 	@pydantic.validate_arguments
 	def from_item(cls, item: Item):
-		init_dict = {
+		return Row(**({
 			k: v
 			for k, v in item.__dict__.items()
 			if k not in ['data', 'chain']
 		} | {
 			'digest': item.data.digest,
 			'chain': item.chain.value
-		}
-		return Row(**init_dict)
+		}))
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -101,8 +100,7 @@ class Rows_:
 
 	@pydantic.validate_arguments
 	def add(self, row: Row) -> None:
-		query = self._model(row).insert(**self._row(row))
-		query.execute()
+		self._model(row).insert(**self._row(row)).execute()
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Row]:

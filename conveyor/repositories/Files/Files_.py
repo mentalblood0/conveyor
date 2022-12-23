@@ -6,13 +6,19 @@ import dataclasses
 from ...core.Item import Digest, Data
 
 
+
+@pydantic.validate_arguments
+def default_transform(d: Data) -> Data:
+	return Data(value=d.value + b' ')
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Files_:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
 
-	transform: typing.Callable[[Data], Data] = dataclasses.field(default=lambda d: Data(value=d.value + b' '))
+	transform: typing.Callable[[Data], Data] = dataclasses.field(default=default_transform)
 
 	@pydantic.validate_arguments
 	def _path(self, digest: Digest) -> pathlib.Path:
