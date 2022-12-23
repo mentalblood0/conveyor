@@ -2,7 +2,7 @@ import typing
 import pydantic
 import dataclasses
 
-from ._Files import _Files
+from .Files_ import Files_
 from ...core import Item, ItemQuery, ItemPart, PartRepository
 
 
@@ -10,7 +10,7 @@ from ...core import Item, ItemQuery, ItemPart, PartRepository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Files(PartRepository):
 
-	files: _Files
+	files: Files_
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
@@ -33,5 +33,5 @@ class Files(PartRepository):
 		return self.files.__delitem__(item.data.digest)
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable:
-		return f
+	def transaction(self, f: typing.Callable[[], None]) -> None:
+		f()

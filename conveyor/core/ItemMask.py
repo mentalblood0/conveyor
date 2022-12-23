@@ -17,12 +17,18 @@ class ItemMask:
 	reserver:    Item.Reserver    | None = None
 
 	@pydantic.validator('data')
-	def data_correct(cls, data: Item.Data | None, values: dict) -> Item.Data | None:
+	def data_correct(cls, data: Item.Data | None, values: dict[str, Item.Value]) -> Item.Data | None:
 		if data is not None:
-			return Item.Data(
-				value=data.value,
-				test=values['digest']
-			)
+			match values['digest']:
+				case Item.Data.Digest():
+					return Item.Data(
+						value=data.value,
+						test=values['digest']
+					)
+				case None:
+					return data
+				case _:
+					raise ValueError('`digest_` must be of types `None` or `Digest`')
 
 	@property
 	def conditions(self) -> dict[str, Item.Value]:

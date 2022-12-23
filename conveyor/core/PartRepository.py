@@ -1,7 +1,9 @@
 import typing
 import pydantic
 
-from . import Item, ItemQuery, ItemPart
+from .Item import Item
+from .ItemPart import ItemPart
+from .ItemQuery import ItemQuery
 
 
 
@@ -25,5 +27,5 @@ class PartRepository:
 		pass
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable:
+	def transaction(self, f: typing.Callable[[], None]) -> None:
 		raise NotImplemented

@@ -14,7 +14,7 @@ class Data:
 	test: Digest | None = None
 
 	@pydantic.validator('test')
-	def test_valid(cls, test: Digest | None, values) -> Digest | None:
+	def test_valid(cls, test: Digest | None, values: dict[str, pydantic.StrictBytes]) -> Digest | None:
 		if test is not None:
 			correct = Data(value=values['value']).digest
 			if correct != test:
@@ -33,5 +33,10 @@ class Data:
 	def string(self) -> str:
 		return self.value.decode()
 
-	def __eq__(self, another) -> bool:
-		return self.value == another.value
+	@pydantic.validate_arguments
+	def __eq__(self, another: object) -> bool:
+		match another:
+			case Data():
+				return self.value == another.value
+			case _:
+				return False

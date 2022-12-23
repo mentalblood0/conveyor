@@ -4,19 +4,19 @@ import pathlib
 import pydantic
 import dataclasses
 
-from conveyor.repositories.Rows import _Rows, Rows
-from conveyor.repositories.Files import _Files, Files
+from conveyor.repositories.Rows import Rows_, Rows
+from conveyor.repositories.Files import Files_, Files
 from conveyor.core import Item, ItemQuery, ItemMask, Repository
 
 from .common import *
 
 
 @pytest.fixture
-@pydantic.validate_arguments
-def repository(db) -> Repository:
+@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+def repository(db: peewee.Database) -> Repository:
 	return Repository([
-		Rows(_Rows(db)),
-		Files(_Files(root=pathlib.Path('tests/files'), suffix='.txt'))
+		Rows(Rows_(db)),
+		Files(Files_(root=pathlib.Path('tests/files'), suffix='.txt'))
 	])
 
 
@@ -106,6 +106,8 @@ def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, cha
 			limit=128
 		)
 	]]
+	for i in result:
+		print(i.data)
 	assert len(result) == 1
 	assert result[0] == item
 

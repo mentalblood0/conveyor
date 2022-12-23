@@ -2,7 +2,7 @@ import typing
 import pydantic
 import dataclasses
 
-from ._Rows import _Rows
+from .Rows_ import Rows_
 from ...core import Item, ItemQuery, ItemPart, PartRepository
 
 
@@ -10,7 +10,7 @@ from ...core import Item, ItemQuery, ItemPart, PartRepository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Rows(PartRepository):
 
-	rows: _Rows
+	rows: Rows_
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
@@ -39,5 +39,5 @@ class Rows(PartRepository):
 		return self.rows.__delitem__(self.rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable:
+	def transaction(self, f: typing.Callable[[], None]) -> None:
 		return self.rows.transaction(f)

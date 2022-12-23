@@ -32,10 +32,10 @@ class Item:
 		Key = Word
 		Value = pydantic.StrictStr | int | float | datetime.datetime | None
 
-		value_: dict[Key, Value] | types.MappingProxyType
+		value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
 
 		@property
-		def value(self) -> types.MappingProxyType:
+		def value(self) -> types.MappingProxyType[Key, Value]:
 			return types.MappingProxyType(self.value_)
 
 	Type         = Word
@@ -62,12 +62,16 @@ class Item:
 	created:       Created
 	reserver:      Reserver
 
-	def __eq__(self, another: 'Item') -> bool:
-		return (
-			self.type     == another.type and
-			self.status   == another.status and
-			self.data     == another.data and
-			self.metadata == another.metadata and
-			self.chain    == another.chain and
-			self.created  == another.created
-		)
+	def __eq__(self, another: object) -> bool:
+		match another:
+			case Item():
+				return (
+					self.type     == another.type and
+					self.status   == another.status and
+					self.data     == another.data and
+					self.metadata == another.metadata and
+					self.chain    == another.chain and
+					self.created  == another.created
+				)
+			case _:
+				return False

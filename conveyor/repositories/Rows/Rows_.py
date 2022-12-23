@@ -45,7 +45,7 @@ class Row:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
-class _Rows:
+class Rows_:
 
 	Item = Row
 
@@ -83,11 +83,11 @@ class _Rows:
 	@pydantic.validate_arguments
 	def _check(self, row: Row, action: str, result: int):
 		if result != 1:
-			raise _Rows.OperationalError(row, action, result)
+			raise Rows_.OperationalError(row, action, result)
 
 	@pydantic.validate_arguments
-	def _where(self, model: type[BaseModel], row: Row) -> typing.Iterable:
-		return [
+	def _where(self, model: type[BaseModel], row: Row) -> typing.Iterable[object]:
+		result: list[object] = [
 			model.status   == row.status.value,
 			model.digest   == row.digest.string,
 			model.chain    == row.chain,
@@ -97,6 +97,7 @@ class _Rows:
 			getattr(model, k.value)==v
 			for k, v in row.metadata.value.items()
 		]
+		return result
 
 	@pydantic.validate_arguments
 	def add(self, row: Row) -> None:
@@ -148,14 +149,9 @@ class _Rows:
 		self._check(row, 'delete', model.delete().where(*self._where(model, row)).execute())
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable) -> typing.Callable:
-
-		def new_f(*args, **kwargs):
-			with self.db.transaction():
-				result = f(*args, **kwargs)
-			return result
-
-		return new_f
+	def transaction(self, f: typing.Callable[[], None]) -> None:
+		with self.db.transaction():
+			f()
 
 	@pydantic.validate_arguments
 	def _clear(self, type: Item.Type) -> None:

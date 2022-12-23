@@ -23,14 +23,19 @@ class ItemPart:
 	reserver_:    Item.Reserver    | None = None
 
 	@pydantic.validator('digest_')
-	def digest__valid(cls, digest: Item.Data.Digest, values) -> Item.Data.Digest:
-		if digest is None:
-			if values['data_'] is not None:
-				return values['data_'].digest
-		else:
-			if values['data_'] is not None:
-				if values['data_'].digest != digest:
+	def digest__valid(cls, digest: Item.Data.Digest, values: dict[str, Item.Value]) -> Item.Data.Digest:
+
+		match values['data_']:
+			case Item.Data():
+				if digest is None:
+					return values['data_'].digest
+				elif values['data_'].digest != digest:
 					raise ValueError('Data digest not match separate digest')
+			case None:
+				pass
+			case _:
+				raise ValueError
+
 		return digest
 
 	@property

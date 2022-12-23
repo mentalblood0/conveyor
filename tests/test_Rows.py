@@ -5,7 +5,7 @@ import pydantic
 import dataclasses
 
 from conveyor.core import ItemQuery, ItemMask, Item
-from conveyor.repositories.Rows._Rows import _Rows, Row
+from conveyor.repositories.Rows.Rows_ import Rows_, Row
 
 from .common import *
 
@@ -13,8 +13,8 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments
-def rows(db) -> _Rows:
-	return _Rows(db)
+def rows(db) -> Rows_:
+	return Rows_(db)
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def query_all(row) -> ItemQuery:
 
 
 @pydantic.validate_arguments
-def test_immutable(rows: _Rows):
+def test_immutable(rows: Rows_):
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		rows.__setattr__('db', b'x')
 	with pytest.raises(dataclasses.FrozenInstanceError):
@@ -56,7 +56,7 @@ def test_immutable(rows: _Rows):
 
 
 @pydantic.validate_arguments
-def test_append_get_delete(rows: _Rows, row: Row):
+def test_append_get_delete(rows: Rows_, row: Row):
 
 	rows.add(row)
 
@@ -82,7 +82,7 @@ def test_append_get_delete(rows: _Rows, row: Row):
 
 
 @pydantic.validate_arguments
-def test_delete_nonexistent(rows: _Rows, row: Row):
+def test_delete_nonexistent(rows: Rows_, row: Row):
 	with pytest.raises(rows.OperationalError):
 		del rows[row]
 
@@ -98,7 +98,7 @@ def test_delete_nonexistent(rows: _Rows, row: Row):
 	]
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: _Rows, row: Row, query_all: ItemQuery, changes: typing.Callable[[Row], dict[str, Item.Value]]):
+def test_get_exact(rows: Rows_, row: Row, query_all: ItemQuery, changes: typing.Callable[[Row], dict[str, Item.Value]]):
 
 	rows.add(row)
 	rows.add(dataclasses.replace(row, **changes(row)))

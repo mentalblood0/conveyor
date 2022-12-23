@@ -12,7 +12,7 @@ class Chain:
 	test: str | None = None
 
 	@pydantic.validator('test')
-	def test_valid(cls, test: str | None, values) -> str | None:
+	def test_valid(cls, test: str | None, values: dict[str, Data | pydantic.StrictStr]) -> str | None:
 
 		if test is not None:
 
@@ -42,5 +42,9 @@ class Chain:
 			case _ as unreachable:
 				assert typing.assert_never(unreachable)
 
-	def __eq__(self, another: 'Chain') -> bool:
-		return self.value == another.value
+	def __eq__(self, another: object) -> bool:
+		match another:
+			case Chain():
+				return self.value == another.value
+			case _:
+				return False

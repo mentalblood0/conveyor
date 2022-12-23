@@ -4,13 +4,13 @@ import pydantic
 import dataclasses
 
 from conveyor.core.Item import Data
-from conveyor.repositories.Files import _Files
+from conveyor.repositories.Files import Files_
 
 
 
 @pytest.fixture
-def files() -> _Files:
-	return _Files(root=pathlib.Path('tests/files'), suffix='.txt')
+def files() -> Files_:
+	return Files_(root=pathlib.Path('tests/files'), suffix='.txt')
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def data() -> Data:
 
 
 @pydantic.validate_arguments
-def test_immutable(files: _Files):
+def test_immutable(files: Files_):
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		files.value = b'x'
 	with pytest.raises(dataclasses.FrozenInstanceError):
@@ -29,7 +29,7 @@ def test_immutable(files: _Files):
 
 
 @pydantic.validate_arguments
-def test_path(files: _Files, data: Data):
+def test_path(files: Files_, data: Data):
 
 	p = files._path(data.digest)
 
@@ -46,7 +46,7 @@ def test_path(files: _Files, data: Data):
 
 
 @pydantic.validate_arguments
-def test_append_get_delete(files: _Files, data: Data):
+def test_append_get_delete(files: Files_, data: Data):
 
 	files.add(data)
 	assert files[data.digest] == data
@@ -57,5 +57,5 @@ def test_append_get_delete(files: _Files, data: Data):
 
 
 @pydantic.validate_arguments
-def test_delete_nonexistent(files: _Files, data: Data):
+def test_delete_nonexistent(files: Files_, data: Data):
 	del files[data.digest]

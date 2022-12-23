@@ -50,7 +50,7 @@ class Repository:
 
 		reserver = Item.Reserver(exists=True)
 
-		for i in [*itertools.islice(
+		for i in itertools.islice(
 			self._get(
 				query=dataclasses.replace(
 					item_query,
@@ -62,12 +62,11 @@ class Repository:
 				repositories=self.parts
 			),
 			item_query.limit
-		)]:
+		):
 			i_reserved = dataclasses.replace(i, reserver=reserver)
 			try:
 				self.__setitem__(i, i_reserved, True)
 			except KeyError:
-				raise
 				continue
 			yield i_reserved
 

@@ -3,11 +3,11 @@ import pathlib
 import pydantic
 import dataclasses
 
-from ...core.Item import Digest, Data, Reserver
+from ...core.Item import Digest, Data
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class _Files:
+class Files_:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
