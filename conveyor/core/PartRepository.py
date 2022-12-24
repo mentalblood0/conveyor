@@ -12,20 +12,20 @@ class PartRepository:
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
-		pass
+		raise NotImplementedError
 
 	@pydantic.validate_arguments
 	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:
-		raise NotImplemented
+		raise NotImplementedError
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
-		pass
+		raise NotImplementedError
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		pass
+		raise NotImplementedError
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable[[], None]) -> None:
-		raise NotImplemented
+		raise NotImplementedError

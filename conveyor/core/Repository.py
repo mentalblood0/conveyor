@@ -78,7 +78,10 @@ class Repository:
 		if not for_reserve:
 			new = dataclasses.replace(new, reserver=Item.Reserver(exists=False))
 		for p in reversed(self.parts):
-			p[old] = new
+			try:
+				p[old] = new
+			except NotImplementedError:
+				pass
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
