@@ -25,10 +25,6 @@ class Files(PartRepository):
 		)
 
 	@pydantic.validate_arguments
-	def __setitem__(self, old: Item, new: Item) -> None:
-		pass
-
-	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
 		return self.files.__delitem__(item.data.digest)
 
