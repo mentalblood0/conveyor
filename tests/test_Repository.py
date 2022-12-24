@@ -7,7 +7,7 @@ import dataclasses
 
 from conveyor.repositories.Rows import Rows_, Rows
 from conveyor.repositories.Files import Files_, Files
-from conveyor.core import Item, ItemQuery, ItemMask, Repository
+from conveyor.core import Item, Query, Mask, Repository
 
 from .common import *
 
@@ -23,9 +23,9 @@ def repository(db: peewee.Database) -> Repository:
 
 @pytest.fixture
 @pydantic.validate_arguments
-def query_all(item: Item) -> ItemQuery:
-	return ItemQuery(
-		mask=ItemMask(
+def query_all(item: Item) -> Query:
+	return Query(
+		mask=Mask(
 			type=item.type
 		),
 		limit=128
@@ -47,8 +47,8 @@ def test_append_get_delete(repository: Repository, item: Item):
 
 	repository.add(item)
 
-	query = ItemQuery(
-		mask=ItemMask(
+	query = Query(
+		mask=Mask(
 			type=item.type
 		),
 		limit=128
@@ -121,7 +121,7 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 	))
 )
 @pydantic.validate_arguments
-def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, changed_item: Item):
+def test_get_exact(repository: Repository, item: Item, query_all: Query, changed_item: Item):
 
 	repository.add(item)
 	repository.add(changed_item)
@@ -132,8 +132,8 @@ def test_get_exact(repository: Repository, item: Item, query_all: ItemQuery, cha
 		repository[i] = i
 
 	result = [*repository[
-		ItemQuery(
-			mask=ItemMask(
+		Query(
+			mask=Mask(
 				type     = item.type,
 				status   = item.status,
 				chain    = item.chain,

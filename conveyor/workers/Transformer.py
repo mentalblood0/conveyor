@@ -19,7 +19,6 @@ class Transformer:
 
 	repository: Repository
 	processor: TransformerProcessor
-	output_statuses: tuple[Item.Status]
 
 	@pydantic.validate_arguments
 	def __call__(self, item: Item) -> None:

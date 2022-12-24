@@ -8,6 +8,7 @@ from ..core import Item, Repository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class CreatorProcessor:
 
+	@pydantic.validate_arguments
 	def __call__(self, source: object) -> typing.Iterable[Item]:
 		return ()
 
@@ -19,7 +20,6 @@ class Creator:
 
 	repository: Repository
 	processor: CreatorProcessor
-	output_statuses: tuple[Item.Status]
 
 	@pydantic.validate_arguments
 	def __call__(self, source: object) -> None:

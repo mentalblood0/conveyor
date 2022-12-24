@@ -4,7 +4,7 @@ import peewee
 import typing
 import pydantic
 
-from ...core import Item, ItemQuery
+from ...core import Item, Query
 from ...core.Item import Base64String
 from ...common.Model import Model, metadata_fields, BaseModel
 
@@ -43,7 +43,7 @@ class Row:
 		}))
 
 
-def Conditions(mask: ItemQuery.Mask) -> dict[str, Item.Value]:
+def Conditions(mask: Query.Mask) -> dict[str, Item.Value]:
 
 	result: dict[str, Item.Value] = {}
 
@@ -131,7 +131,7 @@ class Rows_:
 		self._model(row).insert(**self._row(row)).execute()
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Row]:
+	def __getitem__(self, item_query: Query) -> typing.Iterable[Row]:
 
 		model = Model(self.db, item_query.mask.type)
 

@@ -3,7 +3,7 @@ import pydantic
 import dataclasses
 
 from .Rows_ import Rows_
-from ...core import Item, ItemQuery, ItemPart, PartRepository
+from ...core import Item, Query, Part, PartRepository
 
 
 
@@ -17,7 +17,7 @@ class Rows(PartRepository):
 		return self.rows.add(self.rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
-	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
+	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:
 		for r in self.rows[item_query]:
 			yield dataclasses.replace(
 				accumulator,

@@ -9,7 +9,7 @@ class AccessError(Exception):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class ItemPart:
+class Part:
 
 	AccessError = AccessError
 

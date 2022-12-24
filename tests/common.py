@@ -2,7 +2,7 @@ import peewee
 import pytest
 import datetime
 
-from conveyor.core import Item, ItemQuery, ItemMask
+from conveyor.core import Item, Query, Mask
 
 
 

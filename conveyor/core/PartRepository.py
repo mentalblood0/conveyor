@@ -2,8 +2,8 @@ import typing
 import pydantic
 
 from .Item import Item
-from .ItemPart import ItemPart
-from .ItemQuery import ItemQuery
+from .Part import Part
+from .Query import Query
 
 
 
@@ -15,7 +15,7 @@ class PartRepository:
 		pass
 
 	@pydantic.validate_arguments
-	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
+	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:
 		raise NotImplemented
 
 	@pydantic.validate_arguments

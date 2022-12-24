@@ -20,7 +20,6 @@ class Mover:
 
 	repository: Repository
 	processor: MoverProcessor
-	output_statuses: tuple[Item.Status]
 
 	@pydantic.validate_arguments
 	def __call__(self, item: Item) -> None:

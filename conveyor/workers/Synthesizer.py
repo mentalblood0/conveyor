@@ -21,7 +21,6 @@ class Synthesizer:
 
 	repository: Repository
 	processor: SynthesizerProcessor
-	output_statuses: tuple[Item.Status]
 
 	@pydantic.validate_arguments
 	def __call__(self, item: Item, source: Item) -> None:

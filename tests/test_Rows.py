@@ -5,7 +5,7 @@ import pydantic
 import itertools
 import dataclasses
 
-from conveyor.core import ItemQuery, ItemMask, Item
+from conveyor.core import Query, Mask, Item
 from conveyor.repositories.Rows.Rows_ import Rows_, Row
 
 from .common import *
@@ -37,9 +37,9 @@ def row() -> Row:
 
 
 @pytest.fixture
-def query_all(row: Row) -> ItemQuery:
-	return ItemQuery(
-		mask=ItemMask(
+def query_all(row: Row) -> Query:
+	return Query(
+		mask=Mask(
 			type=row.type
 		),
 		limit=128
@@ -61,8 +61,8 @@ def test_append_get_delete(rows: Rows_, row: Row):
 
 	rows.add(row)
 
-	query = ItemQuery(
-		mask=ItemMask(
+	query = Query(
+		mask=Mask(
 			type=row.type
 		),
 		limit=128
@@ -133,7 +133,7 @@ def changed_row(row: Row, changes_list: typing.Iterable[str]) -> Row:
 	))
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: Rows_, row: Row, query_all: ItemQuery, changed_row: Row):
+def test_get_exact(rows: Rows_, row: Row, query_all: Query, changed_row: Row):
 
 	rows.add(row)
 	rows.add(changed_row)
@@ -141,8 +141,8 @@ def test_get_exact(rows: Rows_, row: Row, query_all: ItemQuery, changed_row: Row
 	assert len([*rows[query_all]]) == 2
 
 	result = [*rows[
-		ItemQuery(
-			mask=ItemMask(
+		Query(
+			mask=Mask(
 				type     = row.type,
 				status   = row.status,
 				chain    = Item.Chain(ref=row.chain),

@@ -4,9 +4,9 @@ import functools
 import itertools
 import dataclasses
 
+from .Part import Part
+from .Query import Query
 from .Item.Item import Item
-from .ItemPart import ItemPart
-from .ItemQuery import ItemQuery
 from .PartRepository import PartRepository
 
 
@@ -33,7 +33,7 @@ class Repository:
 			p.add(item)
 
 	@pydantic.validate_arguments
-	def _get(self, query: ItemQuery, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[ItemPart] = (ItemPart(),)) -> typing.Iterable[Item]:
+	def _get(self, query: Query, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[Part] = (Part(),)) -> typing.Iterable[Item]:
 
 		if not len(repositories):
 			for p in parts:
@@ -49,7 +49,7 @@ class Repository:
 				yield item
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: ItemQuery) -> typing.Iterable[Item]:
+	def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
 
 		reserver = Item.Reserver(exists=True)
 

@@ -3,7 +3,7 @@ import pydantic
 import dataclasses
 
 from .Files_ import Files_
-from ...core import Item, ItemQuery, ItemPart, PartRepository
+from ...core import Item, Query, Part, PartRepository
 
 
 
@@ -17,7 +17,7 @@ class Files(PartRepository):
 		return self.files.add(item.data)
 
 	@pydantic.validate_arguments
-	def get(self, item_query: ItemQuery, accumulator: ItemPart) -> typing.Iterable[ItemPart]:
+	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:
 		data = self.files[accumulator.digest]
 		yield dataclasses.replace(
 			accumulator,
