@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import types
 import peewee
 import typing
 import pydantic
@@ -33,7 +32,7 @@ class Row:
 
 	@classmethod
 	@pydantic.validate_arguments
-	def from_item(cls, item: Item):
+	def from_item(cls, item: Item) -> typing.Self:
 		return Row(**({
 			k: v
 			for k, v in item.__dict__.items()
