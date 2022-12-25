@@ -5,8 +5,8 @@ import pydantic
 import itertools
 import dataclasses
 
-from conveyor.repositories.Rows import Rows_, Rows
-from conveyor.repositories.Files import Files_, Files
+from conveyor.repositories.Rows import Rows
+from conveyor.repositories.Files import Files
 from conveyor.core import Item, Query, Mask, Repository
 
 from .common import *
@@ -16,8 +16,8 @@ from .common import *
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def repository(db: peewee.Database) -> Repository:
 	return Repository([
-		Rows(Rows_(db)),
-		Files(Files_(root=pathlib.Path('tests/files'), suffix='.txt'))
+		Rows(Rows.Core(db)),
+		Files(Files.Core(root=pathlib.Path('tests/files'), suffix='.txt'))
 	])
 
 

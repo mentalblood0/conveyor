@@ -6,7 +6,7 @@ import itertools
 import dataclasses
 
 from conveyor.core import Query, Mask, Item
-from conveyor.repositories.Rows.Rows_ import Rows_, Row
+from conveyor.repositories import Rows
 
 from .common import *
 
@@ -14,16 +14,16 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def rows(db: peewee.Database) -> Rows_:
-	return Rows_(db)
+def rows(db: peewee.Database) -> Rows.Core:
+	return Rows.Core(db)
 
 
 @pytest.fixture
-def row() -> Row:
+def row() -> Rows.Core.Item:
 
 	data = Item.Data(value=b'')
 
-	return Row(
+	return Rows.Core.Item(
 		type=Item.Type('type'),
 		status=Item.Status('status'),
 		digest=data.digest,
@@ -37,7 +37,7 @@ def row() -> Row:
 
 
 @pytest.fixture
-def query_all(row: Row) -> Query:
+def query_all(row: Rows.Core.Item) -> Query:
 	return Query(
 		mask=Mask(
 			type=row.type
@@ -47,7 +47,7 @@ def query_all(row: Row) -> Query:
 
 
 @pydantic.validate_arguments
-def test_immutable(rows: Rows_):
+def test_immutable(rows: Rows.Core):
 	with pytest.raises(dataclasses.FrozenInstanceError):
 		rows.__setattr__('db', b'x')
 	with pytest.raises(dataclasses.FrozenInstanceError):
@@ -57,7 +57,7 @@ def test_immutable(rows: Rows_):
 
 
 @pydantic.validate_arguments
-def test_append_get_delete(rows: Rows_, row: Row):
+def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 
 	rows.add(row)
 
@@ -83,13 +83,13 @@ def test_append_get_delete(rows: Rows_, row: Row):
 
 
 @pydantic.validate_arguments
-def test_delete_nonexistent(rows: Rows_, row: Row):
+def test_delete_nonexistent(rows: Rows.Core, row: Rows.Core.Item):
 	with pytest.raises(rows.OperationalError):
 		del rows[row]
 
 
 @pytest.fixture
-def changed_row(row: Row, changes_list: typing.Iterable[str]) -> Row:
+def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows.Core.Item:
 
 	changes: dict[str, Item.Value | Item.Metadata] = {}
 
@@ -133,7 +133,7 @@ def changed_row(row: Row, changes_list: typing.Iterable[str]) -> Row:
 	))
 )
 @pydantic.validate_arguments
-def test_get_exact(rows: Rows_, row: Row, query_all: Query, changed_row: Row):
+def test_get_exact(rows: Rows.Core, row: Rows.Core.Item, query_all: Query, changed_row: Rows.Core.Item):
 
 	rows.add(row)
 	rows.add(changed_row)

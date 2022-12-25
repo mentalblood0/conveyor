@@ -10,7 +10,9 @@ from ...core import Item, Query, Part, PartRepository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Files(PartRepository):
 
-	files: Files_
+	Core = Files_
+
+	files: Core
 
 	@pydantic.validate_arguments
 	def add(self, item: Item) -> None:
