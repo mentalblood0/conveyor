@@ -9,3 +9,4 @@ poetry.lock
 test.py
 *.egg-info
 log.txt
+tests/files/*
