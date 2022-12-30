@@ -21,7 +21,7 @@ class Files_:
 	transform: typing.Callable[[Data], Data] = dataclasses.field(default=default_transform)
 
 	@pydantic.validate_arguments
-	def _path(self, digest: Digest) -> pathlib.Path:
+	def path(self, digest: Digest) -> pathlib.Path:
 		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
@@ -39,7 +39,7 @@ class Files_:
 	@pydantic.validate_arguments
 	def add(self, data: Data) -> None:
 
-		path = self._path(data.digest)
+		path = self.path(data.digest)
 		path.parent.mkdir(parents=True, exist_ok=True)
 
 		try:
@@ -56,7 +56,7 @@ class Files_:
 	def __getitem__(self, digest: Digest) -> Data:
 		try:
 			return Data(
-				value=self._path(digest).read_bytes(),
+				value=self.path(digest).read_bytes(),
 				test=digest
 			)
 		except:
@@ -65,7 +65,7 @@ class Files_:
 	@pydantic.validate_arguments
 	def __delitem__(self, digest: Digest) -> None:
 
-		p = self._path(digest)
+		p = self.path(digest)
 		p.unlink(missing_ok=True)
 
 		while len(p.parts) > 1:
@@ -77,4 +77,4 @@ class Files_:
 
 	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:
-		return self._path(digest).exists()
+		return self.path(digest).exists()
