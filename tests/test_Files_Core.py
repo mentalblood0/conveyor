@@ -1,7 +1,6 @@
 import pytest
 import pathlib
 import pydantic
-import dataclasses
 
 from conveyor.core.Item import Data
 from conveyor.repositories import Files
@@ -19,19 +18,9 @@ def data() -> Data:
 
 
 @pydantic.validate_arguments
-def test_immutable(files: Files.Core):
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		files.value = b'x'
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		del files.value
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		files.x = b'x'
-
-
-@pydantic.validate_arguments
 def test_path(files: Files.Core, data: Data):
 
-	p = files._path(data.digest)
+	p = files.path(data.digest)
 
 	p.parent.mkdir(parents=True, exist_ok=True)
 	p.touch(exist_ok=True)

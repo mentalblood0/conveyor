@@ -1,36 +1,5 @@
-import pytest
-import pydantic
-import dataclasses
-
 from conveyor.core.Item import Digest
 
-
-
-def test_no_accept_non_bytes_value():
-	with pytest.raises(pydantic.ValidationError):
-		Digest(None)
-	with pytest.raises(pydantic.ValidationError):
-		Digest(32)
-	with pytest.raises(pydantic.ValidationError):
-		Digest(' ' * 32)
-
-
-def test_no_accept_short_value():
-	with pytest.raises(pydantic.ValidationError):
-		Digest(b'')
-	with pytest.raises(pydantic.ValidationError):
-		Digest(b' ')
-	with pytest.raises(pydantic.ValidationError):
-		Digest(b' ' * 31)
-
-
-def test_immutable():
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		Digest(b' ' * 32).value = b'x' * 32
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		del Digest(b' ' * 32).value
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		Digest(b' ' * 32).x = b'x' * 32
 
 
 def test_value():
