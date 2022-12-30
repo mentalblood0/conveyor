@@ -4,8 +4,8 @@ import typing
 import pydantic
 import sqlalchemy
 
+from .Table import Table
 from ...core import Item, Query
-from ...common.Table import Table
 from ...core.Item import Base64String
 
 

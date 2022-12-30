@@ -3,7 +3,7 @@ import datetime
 import pydantic
 import sqlalchemy
 
-from ..core import Item
+from ...core import Item
 
 
 
