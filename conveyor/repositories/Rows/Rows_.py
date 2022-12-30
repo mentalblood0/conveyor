@@ -155,7 +155,7 @@ class Rows_:
 		t = Table(self.db, old.type)
 		with self.db.connect() as connection:
 			connection.execute(
-				sqlalchemy.sql.update(t).where(*self._where(old)).values((new.dict_,))
+				sqlalchemy.sql.update(t).where(*self._where(old)).values(new.dict_)
 			)
 			connection.commit()
 

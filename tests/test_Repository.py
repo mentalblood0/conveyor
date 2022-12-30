@@ -3,6 +3,7 @@ import pytest
 import pathlib
 import pydantic
 import itertools
+import sqlalchemy
 import dataclasses
 
 from conveyor.repositories.Rows import Rows
@@ -14,7 +15,7 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def repository(db: peewee.Database) -> Repository:
+def repository(db: sqlalchemy.Engine) -> Repository:
 	return Repository([
 		Rows(Rows.Core(db)),
 		Files(Files.Core(root=pathlib.Path('tests/files'), suffix='.txt'))
