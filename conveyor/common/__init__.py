@@ -1,1 +1,1 @@
-from .Model import Model
+from .Table import Table

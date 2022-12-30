@@ -1,14 +1,14 @@
-import peewee
 import pytest
 import datetime
+import sqlalchemy
 
-from conveyor.core import Item, Query, Mask
+from conveyor.core import Item
 
 
 
 @pytest.fixture
-def db() -> peewee.Database:
-	return peewee.SqliteDatabase(':memory:')
+def db() -> sqlalchemy.engine.Engine:
+	return sqlalchemy.create_engine("sqlite://", echo=True)
 
 
 @pytest.fixture

@@ -3,10 +3,11 @@ import typing
 import datetime
 import pydantic
 import itertools
+import sqlalchemy
 import dataclasses
 
-from conveyor.core import Query, Mask, Item
 from conveyor.repositories import Rows
+from conveyor.core import Query, Mask, Item
 
 from .common import *
 
@@ -14,7 +15,7 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def rows(db: peewee.Database) -> Rows.Core:
+def rows(db: sqlalchemy.engine.Engine) -> Rows.Core:
 	return Rows.Core(db)
 
 
@@ -84,7 +85,7 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 
 @pydantic.validate_arguments
 def test_delete_nonexistent(rows: Rows.Core, row: Rows.Core.Item):
-	with pytest.raises(rows.OperationalError):
+	with pytest.raises(KeyError):
 		del rows[row]
 
 
@@ -154,3 +155,6 @@ def test_get_exact(rows: Rows.Core, row: Rows.Core.Item, query_all: Query, chang
 	]]
 	assert len(result) == 1
 	assert result[0] == row
+
+	for r in [*rows[query_all]]:
+		del rows[r]

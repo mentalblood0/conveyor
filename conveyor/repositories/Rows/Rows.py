@@ -42,4 +42,4 @@ class Rows(PartRepository):
 
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable[[], None]) -> None:
-		return self.rows.transaction(f)
+		return f()
