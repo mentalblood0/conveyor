@@ -145,7 +145,7 @@ class Rows_:
 					digest=Item.Data.Digest(Base64String(r.digest)),
 					metadata=Item.Metadata({
 						Item.Metadata.Key(name): getattr(r, name)
-						for name in r._mapping
+						for name in (c['name'] for c in db_query.column_descriptions)
 						if not (name in Item.__dataclass_fields__ or name in ('id', 'digest'))
 					})
 				)
@@ -155,7 +155,7 @@ class Rows_:
 		t = Table(self.db, old.type)
 		with self.db.connect() as connection:
 			connection.execute(
-				sqlalchemy.sql.update(t).where(*self._where(old)).values(new.dict_)
+				sqlalchemy.sql.update(t).where(*self._where(old)).values(**new.dict_)
 			)
 			connection.commit()
 
