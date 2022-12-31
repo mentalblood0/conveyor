@@ -2,7 +2,7 @@ import typing
 import pydantic
 import dataclasses
 
-from .Files_ import Files_
+from .Core import Core
 from ...core import Item, Query, Part, PartRepository
 
 
@@ -10,7 +10,7 @@ from ...core import Item, Query, Part, PartRepository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Files(PartRepository):
 
-	Core = Files_
+	Core = Core
 
 	files: Core
 

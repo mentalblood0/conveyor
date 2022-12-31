@@ -13,7 +13,7 @@ def default_transform(d: Data) -> Data:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Files_:
+class Core:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr

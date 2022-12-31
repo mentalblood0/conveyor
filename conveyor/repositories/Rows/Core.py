@@ -57,7 +57,7 @@ class Row:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
-class Rows_:
+class Core:
 
 	Item = Row
 

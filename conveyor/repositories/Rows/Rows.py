@@ -2,7 +2,7 @@ import typing
 import pydantic
 import dataclasses
 
-from .Rows_ import Rows_
+from .Core import Core
 from ...core import Item, Query, Part, PartRepository
 
 
@@ -10,7 +10,7 @@ from ...core import Item, Query, Part, PartRepository
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Rows(PartRepository):
 
-	Core = Rows_
+	Core = Core
 
 	rows: Core
 
