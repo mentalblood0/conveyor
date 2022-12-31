@@ -83,18 +83,18 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 		value: Item.Value | Item.Metadata | Item.Data | None = None
 		match key:
 			case 'status':
-				value = Item.Status(item.status.value + '_')
+				value = Item.Status('CHANGED')
 			case 'chain':
-				value = Item.Chain(ref=Item.Data(value=item.data.value + b'_'))
+				value = Item.Chain(ref=Item.Data(value=b'CHANGED'))
 			case 'data':
-				value = Item.Data(value=item.data.value + b'_')
+				value = Item.Data(value=b'CHANGED')
 			case 'created':
 				value = Item.Created(item.created.value - datetime.timedelta(seconds=1))
 			case 'metadata':
 				current = item.metadata.value[Item.Metadata.Key('key')]
 				match current:
 					case str():
-						new = '_'
+						new = 'CHANGED'
 					case _:
 						raise ValueError
 				value = Item.Metadata(item.metadata.value | {Item.Metadata.Key('key'): new})
@@ -107,19 +107,22 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 
 @pytest.mark.parametrize(
 	'changes_list',
-	itertools.chain(*(
-		itertools.combinations(
-			(
-				'status',
-				'chain',
-				'data',
-				'created',
-				'metadata'
-			),
-			n
-		)
-		for n in range(1, 6)
-	))
+	(
+		c for c in itertools.chain(*(
+			itertools.combinations(
+				(
+					'status',
+					'chain',
+					'data',
+					'created',
+					'metadata'
+				),
+				n
+			)
+			for n in range(1, 6)
+		))
+		if not (('chain' in c and 'data' not in c) or ('chain' not in c and 'data' in c))
+	)
 )
 @pydantic.validate_arguments
 def test_get_exact(repository: Repository, item: Item, query_all: Query, changed_item: Item):
@@ -145,8 +148,6 @@ def test_get_exact(repository: Repository, item: Item, query_all: Query, changed
 			limit=128
 		)
 	]]
-	for i in result:
-		print(i.data)
 	assert len(result) == 1
 	assert result[0] == item
 

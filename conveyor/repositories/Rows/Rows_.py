@@ -45,43 +45,15 @@ class Row:
 	@property
 	def dict_(self) -> dict[str, Item.Metadata.Value]:
 		return dict[str, Item.Metadata.Value]({
-			'status': self.status.value,
-			'chain': self.chain,
-			'created': self.created.value,
-			'reserver': self.reserver.value,
-			'digest': self.digest.string
+			'chain':    self.chain,
+			'status':   self.status.value,
+			'digest':   self.digest.string,
+			'created':  self.created.value,
+			'reserver': self.reserver.value
 		}) | {
 			word.value: value
 			for word, value in self.metadata.value.items()
 		}
-
-
-def Conditions(mask: Query.Mask) -> dict[str, Item.Value]:
-
-	result: dict[str, Item.Value] = {}
-
-	if mask.type is not None:
-		result['type'] = mask.type.value
-	if mask.status is not None:
-		result['status'] = mask.status.value
-	if mask.data is not None:
-		result['data'] = mask.data.string
-		result['digest'] = mask.data.digest.string
-	elif mask.digest is not None:
-		result['digest'] = mask.digest.string
-
-	if mask.metadata is not None:
-		for k, v in mask.metadata.value.items():
-			result[k.value] = v
-
-	if mask.chain is not None:
-		result['chain'] = mask.chain.value
-	if mask.created is not None:
-		result['created'] = mask.created.value
-	if mask.reserver is not None:
-		result['reserver'] = mask.reserver.value
-
-	return result
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -92,14 +64,25 @@ class Rows_:
 	db: sqlalchemy.engine.Engine
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-	def _where(self, row: Row) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
-		yield     sqlalchemy.column('status')   == row.status.value
-		yield     sqlalchemy.column('digest')   == row.digest.string
-		yield     sqlalchemy.column('chain')    == row.chain
-		yield     sqlalchemy.column('created')  == row.created.value
-		yield     sqlalchemy.column('reserver') == row.reserver.value
-		for k, v in row.metadata.value.items():
-			yield sqlalchemy.column(k.value)    == v
+	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
+		if ref.status is not None:
+			yield     sqlalchemy.column('status')   == ref.status.value
+		if ref.digest is not None:
+			yield     sqlalchemy.column('digest')   == ref.digest.string
+		match ref.chain:
+			case None:
+				pass
+			case str():
+				yield sqlalchemy.column('chain')    == ref.chain
+			case _:
+				yield sqlalchemy.column('chain')    == ref.chain.value
+		if ref.created is not None:
+			yield     sqlalchemy.column('created')  == ref.created.value
+		if ref.reserver is not None:
+			yield     sqlalchemy.column('reserver') == ref.reserver.value
+		if ref.metadata is not None:
+			for k, v in ref.metadata.value.items():
+				yield sqlalchemy.column(k.value)    == v
 
 	@pydantic.validate_arguments
 	def add(self, row: Row) -> None:
@@ -118,20 +101,14 @@ class Rows_:
 
 		t = Table(self.db, item_query.mask.type)
 
-		db_query = sqlalchemy.sql.select(t)
-
-		if conditions := [
-			getattr(t.c, k) == v
-			for k, v in Conditions(item_query.mask).items()
-			if k not in ['type', 'data']
-		]:
-			db_query = db_query.where(*conditions)
-
-		db_query = db_query.limit(item_query.limit)
-
 		with self.db.connect() as connection:
 
-			for r in connection.execute(db_query):
+			for r in connection.execute(
+				sqlalchemy.sql
+				.select(t)
+				.where(*self._where(item_query.mask))
+				.limit(item_query.limit)
+			):
 
 				yield Row(
 					type=item_query.mask.type,
@@ -145,7 +122,7 @@ class Rows_:
 					digest=Item.Data.Digest(Base64String(r.digest)),
 					metadata=Item.Metadata({
 						Item.Metadata.Key(name): getattr(r, name)
-						for name in (c['name'] for c in db_query.column_descriptions)
+						for name in t.columns.keys()
 						if not (name in Item.__dataclass_fields__ or name in ('id', 'digest'))
 					})
 				)
