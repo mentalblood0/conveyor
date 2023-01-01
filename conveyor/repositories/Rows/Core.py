@@ -144,3 +144,14 @@ class Core:
 				sqlalchemy.sql.delete(t).where(*self._where(row))
 			)
 			connection.commit()
+
+	@pydantic.validate_arguments
+	def __contains__(self, row: Row) -> bool:
+		with self.db.connect() as connection:
+			return connection.execute(
+				sqlalchemy.sql.exists(
+					Table(self.db, row.type)
+					.select()
+					.where(*self._where(row))
+				).select()
+			).scalar_one()

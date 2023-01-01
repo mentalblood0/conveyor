@@ -94,3 +94,7 @@ class Repository:
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable[[], None]):
 		functools.reduce(lambda result, t: functools.partial(t.transaction, result), reversed(self.parts), f)
+
+	@pydantic.validate_arguments
+	def __contains__(self, item: Item) -> bool:
+		return all(item in p for p in self.parts)

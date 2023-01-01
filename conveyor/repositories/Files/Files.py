@@ -33,3 +33,7 @@ class Files(PartRepository):
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable[[], None]) -> None:
 		f()
+
+	@pydantic.validate_arguments
+	def __contains__(self, item: Item) -> bool:
+		return item.data.digest in self.files

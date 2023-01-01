@@ -29,3 +29,7 @@ class PartRepository:
 	@pydantic.validate_arguments
 	def transaction(self, f: typing.Callable[[], None]) -> None:
 		raise NotImplementedError
+
+	@pydantic.validate_arguments
+	def __contains__(self, item: Item) -> bool:
+		raise NotImplementedError
