@@ -15,8 +15,8 @@ class Files(PartRepository):
 	files: Core
 
 	@pydantic.validate_arguments
-	def add(self, item: Item) -> None:
-		return self.files.add(item.data)
+	def append(self, item: Item) -> None:
+		return self.files.append(item.data)
 
 	@pydantic.validate_arguments
 	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:

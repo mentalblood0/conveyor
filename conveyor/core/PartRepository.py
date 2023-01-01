@@ -11,7 +11,7 @@ from .Query import Query
 class PartRepository:
 
 	@pydantic.validate_arguments
-	def add(self, item: Item) -> None:
+	def append(self, item: Item) -> None:
 		raise NotImplementedError
 
 	@pydantic.validate_arguments

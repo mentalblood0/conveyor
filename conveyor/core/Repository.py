@@ -28,9 +28,9 @@ class Repository:
 		return parts
 
 	@pydantic.validate_arguments
-	def add(self, item: Item) -> None:
+	def append(self, item: Item) -> None:
 		for p in reversed(self.parts):
-			p.add(item)
+			p.append(item)
 
 	@pydantic.validate_arguments
 	def _get(self, query: Query, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[Part] = (Part(),)) -> typing.Iterable[Item]:

@@ -85,7 +85,7 @@ class Core:
 				yield sqlalchemy.column(k.value)    == v
 
 	@pydantic.validate_arguments
-	def add(self, row: Row) -> None:
+	def append(self, row: Row) -> None:
 		with self.db.connect() as connection:
 			connection.execute(
 				Table(

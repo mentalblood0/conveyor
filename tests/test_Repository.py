@@ -46,7 +46,7 @@ def test_immutable(repository: Repository):
 @pydantic.validate_arguments
 def test_append_get_delete(repository: Repository, item: Item):
 
-	repository.add(item)
+	repository.append(item)
 
 	query = Query(
 		mask=Mask(
@@ -127,8 +127,8 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 @pydantic.validate_arguments
 def test_get_exact(repository: Repository, item: Item, query_all: Query, changed_item: Item):
 
-	repository.add(item)
-	repository.add(changed_item)
+	repository.append(item)
+	repository.append(changed_item)
 
 	both = [*repository[query_all]]
 	assert len(both) == 2

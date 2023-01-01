@@ -37,7 +37,7 @@ def test_path(files: Files.Core, data: Data):
 @pydantic.validate_arguments
 def test_append_get_delete(files: Files.Core, data: Data):
 
-	files.add(data)
+	files.append(data)
 	assert files[data.digest] == data
 
 	del files[data.digest]

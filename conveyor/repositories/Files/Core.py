@@ -1,6 +1,5 @@
 import typing
 import pathlib
-import tempfile
 import pydantic
 import dataclasses
 
@@ -26,10 +25,10 @@ class Core:
 		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
-	def add(self, data: Data) -> None:
+	def append(self, data: Data) -> None:
 		if data.digest in self:
 			if data != self[data.digest]:
-				self.add(self.transform(data))
+				self.append(self.transform(data))
 		else:
 			path = self.path(data.digest)
 			path.parent.mkdir(parents=True, exist_ok=True)

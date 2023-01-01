@@ -15,8 +15,8 @@ class Rows(PartRepository):
 	rows: Core
 
 	@pydantic.validate_arguments
-	def add(self, item: Item) -> None:
-		return self.rows.add(self.rows.Item.from_item(item))
+	def append(self, item: Item) -> None:
+		return self.rows.append(self.rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
 	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:

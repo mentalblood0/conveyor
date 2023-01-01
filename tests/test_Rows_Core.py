@@ -60,7 +60,7 @@ def test_immutable(rows: Rows.Core):
 @pydantic.validate_arguments
 def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 
-	rows.add(row)
+	rows.append(row)
 
 	query = Query(
 		mask=Mask(
@@ -136,8 +136,8 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 @pydantic.validate_arguments
 def test_get_exact(rows: Rows.Core, row: Rows.Core.Item, query_all: Query, changed_row: Rows.Core.Item):
 
-	rows.add(row)
-	rows.add(changed_row)
+	rows.append(row)
+	rows.append(changed_row)
 
 	assert len([*rows[query_all]]) == 2
 
