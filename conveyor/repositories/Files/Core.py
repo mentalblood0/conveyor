@@ -39,10 +39,11 @@ class Core:
 
 	@pydantic.validate_arguments
 	def add(self, data: Data) -> None:
-		if (path := self.path(data.digest)).exists():
-			if data != Data(value=path.read_bytes()):
+		if data.digest in self:
+			if data != self[data.digest]:
 				self.add(self.transform(data))
 		else:
+			path = self.path(data.digest)
 			path.parent.mkdir(parents=True, exist_ok=True)
 			path.write_bytes(data.value)
 
