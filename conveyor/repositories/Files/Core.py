@@ -1,5 +1,6 @@
 import typing
 import pathlib
+import tempfile
 import pydantic
 import dataclasses
 
@@ -38,19 +39,12 @@ class Core:
 
 	@pydantic.validate_arguments
 	def add(self, data: Data) -> None:
-
-		path = self.path(data.digest)
-		path.parent.mkdir(parents=True, exist_ok=True)
-
-		try:
-			with path.open('xb') as f:
-				f.write(data.value)
-
-		except FileExistsError:
+		if (path := self.path(data.digest)).exists():
 			if data != Data(value=path.read_bytes()):
-				self.add(
-					self.transform(data)
-				)
+				self.add(self.transform(data))
+		else:
+			path.parent.mkdir(parents=True, exist_ok=True)
+			path.write_bytes(data.value)
 
 	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
