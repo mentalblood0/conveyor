@@ -26,18 +26,6 @@ class Core:
 		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
-	def _remove(self, path: pathlib.Path) -> None:
-
-		path.unlink(missing_ok=True)
-
-		while len(path.parts) > 1:
-			p = path.parent
-			try:
-				p.rmdir()
-			except OSError:
-				break
-
-	@pydantic.validate_arguments
 	def add(self, data: Data) -> None:
 		if data.digest in self:
 			if data != self[data.digest]:
@@ -63,7 +51,7 @@ class Core:
 		p = self.path(digest)
 		p.unlink(missing_ok=True)
 
-		while len(p.parts) > 1:
+		while p != self.root:
 			p = p.parent
 			try:
 				p.rmdir()
