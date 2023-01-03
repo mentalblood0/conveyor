@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 import pydantic
 import sqlalchemy
+import contextlib
 
 from .Table import Table
 from ...core import Item, Query
@@ -62,6 +63,7 @@ class Core:
 	Item = Row
 
 	db: sqlalchemy.engine.Engine
+	connection: sqlalchemy.Connection | None = None
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
@@ -86,22 +88,22 @@ class Core:
 
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
-		with self.db.connect() as connection:
+		with self.connect(nested=False) as connection:
 			connection.execute(
 				Table(
-					db=self.db,
+					connection=connection,
 					name=row.type,
 					metadata=row.metadata
 				).insert().values((row.dict_,))
 			)
-			connection.commit()
+
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: Query) -> typing.Iterable[Row]:
 
-		t = Table(self.db, item_query.mask.type)
+		with self.connect() as connection:
 
-		with self.db.connect() as connection:
+			t = Table(connection, item_query.mask.type)
 
 			for r in connection.execute(
 				sqlalchemy.sql
@@ -129,29 +131,72 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
-		t = Table(self.db, old.type)
-		with self.db.connect() as connection:
+		with self.connect() as connection:
+			t = Table(connection, old.type)
 			connection.execute(
 				sqlalchemy.sql.update(t).where(*self._where(old)).values(**new.dict_)
 			)
-			connection.commit()
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
-		t = Table(self.db, row.type)
-		with self.db.connect() as connection:
+		with self.connect() as connection:
+			t = Table(connection, row.type)
 			connection.execute(
 				sqlalchemy.sql.delete(t).where(*self._where(row))
 			)
-			connection.commit()
+
+
+	@pydantic.validate_arguments
+	@contextlib.contextmanager
+	def transaction(self) -> typing.Iterator[typing.Self]:
+		with self.connect() as connection:
+			yield Core(self.db, connection)
+
+
+	@pydantic.validate_arguments
+	@contextlib.contextmanager
+	def connect(self, nested: bool = True) -> typing.Iterator[sqlalchemy.Connection]:
+		match self.connection:
+			case sqlalchemy.Connection():
+				if nested:
+					with self.connection.begin_nested() as c:
+						yield self.connection
+						c.rollback()
+				else:
+					yield self.connection
+			case None:
+				with self.db.begin() as c:
+					yield c
 
 	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
-		with self.db.connect() as connection:
-			return connection.execute(
-				sqlalchemy.sql.exists(
-					Table(self.db, row.type)
-					.select()
-					.where(*self._where(row))
-				).select()
-			).scalar_one()
+		with self.connect() as connection:
+			try:
+				return connection.execute(
+					sqlalchemy.sql.exists(
+						Table(connection, row.type, row.metadata)
+						.select()
+						.where(*self._where(row))
+					).select()
+				).scalar_one()
+			except KeyError:
+				return False
+
+	@pydantic.validate_arguments
+	def __len__(self) -> pydantic.NonNegativeInt:
+
+		result: pydantic.NonNegativeInt = 0
+
+		with self.connect() as c:
+			names = sqlalchemy.inspect(c).get_table_names()
+
+		with self.connect() as connection:
+			for name in names:
+				if name.startswith('conveyor_'):
+					result += connection.execute(
+						sqlalchemy.sql.select(sqlalchemy.func.count()).select_from(
+							Table(connection, Item.Type(name[9:]))
+						)
+					).scalar_one()
+
+		return result

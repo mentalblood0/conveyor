@@ -6,8 +6,8 @@ import itertools
 import sqlalchemy
 import dataclasses
 
+from conveyor.core import Query, Mask
 from conveyor.repositories import Rows
-from conveyor.core import Query, Mask, Item
 
 from .common import *
 
@@ -81,6 +81,66 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 
 	del rows[row]
 	assert not len([*rows[query]])
+
+
+@pydantic.validate_arguments
+def test_transaction_append_one_in_one_table(rows: Rows.Core, row: Rows.Core.Item):
+
+	try:
+		with rows.transaction() as t:
+			t.append(row)
+			assert len(t) == 1
+			raise KeyError
+	except KeyError:
+		assert not len(rows)
+
+	with rows.transaction() as t:
+		t.append(row)
+		assert len(t) == 1
+	assert len(rows) == 1
+
+
+@pydantic.validate_arguments
+def test_transaction_append_many_in_one_table(rows: Rows.Core, row: Rows.Core.Item):
+
+	try:
+		with rows.transaction() as t:
+			for _ in range(3):
+				t.append(row)
+			assert len(t) == 3
+			raise KeyError
+	except KeyError:
+		assert not len(rows)
+
+	with rows.transaction() as t:
+		for _ in range(3):
+			t.append(row)
+		assert len(t) == 3
+	assert len(rows) == 3
+
+
+@pydantic.validate_arguments
+def test_transaction_append_one_in_many_tables(rows: Rows.Core, row: Rows.Core.Item):
+
+	another_row = dataclasses.replace(
+		row,
+		type=Item.Type('another_type')
+	)
+
+	try:
+		with rows.transaction() as t:
+			t.append(row)
+			t.append(another_row)
+			assert len(t) == 2
+			raise KeyError
+	except KeyError:
+		assert not len(rows)
+
+	with rows.transaction() as t:
+		t.append(row)
+		t.append(another_row)
+		assert len(t) == 2
+	assert len(rows) == 2
 
 
 @pydantic.validate_arguments

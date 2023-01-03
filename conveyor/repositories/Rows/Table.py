@@ -63,41 +63,49 @@ tables = sqlalchemy.MetaData()
 
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Table(
-	db: sqlalchemy.engine.Engine,
+	connection: sqlalchemy.Connection,
 	name: Item.Type,
 	metadata: Item.Metadata | None = None
 ) -> sqlalchemy.Table:
 
-		name = Item.Type(name.value.lower())
+		name = Item.Type(f'conveyor_{name.value.lower()}')
 
 		if metadata is None:
 
-			if name.value not in sqlalchemy.inspect(db).get_table_names():
-				raise KeyError(f'Table {name.value} not exists')
+			with connection.begin_nested() as c:
 
-			return sqlalchemy.Table(
-				name.value,
-				tables,
-				autoload_with=db
-			)
+				if name.value not in sqlalchemy.inspect(connection).get_table_names():
+					raise KeyError(f'Table {name.value} not exists')
+
+				result = sqlalchemy.Table(
+					name.value,
+					tables,
+					autoload_with=connection
+				)
+
+				c.rollback()
+
+			return result
 
 		else:
 
-			result = sqlalchemy.Table(
-				name.value,
-				tables,
-				*(
-					Column(name, None)
-					for name in base_fields
-				),
-				*(
-					Column(k, v)
-					for k, v in metadata.value.items()
-				),
-				extend_existing=True
-			)
+			with connection.begin_nested() as _:
 
-			if name.value not in sqlalchemy.inspect(db).get_table_names():
-				result.create(bind=db)
+				result = sqlalchemy.Table(
+					name.value,
+					tables,
+					*(
+						Column(name, None)
+						for name in base_fields
+					),
+					*(
+						Column(k, v)
+						for k, v in metadata.value.items()
+					),
+					extend_existing=True
+				)
+
+				if name.value not in sqlalchemy.inspect(connection).get_table_names():
+					result.create(bind=connection)
 
 			return result
