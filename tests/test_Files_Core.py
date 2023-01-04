@@ -9,7 +9,9 @@ from conveyor.repositories import Files
 
 @pytest.fixture
 def files() -> Files.Core:
-	return Files.Core(root=pathlib.Path('tests/files'), suffix='.txt')
+	result = Files.Core(root=pathlib.Path('tests/files'), suffix='.txt')
+	result.clear()
+	return result
 
 
 @pytest.fixture
@@ -49,3 +51,39 @@ def test_append_get_delete(files: Files.Core, data: Data):
 def test_delete_nonexistent(files: Files.Core, data: Data):
 	with pytest.raises(FileNotFoundError):
 		del files[data.digest]
+
+
+@pydantic.validate_arguments
+def test_transaction_append_one(files: Files.Core, data: Data):
+
+	try:
+		with files.transaction() as t:
+			t.append(data)
+			assert len(t) == 0
+			raise KeyError
+	except KeyError:
+		assert not len(files)
+
+	with files.transaction() as t:
+		t.append(data)
+		assert len(t) == 0
+	assert len(files) == 1
+
+
+@pydantic.validate_arguments
+def test_transaction_append_many(files: Files.Core, data: Data):
+
+	try:
+		with files.transaction() as t:
+			for i in range(3):
+				t.append(Data(value=data.value + str(i).encode()))
+				assert len(t) == 0
+			raise KeyError
+	except KeyError:
+		assert not len(files)
+
+	with files.transaction() as t:
+		for i in range(3):
+			t.append(Data(value=data.value + str(i).encode()))
+			assert len(t) == 0
+	assert len(files) == 3

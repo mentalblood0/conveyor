@@ -40,3 +40,6 @@ class Files(PartRepository):
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
 		return item.data.digest in self.files
+
+	def clear(self) -> None:
+		self.files.clear()

@@ -71,6 +71,7 @@ class Core:
 			yield t
 		except:
 			t.transaction_.rollback()
+			raise
 
 		if self.transaction_ is None:
 			t.transaction_.commit()
@@ -78,3 +79,17 @@ class Core:
 	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:
 		return self.path(digest).exists()
+
+	def __len__(self) -> pydantic.NonNegativeInt:
+
+		result: pydantic.NonNegativeInt = 0
+
+		for p in self.root.rglob(f'*{self.suffix}'):
+			print(p.name)
+			result += 1
+
+		return result
+
+	def clear(self) -> None:
+		for p in self.root.rglob(f'*{self.suffix}'):
+			p.unlink()

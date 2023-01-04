@@ -30,18 +30,30 @@ class Append(Action):
 
 	@property
 	def temp(self) -> pathlib.Path:
-		return self.path.with_suffix('.new')
+		return self.path.with_suffix(self.path.suffix + '.new')
 
 	def prepare(self) -> None:
+		print(f'Append {id(self)} prepare {self.temp.name}')
 		self.temp.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.write_bytes(self.data)
 
 	def commit(self) -> None:
+		print(f'Append {id(self)} commit {self.temp.name} -> {self.path.name}')
 		self.path.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.replace(self.path)
 
 	def rollback(self) -> None:
+
+		print(f'Append {id(self)} rollback {self.temp.name}')
 		self.temp.unlink(missing_ok=True)
+
+		p = self.temp.parent
+		while True:
+			try:
+				p.rmdir()
+			except:
+				break
+			p = p.parent
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
@@ -67,6 +79,7 @@ class Delete(Action):
 			p = p.parent
 
 	def rollback(self) -> None:
+		self.path.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.replace(self.path)
 
 
