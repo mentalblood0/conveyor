@@ -1,5 +1,6 @@
 import typing
 import pydantic
+import contextlib
 
 from .Item import Item
 from .Part import Part
@@ -27,7 +28,8 @@ class PartRepository:
 		raise NotImplementedError
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable[[], None]) -> None:
+	@contextlib.contextmanager
+	def transaction(self) -> typing.Iterator[typing.Self]:
 		raise NotImplementedError
 
 	@pydantic.validate_arguments

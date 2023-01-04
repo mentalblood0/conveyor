@@ -1,6 +1,5 @@
 import typing
 import pydantic
-import functools
 import itertools
 import dataclasses
 
@@ -92,8 +91,8 @@ class Repository:
 				break
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable[[], None]):
-		functools.reduce(lambda result, t: functools.partial(t.transaction, result), reversed(self.parts), f)
+	def transaction(self) -> typing.Iterator[typing.Self]:
+		raise NotImplementedError
 
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
