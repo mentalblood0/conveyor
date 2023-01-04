@@ -1,5 +1,6 @@
 import typing
 import pydantic
+import contextlib
 import dataclasses
 
 from .Core import Core
@@ -41,8 +42,10 @@ class Rows(PartRepository):
 		return self.rows.__delitem__(self.rows.Item.from_item(item))
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable[[], None]) -> None:
-		return f()
+	@contextlib.contextmanager
+	def transaction(self) -> typing.Iterator[typing.Self]:
+		with self.rows.transaction() as t:
+			yield dataclasses.replace(self, rows = t)
 
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:

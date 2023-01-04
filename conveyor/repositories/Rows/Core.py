@@ -4,6 +4,7 @@ import typing
 import pydantic
 import sqlalchemy
 import contextlib
+import dataclasses
 
 from .Table import Table
 from ...core import Item, Query
@@ -150,7 +151,7 @@ class Core:
 	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
 		with self.connect() as connection:
-			yield Core(self.db, connection)
+			yield dataclasses.replace(self, connection=connection)
 
 
 	@pydantic.validate_arguments
