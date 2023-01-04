@@ -1,8 +1,10 @@
 import typing
 import pathlib
 import pydantic
+import contextlib
 import dataclasses
 
+from .Transaction import Transaction
 from ...core.Item import Digest, Data
 
 
@@ -19,6 +21,7 @@ class Core:
 	suffix: pydantic.StrictStr
 
 	transform: typing.Callable[[Data], Data] = dataclasses.field(default=default_transform)
+	transaction_: Transaction | None = None
 
 	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:
@@ -26,13 +29,11 @@ class Core:
 
 	@pydantic.validate_arguments
 	def append(self, data: Data) -> None:
-		if data.digest in self:
-			if data != self[data.digest]:
-				self.append(self.transform(data))
-		else:
-			path = self.path(data.digest)
-			path.parent.mkdir(parents=True, exist_ok=True)
-			path.write_bytes(data.value)
+		with self.transaction() as t:
+			if t.transaction_ is not None:
+				t.transaction_.add([Transaction.Append(self.path(data.digest), data=data.value)])
+			else:
+				raise ValueError
 
 	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
@@ -46,16 +47,33 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, digest: Digest) -> None:
+		with self.transaction() as t:
+			if t.transaction_ is not None:
+				t.transaction_.add([Transaction.Delete(self.path(digest))])
+			else:
+				raise ValueError
 
-		p = self.path(digest)
-		p.unlink(missing_ok=True)
+	@contextlib.contextmanager
+	def transaction(self) -> typing.Iterator[typing.Self]:
 
-		while p != self.root:
-			p = p.parent
-			try:
-				p.rmdir()
-			except OSError:
-				break
+		if self.transaction_ is None:
+			t = dataclasses.replace(
+				self,
+				transaction_ = Transaction()
+			)
+		else:
+			t = self
+
+		if t.transaction_ is None:
+			raise ValueError
+
+		try:
+			yield t
+		except:
+			t.transaction_.rollback()
+
+		if self.transaction_ is None:
+			t.transaction_.commit()
 
 	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:

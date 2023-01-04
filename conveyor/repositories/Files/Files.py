@@ -1,5 +1,6 @@
 import typing
 import pydantic
+import contextlib
 import dataclasses
 
 from .Core import Core
@@ -31,8 +32,10 @@ class Files(PartRepository):
 		return self.files.__delitem__(item.data.digest)
 
 	@pydantic.validate_arguments
-	def transaction(self, f: typing.Callable[[], None]) -> None:
-		f()
+	@contextlib.contextmanager
+	def transaction(self) -> typing.Iterator[typing.Self]:
+		with self.files.transaction() as t:
+			yield dataclasses.replace(self, files = t)
 
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
