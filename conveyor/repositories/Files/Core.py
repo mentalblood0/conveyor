@@ -11,16 +11,6 @@ from ...core.Item import Digest, Data
 
 
 
-@pydantic.validate_arguments
-def default_equal_transform(d: Data) -> Data:
-	return Data(value=d.value + b' ')
-
-
-@pydantic.validate_arguments
-def default_transform(d: Data) -> Data:
-	return Data(value=d.value + b' ')
-
-
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Transform:
 
