@@ -1,1 +1,1 @@
-from .Files import Files
+from .Files import Files as Files
