@@ -1,9 +1,7 @@
 import typing
 import pytest
-import pathlib
 import pydantic
 import itertools
-import sqlalchemy
 import dataclasses
 
 from conveyor.repositories.Rows import Rows
@@ -15,13 +13,8 @@ from .common import *
 
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def repository(db: sqlalchemy.Engine) -> Repository:
-	files = Files(Files.Core(root=pathlib.Path('tests/files'), suffix='.txt'))
-	files.clear()
-	return Repository([
-		Rows(Rows.Core(db)),
-		files
-	])
+def repository(files: Files.Core, rows: Rows) -> Repository:
+	return Repository([rows, Files(files)])
 
 
 @pytest.fixture

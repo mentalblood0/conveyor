@@ -1,17 +1,11 @@
 import pytest
-import pathlib
 import pydantic
 
 from conveyor.core.Item import Data
 from conveyor.repositories import Files
 
+from .common import *
 
-
-@pytest.fixture
-def files() -> Files.Core:
-	result = Files.Core(root=pathlib.Path('tests/files'), suffix='.txt')
-	result.clear()
-	return result
 
 
 @pytest.fixture
