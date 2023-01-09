@@ -89,7 +89,10 @@ class Transforms:
 	@pydantic.validate_arguments
 	def __invert__(self) -> typing.Self:
 		return Transforms(
-			common = reversed(collections.deque(self.common)),
+			common = reversed(collections.deque(
+				~t
+				for t in self.common
+			)),
 			equal  = self.equal
 		)
 
