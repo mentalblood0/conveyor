@@ -33,18 +33,15 @@ class Append(Action):
 		return self.path.with_suffix(self.path.suffix + '.new')
 
 	def prepare(self) -> None:
-		print(f'Append {id(self)} prepare {self.temp.name}')
 		self.temp.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.write_bytes(self.data)
 
 	def commit(self) -> None:
-		print(f'Append {id(self)} commit {self.temp.name} -> {self.path.name}')
 		self.path.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.replace(self.path)
 
 	def rollback(self) -> None:
 
-		print(f'Append {id(self)} rollback {self.temp.name}')
 		self.temp.unlink(missing_ok=True)
 
 		p = self.temp.parent
