@@ -19,34 +19,26 @@ class Transform:
 
 	@pydantic.validate_arguments
 	def __call__(self, data: Data) -> Data:
+
+		result: Data | None = None
 		if self.inverted:
-			return self.inverse(data)
+			result = self.inverse(data)
 		else:
-			return self.direct(data)
+			result = self.direct(data)
+
+		test: Data | None = None
+		if self.inverted:
+			test = self.direct(result)
+		else:
+			test = self.inverse(result)
+
+		if data != test:
+			raise ValueError(f'Transform {self} not invertible for data {data}')
+
+		return result
 
 	def __invert__(self) -> typing.Self:
 		return self.__class__(inverted = not self.inverted)
-
-
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Invertible:
-
-	transform: Transform
-	data:      Data
-
-	@pydantic.validator('data')
-	def transform_invertible_for_data(cls, data: Data, values: dict[str, Transform | Data]) -> Data:
-		match transform := values['transform']:
-			case Transform():
-				if (~transform)(transform(data)) != data:
-					raise ValueError(f'Transform {transform} not invertible for data {data}')
-			case _:
-				raise ValueError
-
-		return data
-
-	def __call__(self) -> Data:
-		return self.transform(self.data)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -54,16 +46,13 @@ class Transforms:
 
 	Transform = Transform
 
-	common: list[Transform]
+	common: typing.Sequence[Transform]
 	equal:  Transform
 
 	@pydantic.validate_arguments
 	def __call__(self, data: Data) -> Data:
 		return functools.reduce(
-			lambda result, t: Invertible(
-				transform = t,
-				data      = result
-			)(),
+			lambda result, t: t(result),
 			self.common,
 			data
 		)
@@ -77,3 +66,12 @@ class Transforms:
 			],
 			equal  = self.equal
 		)
+
+	# def __add__(self, another: object):
+	# 	match another:
+	# 		case Transform():
+	# 			return Transforms(
+	# 				common = self.common +
+	# 			)
+	# 		case _:
+	# 			raise ValueError(f'Can add instance of type `{type(another)}` to instance of type `{type(self)}`')
