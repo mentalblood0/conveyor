@@ -5,22 +5,23 @@ import pydantic
 import contextlib
 import dataclasses
 
-from .Transforms import Transforms
 from .Transaction import Transaction
 from ...core.Item import Digest, Data
+from .Transforms import Transform, Transforms
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Core:
 
+	Transform  = Transform
 	Transforms = Transforms
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
 
-	transforms: Transforms[bytes]
-	equal:      Transforms[bytes]
+	transform:  Transform[bytes]
+	equal:      Transform[bytes]
 
 	transaction_: Transaction | None = None
 
@@ -35,7 +36,7 @@ class Core:
 				t.transaction_.append(
 					Transaction.Append(
 						path  = self.path(data.digest),
-						data  = self.transforms(data.value),
+						data  = self.transform(data.value),
 						equal_path = lambda b: self.path(Data(value = b).digest),
 						equal_data = self.equal
 					)
@@ -47,7 +48,7 @@ class Core:
 	def __getitem__(self, digest: Digest) -> Data:
 		try:
 			return Data(
-				value = (~self.transforms)(
+				value = (~self.transform)(
 					self.path(digest).read_bytes()
 				),
 				test = digest
