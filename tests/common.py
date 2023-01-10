@@ -27,27 +27,27 @@ def item() -> Item:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class DefaultEqualTransform(Files.Core.Transforms.Transform):
+class DefaultEqualTransform(Files.Core.Transforms.Transform[bytes]):
 
 	@pydantic.validate_arguments
-	def direct(self, data: Item.Data) -> Item.Data:
-		return Item.Data(value = data.value + b' ')
+	def direct(self, o: bytes) -> bytes:
+		return o + b' '
 
 	@pydantic.validate_arguments
-	def inverse(self, data: Item.Data) -> Item.Data:
-		return Item.Data(value = data.value[:-1])
+	def inverse(self, o: bytes) -> bytes:
+		return o[:-1]
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Compress(Files.Core.Transforms.Transform):
+class Compress(Files.Core.Transforms.Transform[bytes]):
 
 	@pydantic.validate_arguments
-	def direct(self, data: Item.Data) -> Item.Data:
-		return Item.Data(value = zlib.compress(data.value, level = 9))
+	def direct(self, o: bytes) -> bytes:
+		return zlib.compress(o, level = 9)
 
 	@pydantic.validate_arguments
-	def inverse(self, data: Item.Data) -> Item.Data:
-		return Item.Data(value = zlib.decompress(data.value))
+	def inverse(self, o: bytes) -> bytes:
+		return zlib.decompress(o)
 
 
 @pytest.fixture
@@ -56,8 +56,10 @@ def files() -> Files.Core:
 		root       = pathlib.Path('tests/files'),
 		suffix     = '.txt',
 		transforms = Files.Core.Transforms(
-			common = [Compress()],
-			equal = DefaultEqualTransform()
+			sequence = [Compress()]
+		),
+		equal = Files.Core.Transforms(
+			sequence = [DefaultEqualTransform()]
 		)
 	)
 	result.clear()

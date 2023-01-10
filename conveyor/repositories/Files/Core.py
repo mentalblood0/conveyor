@@ -18,7 +18,9 @@ class Core:
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
 
-	transforms: Transforms
+	transforms: Transforms[bytes]
+	equal:      Transforms[bytes]
+
 	transaction_: Transaction | None = None
 
 	@pydantic.validate_arguments
@@ -31,8 +33,10 @@ class Core:
 			if t.transaction_ is not None:
 				t.transaction_.add([
 					Transaction.Append(
-						path = self.path(data.digest),
-						data = self.transforms(data).value
+						path  = self.path(data.digest),
+						data  = self.transforms(data.value),
+						equal_path = lambda b: self.path(Data(value = b).digest),
+						equal_data = self.equal
 					)
 				])
 			else:
@@ -41,18 +45,16 @@ class Core:
 	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
 		try:
-			return dataclasses.replace(
-				(~self.transforms)(
-					Data(
-						value = self.path(digest).read_bytes()
-					)
+			return Data(
+				value = (~self.transforms)(
+					self.path(digest).read_bytes()
 				),
 				test = digest
 			)
-		except ValueError:
-			raise
 		except FileNotFoundError:
 			raise KeyError(f'{self.root} {digest.string}')
+		except ValueError:
+			raise
 
 	@pydantic.validate_arguments
 	def __delitem__(self, digest: Digest) -> None:
@@ -78,12 +80,11 @@ class Core:
 
 		try:
 			yield t
+			if self.transaction_ is None:
+				t.transaction_.commit()
 		except:
 			t.transaction_.rollback()
 			raise
-
-		if self.transaction_ is None:
-			t.transaction_.commit()
 
 	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:
@@ -99,5 +100,15 @@ class Core:
 		return result
 
 	def clear(self) -> None:
-		for p in self.root.rglob(f'*{self.suffix}'):
+
+		for p in [*self.root.rglob(f'*{self.suffix}')]:
+
 			p.unlink()
+
+			d = p.parent
+			while True:
+				try:
+					d.rmdir()
+				except:
+					break
+				d = d.parent

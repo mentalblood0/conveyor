@@ -1,7 +1,14 @@
+import typing
 import pathlib
 import pydantic
 import dataclasses
 
+from .Transforms import Transform
+
+
+
+class Collision(Exception):
+	pass
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
@@ -26,7 +33,12 @@ class Action:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Append(Action):
 
-	data: pydantic.StrictBytes
+	data:  pydantic.StrictBytes
+
+	equal_path: typing.Callable[[bytes], pathlib.Path]
+	equal_data: Transform[bytes]
+
+	handle_collisions: bool = True
 
 	@property
 	def temp(self) -> pathlib.Path:
@@ -36,9 +48,32 @@ class Append(Action):
 		self.temp.parent.mkdir(parents=True, exist_ok=True)
 		self.temp.write_bytes(self.data)
 
+	@pydantic.validate_arguments
 	def commit(self) -> None:
-		self.path.parent.mkdir(parents=True, exist_ok=True)
-		self.temp.replace(self.path)
+
+		action: typing.Self = self
+
+		while True:
+
+			try:
+				self.path.parent.mkdir(parents=True, exist_ok=True)
+				try:
+					self.temp.rename(self.path)
+				except FileExistsError:
+					if self.data != self.path.read_bytes():
+						raise Collision(self.path.__str__())
+				break
+
+			except Collision:
+				if not self.handle_collisions:
+					raise
+
+			data = self.equal_data(action.data)
+			action = dataclasses.replace(
+				self,
+				path = self.equal_path(data),
+				data = data
+			)
 
 	def rollback(self) -> None:
 
@@ -83,14 +118,16 @@ class Delete(Action):
 @pydantic.dataclasses.dataclass(frozen=False, kw_only=False)
 class Transaction:
 
+	Action = Action
+
 	Append = Append
 	Delete = Delete
 
-	actions: list[Action] = dataclasses.field(default_factory=list)
+	actions: typing.Sequence[Action] = dataclasses.field(default_factory=list)
 
 	@pydantic.validate_arguments
-	def add(self, new_actions: list[Action]):
-		self.actions.extend(new_actions)
+	def add(self, new_actions: typing.Sequence[Action]):
+		self.actions = (*self.actions, *new_actions)
 		for a in new_actions:
 			a.prepare()
 
