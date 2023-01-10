@@ -47,4 +47,4 @@ class Chain:
 			case Chain():
 				return self.value == another.value
 			case _:
-				return False
+				raise ValueError(f'Can not compare instance of type `Chain` with instance of type `{type(another)}`')

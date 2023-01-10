@@ -103,4 +103,4 @@ class Digest:
 			case Digest():
 				return self.value == another.value
 			case _:
-				return False
+				raise ValueError(f'Can not compare instance of type `Digest` with instance of type `{type(another)}`')
