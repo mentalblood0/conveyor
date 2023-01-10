@@ -38,8 +38,10 @@ class DefaultEqualTransform(Files.Core.Transforms.Transform[bytes]):
 		return o[:-1]
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Compress(Files.Core.Transforms.Transform[bytes]):
+
+	level: int = 9
 
 	@pydantic.validate_arguments
 	def direct(self, o: bytes) -> bytes:
@@ -53,14 +55,10 @@ class Compress(Files.Core.Transforms.Transform[bytes]):
 @pytest.fixture
 def files() -> Files.Core:
 	result = Files.Core(
-		root       = pathlib.Path('tests/files'),
+		root       = pathlib.Path(__file__).parent / 'files',
 		suffix     = '.txt',
-		transforms = Files.Core.Transforms(
-			sequence = [Compress()]
-		),
-		equal = Files.Core.Transforms(
-			sequence = [DefaultEqualTransform()]
-		)
+		transform  = Compress(level = 9),
+		equal      = DefaultEqualTransform()
 	)
 	result.clear()
 	return result
@@ -72,5 +70,5 @@ def db() -> sqlalchemy.engine.Engine:
 
 
 @pytest.fixture
-def rows(db: sqlalchemy.Engine) -> Rows:
-	return Rows(Rows.Core(db))
+def rows(db: sqlalchemy.Engine) -> Rows.Core:
+	return Rows.Core(db)

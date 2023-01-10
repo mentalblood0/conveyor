@@ -10,7 +10,7 @@ import functools
 @pytest.fixture
 @functools.cache
 def input_() -> bytes:
-	return (pathlib.Path(__file__).parent / 'test_compression_data').read_bytes()
+	return (pathlib.Path(__file__).parent / 'test_compression_data.td').read_bytes()
 
 
 @pytest.mark.benchmark(group='compression')

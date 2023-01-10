@@ -2,7 +2,7 @@ import pydantic
 
 from conveyor.core import Item
 
-from .common import *
+from ..common import *
 
 
 

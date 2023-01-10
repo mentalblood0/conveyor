@@ -4,7 +4,7 @@ import pydantic
 from conveyor.core.Item import Data
 from conveyor.repositories import Files
 
-from .common import *
+from ..common import *
 
 
 

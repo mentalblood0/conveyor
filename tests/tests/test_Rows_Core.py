@@ -3,20 +3,13 @@ import typing
 import datetime
 import pydantic
 import itertools
-import sqlalchemy
 import dataclasses
 
 from conveyor.core import Query, Mask
 from conveyor.repositories import Rows
 
-from .common import *
+from ..common import *
 
-
-
-@pytest.fixture
-@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def rows(db: sqlalchemy.engine.Engine) -> Rows.Core:
-	return Rows.Core(db)
 
 
 @pytest.fixture

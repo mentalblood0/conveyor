@@ -8,13 +8,13 @@ from conveyor.repositories.Rows import Rows
 from conveyor.repositories.Files import Files
 from conveyor.core import Item, Query, Mask, Repository
 
-from .common import *
+from ..common import *
 
 
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def repository(files: Files.Core, rows: Rows) -> Repository:
-	return Repository([rows, Files(files)])
+def repository(files: Files.Core, rows: Rows.Core) -> Repository:
+	return Repository([Rows(rows), Files(files)])
 
 
 @pytest.fixture

@@ -10,4 +10,4 @@ test.py
 *.egg-info
 log.txt
 tests/files/*
-test_compression_data
+*.td
