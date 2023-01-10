@@ -15,6 +15,11 @@ class Collision(Exception):
 class Action:
 
 	path: pathlib.Path
+	prepare_now: bool = True
+
+	def __post_init__(self):
+		if self.prepare_now:
+			self.prepare()
 
 	@property
 	def temp(self) -> pathlib.Path:
@@ -115,26 +120,17 @@ class Delete(Action):
 		self.temp.replace(self.path)
 
 
-@pydantic.dataclasses.dataclass(frozen=False, kw_only=False)
-class Transaction:
+class Transaction(list[Action]):
 
 	Action = Action
 
 	Append = Append
 	Delete = Delete
 
-	actions: typing.Sequence[Action] = dataclasses.field(default_factory=list)
-
-	@pydantic.validate_arguments
-	def add(self, new_actions: typing.Sequence[Action]):
-		self.actions = (*self.actions, *new_actions)
-		for a in new_actions:
-			a.prepare()
-
 	def commit(self) -> None:
-		for a in self.actions:
+		for a in self:
 			a.commit()
 
 	def rollback(self) -> None:
-		for a in self.actions:
+		for a in self:
 			a.rollback()
