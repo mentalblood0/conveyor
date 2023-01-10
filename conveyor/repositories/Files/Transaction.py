@@ -49,11 +49,33 @@ class Append(Action):
 	def temp(self) -> pathlib.Path:
 		return self.path.with_suffix(self.path.suffix + '.new')
 
-	def prepare(self) -> None:
-		self.temp.parent.mkdir(parents=True, exist_ok=True)
-		self.temp.write_bytes(self.data)
+	@property
+	def equal(self) -> typing.Self:
+		data = self.equal_data(self.data)
+		return dataclasses.replace(
+			self,
+			path = self.equal_path(data),
+			data = data
+		)
 
-	@pydantic.validate_arguments
+	def prepare(self) -> None:
+
+		action: typing.Self = self
+
+		while True:
+
+			if action.path.exists():
+				if action.data != action.path.read_bytes():
+					action = action.equal
+					continue
+				else:
+					break
+
+			action.temp.parent.mkdir(parents=True, exist_ok=True)
+			action.temp.write_bytes(self.data)
+
+			break
+
 	def commit(self) -> None:
 
 		action: typing.Self = self
@@ -61,24 +83,19 @@ class Append(Action):
 		while True:
 
 			try:
-				self.path.parent.mkdir(parents=True, exist_ok=True)
+				action.path.parent.mkdir(parents=True, exist_ok=True)
 				try:
-					self.temp.rename(self.path)
-				except FileExistsError:
-					if self.data != self.path.read_bytes():
-						raise Collision(self.path.__str__())
+					action.temp.rename(action.path)
+				except (FileExistsError, FileNotFoundError):
+					if action.data != action.path.read_bytes():
+						raise Collision(action.path.__str__())
 				break
 
 			except Collision:
 				if not self.handle_collisions:
 					raise
 
-			data = self.equal_data(action.data)
-			action = dataclasses.replace(
-				self,
-				path = self.equal_path(data),
-				data = data
-			)
+			action = action.equal
 
 	def rollback(self) -> None:
 
