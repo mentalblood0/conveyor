@@ -1,4 +1,5 @@
 import typing
+import shutil
 import pathlib
 import pydantic
 import contextlib
@@ -100,15 +101,4 @@ class Core:
 		return result
 
 	def clear(self) -> None:
-
-		for p in [*self.root.rglob(f'*{self.suffix}')]:
-
-			p.unlink()
-
-			d = p.parent
-			while True:
-				try:
-					d.rmdir()
-				except:
-					break
-				d = d.parent
+		shutil.rmtree(self.root, ignore_errors=True)
