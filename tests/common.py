@@ -45,7 +45,7 @@ class Compress(Files.Core.Transforms.Transform[bytes]):
 
 	@pydantic.validate_arguments
 	def direct(self, o: bytes) -> bytes:
-		return zlib.compress(o, level = 9)
+		return zlib.compress(o, level = self.level)
 
 	@pydantic.validate_arguments
 	def inverse(self, o: bytes) -> bytes:
@@ -57,7 +57,7 @@ def files() -> Files.Core:
 	result = Files.Core(
 		root        = pathlib.Path(__file__).parent / 'files',
 		suffix      = '.txt',
-		granulation = 1,
+		granulation = 4,
 		transform   = Compress(level = 9),
 		equal       = DefaultEqualTransform()
 	)
