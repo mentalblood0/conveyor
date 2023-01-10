@@ -13,19 +13,6 @@ def test_string():
 	assert len(s) > l
 
 
-def test_path():
-
-	p = Digest(b' ' * 32).path
-
-	p.parent.mkdir(parents=True, exist_ok=True)
-	p.touch(exist_ok=True)
-
-	p.unlink()
-	while len(p.parts) > 1:
-		p = p.parent
-		p.rmdir()
-
-
 def test_equal():
 	v = b' ' * 32
 	assert Digest(v) == Digest(v)

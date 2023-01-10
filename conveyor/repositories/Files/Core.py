@@ -19,15 +19,55 @@ class Core:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
+	granulation: pydantic.PositiveInt
 
 	transform:  Transform[bytes]
 	equal:      Transform[bytes]
 
 	transaction_: Transaction | None = None
 
+	@classmethod
+	@pydantic.validate_arguments
+	def _segment(cls, s: str) -> str:
+		match s:
+			case '+':
+				return 'plus'
+			case '/':
+				return 'slash'
+			case '=':
+				return 'equal'
+			case _:
+				return s
+
+	@classmethod
+	@pydantic.validate_arguments
+	def _group(cls, l: typing.Iterable[str], size: int) -> typing.Iterable[str]:
+
+		buffer = ''
+
+		for e in l:
+			if len(e) == 1:
+				buffer += e
+				if len(buffer) == size:
+					yield buffer
+					buffer = ''
+			else:
+				yield e
+
 	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:
-		return pathlib.Path(self.root, digest.path).with_suffix(self.suffix)
+		return pathlib.Path(
+			self.root,
+			pathlib.Path(
+			*Core._group(
+				map(
+					Core._segment,
+					digest.string
+				),
+				self.granulation
+			)
+		)
+	).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
 	def append(self, data: Data) -> None:

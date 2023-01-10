@@ -1,6 +1,5 @@
 import base64
 import typing
-import pathlib
 import pydantic
 
 
@@ -57,46 +56,6 @@ class Digest:
 				return base64.b64encode(self.value_or_string).decode('ascii')
 			case _ as unreachable:
 				typing.assert_never(unreachable)
-
-	@classmethod
-	@pydantic.validate_arguments
-	def _segment(cls, s: str) -> str:
-		match s:
-			case '+':
-				return 'plus'
-			case '/':
-				return 'slash'
-			case '=':
-				return 'equal'
-			case _:
-				return s
-
-	@classmethod
-	@pydantic.validate_arguments
-	def _group(cls, l: typing.Iterable[str], size: int) -> typing.Iterable[str]:
-
-		buffer = ''
-
-		for e in l:
-			if len(e) == 1:
-				buffer += e
-				if len(buffer) == size:
-					yield buffer
-					buffer = ''
-			else:
-				yield e
-
-	@property
-	def path(self) -> pathlib.Path:
-		return pathlib.Path(
-			*Digest._group(
-				map(
-					Digest._segment,
-					self.string
-				),
-				1
-			)
-		)
 
 	def __eq__(self, another: object) -> bool:
 		match another:

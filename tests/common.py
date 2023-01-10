@@ -55,10 +55,11 @@ class Compress(Files.Core.Transforms.Transform[bytes]):
 @pytest.fixture
 def files() -> Files.Core:
 	result = Files.Core(
-		root       = pathlib.Path(__file__).parent / 'files',
-		suffix     = '.txt',
-		transform  = Compress(level = 9),
-		equal      = DefaultEqualTransform()
+		root        = pathlib.Path(__file__).parent / 'files',
+		suffix      = '.txt',
+		granulation = 1,
+		transform   = Compress(level = 9),
+		equal       = DefaultEqualTransform()
 	)
 	result.clear()
 	return result
