@@ -32,14 +32,14 @@ class Core:
 	def append(self, data: Data) -> None:
 		with self.transaction() as t:
 			if t.transaction_ is not None:
-				t.transaction_.extend([
+				t.transaction_.append(
 					Transaction.Append(
 						path  = self.path(data.digest),
 						data  = self.transforms(data.value),
 						equal_path = lambda b: self.path(Data(value = b).digest),
 						equal_data = self.equal
 					)
-				])
+				)
 			else:
 				raise ValueError
 
@@ -61,7 +61,7 @@ class Core:
 	def __delitem__(self, digest: Digest) -> None:
 		with self.transaction() as t:
 			if t.transaction_ is not None:
-				t.transaction_.extend([Transaction.Delete(self.path(digest))])
+				t.transaction_.append(Transaction.Delete(self.path(digest)))
 			else:
 				raise ValueError
 
