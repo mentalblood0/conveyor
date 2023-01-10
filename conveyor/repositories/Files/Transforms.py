@@ -3,41 +3,42 @@ import pydantic
 import functools
 import dataclasses
 
-from ...core.Item import Data
 
+
+O = typing.TypeVar('O')
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Transform:
+class Transform(typing.Generic[O]):
 
 	inverted: bool = False
 	test:     bool = True
 
-	def direct(self, data: Data) -> Data:
+	def direct(self, o: O) -> O:
 		raise NotImplementedError
 
-	def inverse(self, data: Data) -> Data:
+	def inverse(self, o: O) -> O:
 		raise NotImplementedError
 
 	@pydantic.validate_arguments
-	def __call__(self, data: Data) -> Data:
+	def __call__(self, o: O) -> O:
 
-		result: Data | None = None
+		result: O | None = None
 		if self.inverted:
-			result = self.inverse(data)
+			result = self.inverse(o)
 		else:
-			result = self.direct(data)
+			result = self.direct(o)
 
 		if self.test:
 
-			test: Data | None = None
+			test: O | None = None
 			if self.inverted:
 				test = self.direct(result)
 			else:
 				test = self.inverse(result)
 
-			if data != test:
-				raise ValueError(f'Transform {self} not invertible for data {data}')
+			if o != test:
+				raise ValueError(f'Transform {self} not invertible for object {o}')
 
 		return result
 
@@ -46,27 +47,33 @@ class Transform:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Transforms:
+class Transforms(Transform[O]):
 
 	Transform = Transform
 
-	common: typing.Sequence[Transform]
-	equal:  Transform
+	sequence: typing.Sequence[Transform[O]] = ()
+	test: bool = False
 
 	@pydantic.validate_arguments
-	def __call__(self, data: Data) -> Data:
+	def direct(self, o: O) -> O:
 		return functools.reduce(
 			lambda result, t: t(result),
-			self.common,
-			data
+			self.sequence,
+			o
 		)
 
 	@pydantic.validate_arguments
+	def inverse(self, o: O) -> O:
+		return functools.reduce(
+			lambda result, t: (~t)(result),
+			reversed(self.sequence),
+			o
+		)
+
 	def __invert__(self) -> typing.Self:
 		return Transforms(
-			common = [
+			sequence = [
 				~t
-				for t in reversed(self.common)
-			],
-			equal  = self.equal
+				for t in reversed(self.sequence)
+			]
 		)
