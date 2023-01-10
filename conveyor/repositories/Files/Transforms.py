@@ -1,6 +1,7 @@
 import typing
 import pydantic
 import functools
+import dataclasses
 
 from ...core.Item import Data
 
@@ -10,6 +11,7 @@ from ...core.Item import Data
 class Transform:
 
 	inverted: bool = False
+	test:     bool = True
 
 	def direct(self, data: Data) -> Data:
 		raise NotImplementedError
@@ -26,19 +28,21 @@ class Transform:
 		else:
 			result = self.direct(data)
 
-		test: Data | None = None
-		if self.inverted:
-			test = self.direct(result)
-		else:
-			test = self.inverse(result)
+		if self.test:
 
-		if data != test:
-			raise ValueError(f'Transform {self} not invertible for data {data}')
+			test: Data | None = None
+			if self.inverted:
+				test = self.direct(result)
+			else:
+				test = self.inverse(result)
+
+			if data != test:
+				raise ValueError(f'Transform {self} not invertible for data {data}')
 
 		return result
 
 	def __invert__(self) -> typing.Self:
-		return self.__class__(inverted = not self.inverted)
+		return dataclasses.replace(self, inverted = not self.inverted)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -66,12 +70,3 @@ class Transforms:
 			],
 			equal  = self.equal
 		)
-
-	# def __add__(self, another: object):
-	# 	match another:
-	# 		case Transform():
-	# 			return Transforms(
-	# 				common = self.common +
-	# 			)
-	# 		case _:
-	# 			raise ValueError(f'Can add instance of type `{type(another)}` to instance of type `{type(self)}`')
