@@ -39,11 +39,12 @@ class Transforms(Transform[I, O], typing.Generic[I, M, O]):
 
 	Transform = Transform
 
-	sequence: tuple['Transforms[I, typing.Any, M]' | Transform[I, M], 'Transforms[M, typing.Any, O]' | Transform[M, O]]
+	first:  'Transforms[I, typing.Any, M]' | Transform[I, M]
+	second: 'Transforms[M, typing.Any, O]' | Transform[M, O]
 
 	@pydantic.validate_arguments
 	def transform(self, i: I) -> O:
-		return self.sequence[1](self.sequence[0](i))
+		return self.second(self.first(i))
 
 	def __invert__(self) -> 'Transforms[O, M, I]':
-		return Transforms((~self.sequence[1], ~self.sequence[0]))
+		return Transforms(~self.second, ~self.first)
