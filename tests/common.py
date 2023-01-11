@@ -89,7 +89,7 @@ def files() -> Files.Core:
 		root        = pathlib.Path(__file__).parent / 'files',
 		suffix      = '.txt',
 		granulation = 4,
-		transform   = Compress(level = 9),
+		transform   = Files.Core.Transforms((Compress(level = 9), Compress(level = 9))),
 		equal       = AddSpace()
 	)
 	result.clear()

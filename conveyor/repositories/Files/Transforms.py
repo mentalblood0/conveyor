@@ -31,16 +31,19 @@ class Transform(typing.Generic[I, O]):
 		raise NotImplementedError
 
 
+M = typing.TypeVar('M')
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Transforms(Transform[I, O]):
+class Transforms(Transform[I, O], typing.Generic[I, M, O]):
 
 	Transform = Transform
 
-	sequence: tuple['Transforms[I, typing.Any]', 'Transforms[typing.Any, O]']
+	sequence: tuple['Transforms[I, typing.Any, M]' | Transform[I, M], 'Transforms[M, typing.Any, O]' | Transform[M, O]]
 
 	@pydantic.validate_arguments
 	def transform(self, i: I) -> O:
 		return self.sequence[1](self.sequence[0](i))
 
-	def __invert__(self) -> 'Transforms[O, I]':
+	def __invert__(self) -> 'Transforms[O, M, I]':
 		return Transforms((~self.sequence[1], ~self.sequence[0]))
