@@ -21,8 +21,8 @@ class Core:
 	suffix: pydantic.StrictStr
 	granulation: pydantic.PositiveInt
 
-	transform:  Transform[bytes]
-	equal:      Transform[bytes]
+	transform:  Transform[bytes, bytes]
+	equal:      Transform[bytes, bytes]
 
 	transaction_: Transaction | None = None
 

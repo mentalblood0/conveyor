@@ -41,7 +41,7 @@ class Append(Action):
 	data:  pydantic.StrictBytes
 
 	equal_path: typing.Callable[[bytes], pathlib.Path]
-	equal_data: Transform[bytes]
+	equal_data: Transform[bytes, bytes]
 
 	handle_collisions: bool = True
 
