@@ -1,4 +1,5 @@
 import zlib
+import math
 import pytest
 import pathlib
 import pydantic
@@ -88,8 +89,8 @@ def files() -> Files.Core:
 	result = Files.Core(
 		root        = pathlib.Path(__file__).parent / 'files',
 		suffix      = '.txt',
-		granulation = 4,
-		transform   = Compress(level = 9) + Compress(level = 9),
+		granulation = lambda n: math.floor(n / 1.5) + 1,
+		transform   = Compress(level = 9),
 		equal       = AddSpace()
 	)
 	result.clear()

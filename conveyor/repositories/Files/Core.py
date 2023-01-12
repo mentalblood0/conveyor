@@ -18,7 +18,7 @@ class Core:
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr
-	granulation: pydantic.PositiveInt
+	granulation: typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]
 
 	transform:  Transform[bytes, bytes]
 	equal:      Transform[bytes, bytes]
@@ -40,15 +40,17 @@ class Core:
 
 	@classmethod
 	@pydantic.validate_arguments
-	def _group(cls, l: typing.Iterable[str], size: int) -> typing.Iterable[str]:
+	def _group(cls, l: typing.Iterable[str], size: typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]) -> typing.Iterable[str]:
 
 		buffer = ''
+		n: pydantic.NonNegativeInt = 0
 
 		for e in l:
 			if len(e) == 1:
 				buffer += e
-				if len(buffer) == size:
+				if len(buffer) == size(n):
 					yield buffer
+					n += 1
 					buffer = ''
 			else:
 				yield e
