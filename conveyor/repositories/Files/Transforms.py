@@ -6,6 +6,9 @@ import pydantic
 I = typing.TypeVar('I')
 O = typing.TypeVar('O')
 
+I_ = typing.TypeVar('I_')
+O_ = typing.TypeVar('O_')
+
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Transform(typing.Generic[I, O]):
@@ -30,6 +33,9 @@ class Transform(typing.Generic[I, O]):
 	def __invert__(self: 'Transform[I, O]') -> 'Transform[O, I]':
 		raise NotImplementedError
 
+	def __add__(self, another: 'Transform[O, O_]') -> 'Transforms[I, O, O_]':
+		return Transforms(self, another)
+
 
 M = typing.TypeVar('M')
 
@@ -48,3 +54,9 @@ class Transforms(Transform[I, O], typing.Generic[I, M, O]):
 
 	def __invert__(self) -> 'Transforms[O, M, I]':
 		return Transforms(~self.second, ~self.first)
+
+	def __add__(self, another: 'Transforms[O, typing.Any, O_]' | Transform[O, O_]) -> 'Transforms[I, O, O_]':
+		return Transforms(self, another)
+
+	def __radd__(self, another: 'Transforms[I_, typing.Any, I]' | Transform[I_, I]) -> 'Transforms[I_, I, O]':
+		return Transforms(another, self)
