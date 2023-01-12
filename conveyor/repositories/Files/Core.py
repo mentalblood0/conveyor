@@ -5,9 +5,9 @@ import pydantic
 import contextlib
 import dataclasses
 
+from .Transforms import Transform
 from .Transaction import Transaction
 from ...core.Item import Digest, Data
-from .Transforms import Transform, Transforms
 
 
 
@@ -15,7 +15,6 @@ from .Transforms import Transform, Transforms
 class Core:
 
 	Transform  = Transform
-	Transforms = Transforms
 
 	root: pathlib.Path
 	suffix: pydantic.StrictStr

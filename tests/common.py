@@ -36,29 +36,29 @@ def withoutLast(i: bytes) -> bytes:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class RemoveLast(Files.Core.Transforms.Transform[bytes, bytes]):
+class RemoveLast(Files.Core.Transform[bytes, bytes]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return i[:-1]
 
-	def __invert__(self: 'Files.Core.Transforms.Transform[bytes, bytes]') -> 'Files.Core.Transforms.Transform[bytes, bytes]':
+	def __invert__(self) -> 'AddSpace':
 		return AddSpace()
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class AddSpace(Files.Core.Transforms.Transform[bytes, bytes]):
+class AddSpace(Files.Core.Transform[bytes, bytes]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return i + b' '
 
-	def __invert__(self: 'Files.Core.Transforms.Transform[bytes, bytes]') -> 'Files.Core.Transforms.Transform[bytes, bytes]':
+	def __invert__(self) -> RemoveLast:
 		return RemoveLast()
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Compress(Files.Core.Transforms.Transform[bytes, bytes]):
+class Compress(Files.Core.Transform[bytes, bytes]):
 
 	level: int
 
@@ -66,12 +66,12 @@ class Compress(Files.Core.Transforms.Transform[bytes, bytes]):
 	def transform(self, i: bytes) -> bytes:
 		return zlib.compress(i, level = self.level)
 
-	def __invert__(self: Files.Core.Transforms.Transform[bytes, bytes]) -> Files.Core.Transforms.Transform[bytes, bytes]:
+	def __invert__(self) -> 'Decompress':
 		return Decompress(inverted_level = 9)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Decompress(Files.Core.Transforms.Transform[bytes, bytes]):
+class Decompress(Files.Core.Transform[bytes, bytes]):
 
 	inverted_level: int = 9
 
@@ -79,7 +79,7 @@ class Decompress(Files.Core.Transforms.Transform[bytes, bytes]):
 	def transform(self, i: bytes) -> bytes:
 		return zlib.decompress(i)
 
-	def __invert__(self: Files.Core.Transforms.Transform[bytes, bytes]) -> Files.Core.Transforms.Transform[bytes, bytes]:
+	def __invert__(self) -> Compress:
 		return Compress(level = 9)
 
 
@@ -89,7 +89,7 @@ def files() -> Files.Core:
 		root        = pathlib.Path(__file__).parent / 'files',
 		suffix      = '.txt',
 		granulation = 4,
-		transform   = Files.Core.Transforms(Compress(level = 9), Compress(level = 9)),
+		transform   = Compress(level = 9) + Compress(level = 9),
 		equal       = AddSpace()
 	)
 	result.clear()
