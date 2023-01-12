@@ -1,9 +1,15 @@
+import typing
 import hashlib
 import pydantic
 import dataclasses
 
 from .Digest import Digest
 
+
+
+@pydantic.validate_arguments
+def default_algorithm(input_: bytes) -> bytes:
+	return hashlib.sha3_512(input_).digest()
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -13,6 +19,8 @@ class Data:
 
 	value: pydantic.StrictBytes
 	test: Digest | None = dataclasses.field(default=None, compare=False)
+
+	algorithm: typing.Callable[[bytes], bytes] = default_algorithm
 
 	@pydantic.validator('test')
 	def test_valid(cls, test: Digest | None, values: dict[str, pydantic.StrictBytes]) -> Digest | None:
@@ -24,11 +32,7 @@ class Data:
 
 	@property
 	def digest(self) -> Digest:
-		return Digest(
-			hashlib.sha3_512(
-				self.value
-			).digest()
-		)
+		return Digest(self.algorithm(self.value))
 
 	@property
 	def string(self) -> str:
