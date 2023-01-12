@@ -37,11 +37,16 @@ class Transform(typing.Generic[I, O]):
 		return Transforms(self, another)
 
 
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Trusted(Transform[I, O]):
+	test: bool = False
+
 M = typing.TypeVar('M')
 
-
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Transforms(Transform[I, O], typing.Generic[I, M, O]):
+class Transforms(Trusted[I, O], typing.Generic[I, M, O]):
 
 	Transform = Transform
 
