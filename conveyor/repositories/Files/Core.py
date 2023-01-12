@@ -5,70 +5,32 @@ import pydantic
 import contextlib
 import dataclasses
 
+from conveyor.core.Item import Digest, Data
+
+from .Pathify import Pathify
 from .Transforms import Transform
 from .Transaction import Transaction
-from ...core.Item import Digest, Data
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Core:
 
-	Transform  = Transform
+	Transform = Transform
+	Pathify   = Pathify
 
-	root: pathlib.Path
-	suffix: pydantic.StrictStr
-	granulation: typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]
+	root:         pathlib.Path
+	suffix:       str
 
-	transform:  Transform[bytes, bytes]
-	equal:      Transform[bytes, bytes]
+	transform:    Transform[bytes, bytes]
+	equal:        Transform[bytes, bytes]
+	pathify:      Transform[Digest, pathlib.Path]
 
 	transaction_: Transaction | None = None
 
-	@classmethod
-	@pydantic.validate_arguments
-	def _segment(cls, s: str) -> str:
-		match s:
-			case '+':
-				return 'plus'
-			case '/':
-				return 'slash'
-			case '=':
-				return 'equal'
-			case _:
-				return s
-
-	@classmethod
-	@pydantic.validate_arguments
-	def _group(cls, l: typing.Iterable[str], size: typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]) -> typing.Iterable[str]:
-
-		buffer = ''
-		n: pydantic.NonNegativeInt = 0
-
-		for e in l:
-			if len(e) == 1:
-				buffer += e
-				if len(buffer) == size(n):
-					yield buffer
-					n += 1
-					buffer = ''
-			else:
-				yield e
-
 	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:
-		return pathlib.Path(
-			self.root,
-			pathlib.Path(
-			*Core._group(
-				map(
-					Core._segment,
-					digest.string
-				),
-				self.granulation
-			)
-		)
-	).with_suffix(self.suffix)
+		return pathlib.Path(self.root, self.pathify(digest)).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
 	def append(self, data: Data) -> None:

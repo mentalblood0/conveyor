@@ -19,6 +19,8 @@ class Base64String:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Digest:
 
+	Base64String = Base64String
+
 	value_or_string: pydantic.StrictBytes | Base64String
 
 	@pydantic.validator('value_or_string')
