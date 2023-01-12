@@ -87,11 +87,11 @@ class Decompress(Files.Core.Transform[bytes, bytes]):
 @pytest.fixture
 def files() -> Files.Core:
 	result = Files.Core(
-		root        = pathlib.Path(__file__).parent / 'files',
-		suffix      = '.txt',
-		transform   = Compress(level = 9),
-		equal       = AddSpace(),
-		pathify     = Files.Core.Pathify(granulation = lambda n: math.floor(n / 1.5) + 1)
+		root     = pathlib.Path(__file__).parent / 'files',
+		suffix   = '.txt',
+		prepare  = Compress(level = 9),
+		sidestep = AddSpace(),
+		pathify  = Files.Core.Pathify(granulation = lambda n: math.floor(n / 1.5) + 1)
 	)
 	result.clear()
 	return result

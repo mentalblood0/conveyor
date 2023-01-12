@@ -22,8 +22,8 @@ class Core:
 	root:         pathlib.Path
 	suffix:       str
 
-	transform:    Transform[bytes, bytes]
-	equal:        Transform[bytes, bytes]
+	prepare:      Transform[bytes, bytes]
+	sidestep:     Transform[bytes, bytes]
 	pathify:      Transform[Digest, pathlib.Path]
 
 	transaction_: Transaction | None = None
@@ -39,9 +39,9 @@ class Core:
 				t.transaction_.append(
 					Transaction.Append(
 						path  = self.path(data.digest),
-						data  = self.transform(data.value),
+						data  = self.prepare(data.value),
 						equal_path = lambda b: self.path(Data(value = b).digest),
-						equal_data = self.equal
+						equal_data = self.sidestep
 					)
 				)
 			else:
@@ -51,7 +51,7 @@ class Core:
 	def __getitem__(self, digest: Digest) -> Data:
 		try:
 			return Data(
-				value = (~self.transform)(
+				value = (~self.prepare)(
 					self.path(digest).read_bytes()
 				),
 				test = digest
