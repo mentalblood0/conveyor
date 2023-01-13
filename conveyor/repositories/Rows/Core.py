@@ -35,26 +35,28 @@ class Row:
 	@classmethod
 	@pydantic.validate_arguments
 	def from_item(cls, item: Item) -> typing.Self:
-		return Row(**({
-			k: v
-			for k, v in item.__dict__.items()
-			if k not in ['data', 'chain']
-		} | {
-			'digest': item.data.digest,
-			'chain': item.chain.value
-		}))
+		return Row(
+			type     = item.type,
+			status   = item.status,
+			digest   = item.data.digest,
+			chain    = item.chain.value,
+			created  = item.created,
+			reserver = item.reserver,
+			metadata = item.metadata
+		)
 
 	@property
 	def dict_(self) -> dict[str, Item.Metadata.Value]:
-		return dict[str, Item.Metadata.Value]({
+		return {
 			'chain':    self.chain,
 			'status':   self.status.value,
 			'digest':   self.digest.string,
 			'created':  self.created.value,
-			'reserver': self.reserver.value
-		}) | {
-			word.value: value
-			for word, value in self.metadata.value.items()
+			'reserver': self.reserver.value,
+			**{
+				word.value: value
+				for word, value in self.metadata.value.items()
+			}
 		}
 
 
