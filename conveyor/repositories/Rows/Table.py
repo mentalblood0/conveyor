@@ -2,7 +2,6 @@ import typing
 import datetime
 import pydantic
 import sqlalchemy
-import sqlalchemy.exc
 
 from ...core import Item
 
@@ -111,17 +110,26 @@ def Table(
 					for k, v in metadata.value.items()
 				}
 
-				try:
+				if name.value not in sqlalchemy.inspect(connection).get_table_names():
+
+					result = sqlalchemy.Table(
+						name.value,
+						sqlalchemy.MetaData(),
+						*(f.column for f in fields.values())
+					)
+					result.create(bind = connection)
+
+					for f in fields.values():
+						i = f.index(result)
+						if not i in result.indexes:
+							f.index(result).create(bind = connection)
+
+				else:
 
 					tables = sqlalchemy.MetaData()
 
 					current_columns = [
-						c.name for c in sqlalchemy.Table(
-							name.value,
-							tables,
-							autoload_with = connection,
-							extend_existing = True
-						).columns
+						c['name'] for c in sqlalchemy.inspect(connection).get_columns(name.value)
 					]
 
 					result = sqlalchemy.Table(
@@ -136,20 +144,5 @@ def Table(
 							connection.execute(sqlalchemy.sql.text(f'ALTER TABLE {name.value} ADD {f.column.name} {f.column.type}'))
 							if not (i := f.index(result)) in result.indexes:
 								i.create(bind = connection)
-
-				except sqlalchemy.exc.NoSuchTableError:
-
-					result = sqlalchemy.Table(
-						name.value,
-						sqlalchemy.MetaData(),
-						*(f.column for f in fields.values())
-					)
-					result.create(bind = connection)
-
-					for f in fields.values():
-						i = f.index(result)
-						if not i in result.indexes:
-							f.index(result).create(bind = connection)
-
 
 				return result
