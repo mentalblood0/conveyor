@@ -50,3 +50,6 @@ class Rows(PartRepository):
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
 		return self.rows.Item.from_item(item) in self.rows
+
+	def clear(self) -> None:
+		return self.rows.clear()

@@ -112,7 +112,6 @@ class Core:
 				.where(*self._where(item_query.mask))
 				.limit(item_query.limit)
 			):
-
 				yield Row(
 					type=item_query.mask.type,
 					status=Item.Status(r.status),
@@ -147,7 +146,6 @@ class Core:
 			)
 
 
-	@pydantic.validate_arguments
 	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
 		with self.connect() as connection:
@@ -183,7 +181,6 @@ class Core:
 			except KeyError:
 				return False
 
-	@pydantic.validate_arguments
 	def __len__(self) -> pydantic.NonNegativeInt:
 
 		result: pydantic.NonNegativeInt = 0
@@ -201,3 +198,13 @@ class Core:
 					).scalar_one()
 
 		return result
+
+	def clear(self) -> None:
+
+		with self.connect() as c:
+			names = sqlalchemy.inspect(c).get_table_names()
+
+		with self.connect() as connection:
+			for name in names:
+				if name.startswith('conveyor_'):
+					Table(connection, Item.Type(name[9:])).drop(connection)
