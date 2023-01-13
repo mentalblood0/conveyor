@@ -2,8 +2,6 @@ import typing
 import datetime
 import pydantic
 import sqlalchemy
-import alembic.operations
-import alembic.runtime.migration
 
 from ...core import Item
 
@@ -136,18 +134,6 @@ def Table(
 							autoload_with=connection
 						).columns
 					}
-					new_fields = {
-						f_name: f
-						for f_name, f in fields.items()
-						if f_name not in current_columns
-					}
-
-					if new_fields:
-						operations = alembic.operations.Operations(
-							alembic.runtime.migration.MigrationContext.configure(connection)
-						)
-						for f in new_fields.values():
-							operations.add_column(name.value, f.column)
 
 					result = sqlalchemy.Table(
 						name.value,
@@ -155,9 +141,10 @@ def Table(
 						*(f.column for f in fields.values())
 					)
 
-					for f in new_fields.values():
-						i = f.index(result)
-						if not i in result.indexes:
-							f.index(result).create(bind = connection)
+					for f_name, f in fields.items():
+						if f_name not in current_columns:
+							connection.execute(sqlalchemy.sql.text(f'ALTER TABLE {name.value} ADD {f.column.name} {f.column.type}'))
+							if not (i := f.index(result)) in result.indexes:
+								i.create(bind = connection)
 
 				return result
