@@ -85,8 +85,6 @@ def Table(
 
 		if metadata is None:
 
-			print('not metadata')
-
 			with connection.begin_nested() as c:
 
 				if name.value not in sqlalchemy.inspect(connection).get_table_names():
@@ -104,69 +102,62 @@ def Table(
 
 		else:
 
-			print('metadata')
-
 			with connection.begin_nested() as _:
 
-				print('metadata', metadata)
-				fields = [
-					Field(name = n, value = None)
+				fields = {
+					n: Field(name = n, value = None)
 					for n in base_fields
-				] + [
-					Field(name = k, value = v)
+				} | {
+					k.value: Field(name = k, value = v)
 					for k, v in metadata.value.items()
-				]
-				print('fields', fields)
+				}
 
 				if name.value not in sqlalchemy.inspect(connection).get_table_names():
-
-					print('not table')
 
 					result = sqlalchemy.Table(
 						name.value,
 						sqlalchemy.MetaData(),
-						*(f.column for f in fields)
+						*(f.column for f in fields.values())
 					)
 					result.create(bind = connection)
 
+					for f in fields.values():
+						i = f.index(result)
+						if not i in result.indexes:
+							f.index(result).create(bind = connection)
+
 				else:
 
-					print('table')
-
-					current = sqlalchemy.Table(
-						name.value,
-						sqlalchemy.MetaData(),
-						autoload_with=connection
-					)
 					current_columns = {
 						c.name: c
-						for c in current.columns
+						for c in sqlalchemy.Table(
+							name.value,
+							sqlalchemy.MetaData(),
+							autoload_with=connection
+						).columns
 					}
-					new_columns = {
-						c.name: c
-						for c in (f.column for f in fields)
-						if c.name not in current_columns
+					new_fields = {
+						f_name: f
+						for f_name, f in fields.items()
+						if f_name not in current_columns
 					}
 
-					print('NEW COLUMNS:', new_columns.keys())
-
-					if new_columns:
+					if new_fields:
 						operations = alembic.operations.Operations(
 							alembic.runtime.migration.MigrationContext.configure(connection)
 						)
-						for c in new_columns.values():
-							operations.add_column(name.value, c)
+						for f in new_fields.values():
+							operations.add_column(name.value, f.column)
 
-					return sqlalchemy.Table(
+					result = sqlalchemy.Table(
 						name.value,
 						sqlalchemy.MetaData(),
-						*(f.column for f in fields),
-						extend_existing = True
+						*(f.column for f in fields.values())
 					)
 
-				for f in fields:
-					i = f.index(result)
-					if i not in result.indexes:
-						i.create(bind = connection, checkfirst = True)
+					for f in new_fields.values():
+						i = f.index(result)
+						if not i in result.indexes:
+							f.index(result).create(bind = connection)
 
 				return result
