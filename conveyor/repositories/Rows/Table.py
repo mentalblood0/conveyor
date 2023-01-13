@@ -126,18 +126,16 @@ def Table(
 
 				else:
 
-					tables = sqlalchemy.MetaData()
-
-					current_columns = [
-						c['name'] for c in sqlalchemy.inspect(connection).get_columns(name.value)
-					]
-
 					result = sqlalchemy.Table(
 						name.value,
-						tables,
-						*(f.column for f in fields.values()),
-						extend_existing = True
+						sqlalchemy.MetaData(),
+						*(f.column for f in fields.values())
 					)
+
+					current_columns = [
+						c['name']
+						for c in sqlalchemy.inspect(connection).get_columns(name.value)
+					]
 
 					for f_name, f in fields.items():
 						if f_name not in current_columns:

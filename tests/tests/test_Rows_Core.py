@@ -154,11 +154,23 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 
 
 @pydantic.validate_arguments
-def test_add_column(rows: Rows.Core, row: Rows.Core.Item):
+def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	rows.append(dataclasses.replace(
 		row,
 		metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): 'lalala'})
+	))
+
+
+@pydantic.validate_arguments
+def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
+	rows.append(row)
+	rows.append(dataclasses.replace(
+		row,
+		metadata = Item.Metadata(row.metadata.value | {
+			Item.Metadata.Key('new_column_1'): 'lalala',
+			Item.Metadata.Key('new_column_2'): 'lololo'
+		})
 	))
 
 
