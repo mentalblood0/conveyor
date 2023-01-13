@@ -13,24 +13,6 @@ from ..common import *
 
 
 @pytest.fixture
-def row() -> Rows.Core.Item:
-
-	data = Item.Data(value=b'')
-
-	return Rows.Core.Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		digest=data.digest,
-		metadata=Item.Metadata({
-			Item.Metadata.Key('key'): 'value'
-		}),
-		chain=Item.Chain(ref=data).value,
-		created=Item.Created(datetime.datetime.utcnow()),
-		reserver=Item.Reserver(exists=False)
-	)
-
-
-@pytest.fixture
 def query_all(row: Rows.Core.Item) -> Query:
 	return Query(
 		mask=Mask(
