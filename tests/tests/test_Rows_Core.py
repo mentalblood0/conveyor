@@ -5,8 +5,8 @@ import pydantic
 import itertools
 import dataclasses
 
-from conveyor.core import Query, Mask
 from conveyor.repositories import Rows
+from conveyor.core import Query, Mask, Item
 
 from ..common import *
 
@@ -169,6 +169,15 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 		changes[key] = value
 
 	return dataclasses.replace(row, **changes)
+
+
+@pydantic.validate_arguments
+def test_add_column(rows: Rows.Core, row: Rows.Core.Item):
+	rows.append(row)
+	rows.append(dataclasses.replace(
+		row,
+		metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): 'lalala'})
+	))
 
 
 @pytest.mark.parametrize(

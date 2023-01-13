@@ -2,6 +2,8 @@ import typing
 import datetime
 import pydantic
 import sqlalchemy
+import alembic.operations
+import alembic.runtime.migration
 
 from ...core import Item
 
@@ -72,10 +74,6 @@ class Field:
 				return sqlalchemy.Index(f'index__{self.name}', self.name, _table = table)
 
 
-
-tables = sqlalchemy.MetaData()
-
-
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Table(
 	connection: sqlalchemy.Connection,
@@ -87,6 +85,8 @@ def Table(
 
 		if metadata is None:
 
+			print('not metadata')
+
 			with connection.begin_nested() as c:
 
 				if name.value not in sqlalchemy.inspect(connection).get_table_names():
@@ -94,7 +94,7 @@ def Table(
 
 				result = sqlalchemy.Table(
 					name.value,
-					tables,
+					sqlalchemy.MetaData(),
 					autoload_with=connection
 				)
 
@@ -104,8 +104,11 @@ def Table(
 
 		else:
 
+			print('metadata')
+
 			with connection.begin_nested() as _:
 
+				print('metadata', metadata)
 				fields = [
 					Field(name = n, value = None)
 					for n in base_fields
@@ -113,8 +116,11 @@ def Table(
 					Field(name = k, value = v)
 					for k, v in metadata.value.items()
 				]
+				print('fields', fields)
 
 				if name.value not in sqlalchemy.inspect(connection).get_table_names():
+
+					print('not table')
 
 					result = sqlalchemy.Table(
 						name.value,
@@ -123,18 +129,44 @@ def Table(
 					)
 					result.create(bind = connection)
 
-					for f in fields:
-						i = f.index(result)
-						if i not in result.indexes:
-							i.create(bind = connection, checkfirst = True)
-
-					return result
-
 				else:
+
+					print('table')
+
+					current = sqlalchemy.Table(
+						name.value,
+						sqlalchemy.MetaData(),
+						autoload_with=connection
+					)
+					current_columns = {
+						c.name: c
+						for c in current.columns
+					}
+					new_columns = {
+						c.name: c
+						for c in (f.column for f in fields)
+						if c.name not in current_columns
+					}
+
+					print('NEW COLUMNS:', new_columns.keys())
+
+					if new_columns:
+						operations = alembic.operations.Operations(
+							alembic.runtime.migration.MigrationContext.configure(connection)
+						)
+						for c in new_columns.values():
+							operations.add_column(name.value, c)
 
 					return sqlalchemy.Table(
 						name.value,
-						tables,
+						sqlalchemy.MetaData(),
 						*(f.column for f in fields),
 						extend_existing = True
 					)
+
+				for f in fields:
+					i = f.index(result)
+					if i not in result.indexes:
+						i.create(bind = connection, checkfirst = True)
+
+				return result

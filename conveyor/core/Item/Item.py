@@ -24,20 +24,22 @@ class Word:
 		return value
 
 
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
+class Metadata:
+
+	Key = Word
+	Value = pydantic.StrictStr | int | float | datetime.datetime | None
+
+	value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
+
+	@property
+	def value(self) -> types.MappingProxyType[Key, Value]:
+		return types.MappingProxyType(self.value_)
+
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
-
-	@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
-	class Metadata:
-
-		Key = Word
-		Value = pydantic.StrictStr | int | float | datetime.datetime | None
-
-		value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
-
-		@property
-		def value(self) -> types.MappingProxyType[Key, Value]:
-			return types.MappingProxyType(self.value_)
 
 	Type         = Word
 	Status       = Word
@@ -45,6 +47,7 @@ class Item:
 	Chain        = Chain
 	Created      = Created
 	Reserver     = Reserver
+	Metadata     = Metadata
 
 	BaseKey      = Word
 	Key          = BaseKey | Metadata.Key
