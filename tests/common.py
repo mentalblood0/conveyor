@@ -1,5 +1,6 @@
 import zlib
 import math
+import typing
 import pytest
 import pathlib
 import pydantic
@@ -97,11 +98,25 @@ def files() -> Files.Core:
 	return result
 
 
+DbType = typing.Literal['postgres'] | typing.Literal['sqlite']
+
+
 @pytest.fixture
-def db() -> sqlalchemy.engine.Engine:
-	return sqlalchemy.create_engine("sqlite://", echo=True)
+def db_type() -> DbType:
+	return 'sqlite'
+
+
+@pytest.fixture
+def db(db_type: DbType) -> sqlalchemy.engine.Engine:
+	match db_type:
+		case 'postgres':
+			return sqlalchemy.create_engine('postgresql+psycopg2://postgres:5924@10.8.5.171:5480/postgres', echo=True)
+		case 'sqlite':
+			return sqlalchemy.create_engine('sqlite://', echo=True)
 
 
 @pytest.fixture
 def rows(db: sqlalchemy.Engine) -> Rows.Core:
-	return Rows.Core(db)
+	result = Rows.Core(db)
+	result.clear()
+	return result
