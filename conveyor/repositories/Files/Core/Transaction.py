@@ -1,3 +1,4 @@
+import abc
 import typing
 import pathlib
 import pydantic
@@ -12,27 +13,32 @@ class Collision(Exception):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Action:
+class Action(metaclass = abc.ABCMeta):
 
 	path: pathlib.Path
 	prepare_now: bool = True
 
+	@typing.final
 	def __post_init__(self):
 		if self.prepare_now:
 			self.prepare()
 
 	@property
+	@abc.abstractmethod
 	def temp(self) -> pathlib.Path:
-		raise NotImplementedError
+		pass
 
+	@abc.abstractmethod
 	def prepare(self) -> None:
-		raise NotImplementedError
+		pass
 
+	@abc.abstractmethod
 	def commit(self) -> None:
-		raise NotImplementedError
+		pass
 
+	@abc.abstractmethod
 	def rollback(self) -> None:
-		raise NotImplementedError
+		pass
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
