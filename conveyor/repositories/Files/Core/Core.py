@@ -84,12 +84,15 @@ class Core:
 			raise ValueError
 
 		try:
-			yield t
-			if self.transaction_ is None:
-				t.transaction_.commit()
-		except:
-			t.transaction_.rollback()
-			raise
+			try:
+				yield t
+				if self.transaction_ is None:
+					t.transaction_.commit()
+			except:
+				t.transaction_.rollback()
+				raise
+		except FileNotFoundError as e:
+			raise KeyError from e
 
 	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:
