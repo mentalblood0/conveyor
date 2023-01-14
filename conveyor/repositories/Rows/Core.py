@@ -6,8 +6,8 @@ import sqlalchemy
 import contextlib
 import dataclasses
 
+from .Table import Table
 from ...core import Item, Query
-from .Table import Table, tables
 from ...core.Item import Base64String
 
 
@@ -103,31 +103,32 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __getitem__(self, item_query: Query) -> typing.Iterable[Row]:
-
 		with self.connect() as connection:
-
-			t = Table(connection, item_query.mask.type)
-
 			for r in connection.execute(
 				sqlalchemy.sql
-				.select(t)
+				.select(sqlalchemy.text('*'))
+				.select_from(sqlalchemy.text(f'conveyor_{item_query.mask.type.value}'))
 				.where(*self._where(item_query.mask))
 				.limit(item_query.limit)
 			):
 				yield Row(
-					type=item_query.mask.type,
-					status=Item.Status(r.status),
-					chain=r.chain,
-					created=Item.Created(r.created),
-					reserver=Item.Reserver(
-						exists=bool(r.reserver),
-						value=r.reserver
+					type     = item_query.mask.type,
+					status   = Item.Status(r.status),
+					chain    = r.chain,
+					created  = Item.Created(r.created),
+					reserver = Item.Reserver(
+						exists = bool(r.reserver),
+						value  = r.reserver
 					),
-					digest=Item.Data.Digest(Base64String(r.digest)),
-					metadata=Item.Metadata({
+					digest   = Item.Data.Digest(Base64String(r.digest)),
+					metadata = Item.Metadata({
 						Item.Metadata.Key(name): getattr(r, name)
-						for name in t.columns.keys()
-						if not (name in Item.__dataclass_fields__ or name in ('id', 'digest'))
+						for name in r.__getstate__()['_parent'].__getstate__()['_keys']
+						if not (
+							name in Item.__dataclass_fields__
+							or
+							name in ('id', 'digest')
+						)
 					})
 				)
 
@@ -193,11 +194,7 @@ class Core:
 		with self.connect() as connection:
 			for name in names:
 				if name.startswith('conveyor_'):
-					result += connection.execute(
-						sqlalchemy.sql.select(sqlalchemy.func.count()).select_from(
-							Table(connection, Item.Type(name[9:]))
-						)
-					).scalar_one()
+					result += connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()
 
 		return result
 
@@ -209,6 +206,4 @@ class Core:
 		with self.connect() as connection:
 			for name in names:
 				if name.startswith('conveyor_'):
-					Table(connection, Item.Type(name[9:])).drop(connection)
-
-		tables.clear()
+					connection.execute(sqlalchemy.text(f'DROP TABLE {name}'))
