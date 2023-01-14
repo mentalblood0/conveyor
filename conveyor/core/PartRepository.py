@@ -1,3 +1,4 @@
+import abc
 import typing
 import pydantic
 import contextlib
@@ -9,29 +10,28 @@ from .Query import Query
 
 
 @pydantic.dataclasses.dataclass(frozen=True)
-class PartRepository:
+class PartRepository(metaclass = abc.ABCMeta):
 
-	@pydantic.validate_arguments
+	@abc.abstractmethod
 	def append(self, item: Item) -> None:
-		raise NotImplementedError
+		pass
 
-	@pydantic.validate_arguments
+	@abc.abstractmethod
 	def get(self, item_query: Query, accumulator: Part) -> typing.Iterable[Part]:
-		raise NotImplementedError
+		pass
 
-	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
 		raise NotImplementedError
 
-	@pydantic.validate_arguments
+	@abc.abstractmethod
 	def __delitem__(self, item: Item) -> None:
-		raise NotImplementedError
+		pass
 
-	@pydantic.validate_arguments
+	@abc.abstractmethod
 	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
-		raise NotImplementedError
+		pass
 
-	@pydantic.validate_arguments
+	@abc.abstractmethod
 	def __contains__(self, item: Item) -> bool:
-		raise NotImplementedError
+		pass
