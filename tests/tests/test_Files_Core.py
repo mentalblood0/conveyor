@@ -43,7 +43,7 @@ def test_append_get_delete(files: Files.Core, data: Data):
 
 @pydantic.validate_arguments
 def test_delete_nonexistent(files: Files.Core, data: Data):
-	with pytest.raises(FileNotFoundError):
+	with pytest.raises(KeyError):
 		del files[data.digest]
 
 
