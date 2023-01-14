@@ -72,6 +72,9 @@ class Field:
 				return sqlalchemy.Index(f'index__{self.name}', self.name, _table = table)
 
 
+tables = sqlalchemy.MetaData()
+
+
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Table(
 	connection: sqlalchemy.Connection,
@@ -90,9 +93,25 @@ def Table(
 
 				result = sqlalchemy.Table(
 					name.value,
-					sqlalchemy.MetaData(),
-					autoload_with=connection
+					tables,
+					autoload_with = connection
 				)
+
+				columns = {
+					c.name
+					for c in result.columns
+				}
+				current_columns = {
+					c['name']
+					for c in sqlalchemy.inspect(connection).get_columns(name.value)
+				}
+				if any(c not in columns for c in current_columns):
+					result = sqlalchemy.Table(
+						name.value,
+						tables,
+						autoload_with = connection,
+						extend_existing = True
+					)
 
 				c.rollback()
 
