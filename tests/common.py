@@ -7,7 +7,7 @@ import pydantic
 import datetime
 import sqlalchemy
 
-from conveyor.core import Item
+from conveyor.core import Item, Query
 from conveyor.repositories import Files, Rows
 
 
@@ -137,4 +137,14 @@ def row() -> Rows.Core.Item:
 		chain=Item.Chain(ref=data).value,
 		created=Item.Created(datetime.datetime.utcnow()),
 		reserver=Item.Reserver(exists=False)
+	)
+
+
+@pytest.fixture
+def query_all(row: Rows.Core.Item) -> Query:
+	return Query(
+		mask=Query.Mask(
+			type=row.type
+		),
+		limit=128
 	)

@@ -12,16 +12,6 @@ from ..common import *
 
 
 
-@pytest.fixture
-def query_all(row: Rows.Core.Item) -> Query:
-	return Query(
-		mask=Mask(
-			type=row.type
-		),
-		limit=128
-	)
-
-
 @pydantic.validate_arguments
 def test_immutable(rows: Rows.Core):
 	with pytest.raises(dataclasses.FrozenInstanceError):
@@ -120,8 +110,7 @@ def test_transaction_append_one_in_many_tables(rows: Rows.Core, row: Rows.Core.I
 
 @pydantic.validate_arguments
 def test_delete_nonexistent(rows: Rows.Core, row: Rows.Core.Item):
-	with pytest.raises(KeyError):
-		del rows[row]
+	del rows[row]
 
 
 @pytest.fixture
@@ -155,11 +144,25 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 
 @pydantic.validate_arguments
 def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
+
 	rows.append(row)
-	rows.append(dataclasses.replace(
-		row,
-		metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): 'lalala'})
-	))
+	assert [*rows[Query(
+		mask  = Mask(type = row.type),
+		limit = 1
+	)]] == [row]
+
+	new_metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): 'lalala'})
+	new_row = dataclasses.replace(row, metadata = new_metadata)
+
+	rows.append(new_row)
+	assert [*rows[Query(
+		mask = Mask(
+			type = row.type,
+			metadata = new_metadata
+		),
+		limit = 1
+	)]] == [new_row]
+
 
 
 @pydantic.validate_arguments
