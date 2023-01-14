@@ -6,8 +6,8 @@ import sqlalchemy
 import contextlib
 import dataclasses
 
-from .Table import Table
 from ...core import Item, Query
+from .Table import Table, tables
 from ...core.Item import Base64String
 
 
@@ -134,7 +134,7 @@ class Core:
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
 		with self.connect() as connection:
-			t = Table(connection, old.type)
+			t = Table(connection, old.type, old.metadata)
 			connection.execute(
 				sqlalchemy.sql.update(t).where(*self._where(old)).values(**new.dict_)
 			)
@@ -142,7 +142,7 @@ class Core:
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
 		with self.connect() as connection:
-			t = Table(connection, row.type)
+			t = Table(connection, row.type, row.metadata)
 			connection.execute(
 				sqlalchemy.sql.delete(t).where(*self._where(row))
 			)
@@ -210,3 +210,5 @@ class Core:
 			for name in names:
 				if name.startswith('conveyor_'):
 					Table(connection, Item.Type(name[9:])).drop(connection)
+
+		tables.clear()
