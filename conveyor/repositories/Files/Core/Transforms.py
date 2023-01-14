@@ -26,14 +26,20 @@ class Transform(typing.Generic[I, O], metaclass = abc.ABCMeta):
 	def __invert__(self: 'Transform[I, O]') -> 'Transform[O, I]':
 		pass
 
+	@typing.final
 	def __add__(self, another: 'Transform[O, O_]') -> '_Transforms[I, O, O_]':
 		return _Transforms(self, another)
+
+	@typing.final
+	def __radd__(self, another: 'Transform[I_, I]') -> '_Transforms[I_, I, O]':
+		return _Transforms(another, self)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Safe(Transform[I, O]):
 
 	@pydantic.validate_arguments
+	@typing.final
 	def __call__(self, i: I) -> O:
 
 		result = self.transform(i)
@@ -48,6 +54,7 @@ class Safe(Transform[I, O]):
 class Trusted(Transform[I, O]):
 
 	@pydantic.validate_arguments
+	@typing.final
 	def __call__(self, i: I) -> O:
 		return self.transform(i)
 
@@ -66,9 +73,3 @@ class _Transforms(Trusted[I, O], typing.Generic[I, M, O]):
 
 	def __invert__(self) -> '_Transforms[O, M, I]':
 		return _Transforms(~self.second, ~self.first)
-
-	def __add__(self, another: '_Transforms[O, typing.Any, O_]' | Transform[O, O_]) -> '_Transforms[I, O, O_]':
-		return _Transforms(self, another)
-
-	def __radd__(self, another: '_Transforms[I_, typing.Any, I]' | Transform[I_, I]) -> '_Transforms[I_, I, O]':
-		return _Transforms(another, self)
