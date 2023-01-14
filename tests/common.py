@@ -38,7 +38,7 @@ def withoutLast(i: bytes) -> bytes:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class RemoveLast(Files.Core.Transform[bytes, bytes]):
+class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
@@ -49,7 +49,7 @@ class RemoveLast(Files.Core.Transform[bytes, bytes]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class AddSpace(Files.Core.Transform[bytes, bytes]):
+class AddSpace(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
@@ -60,7 +60,7 @@ class AddSpace(Files.Core.Transform[bytes, bytes]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Compress(Files.Core.Transform[bytes, bytes]):
+class Compress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	level: int
 
@@ -73,7 +73,7 @@ class Compress(Files.Core.Transform[bytes, bytes]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Decompress(Files.Core.Transform[bytes, bytes]):
+class Decompress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	inverted_level: int = 9
 

@@ -3,7 +3,7 @@ import pydantic
 import contextlib
 import dataclasses
 
-from .Core import Core
+from .Core.Core import Core
 from ...core import Item, Query, Part, PartRepository
 
 

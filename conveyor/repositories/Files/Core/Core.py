@@ -7,8 +7,8 @@ import dataclasses
 
 from conveyor.core.Item import Digest, Data
 
+from . import Transforms
 from .Pathify import Pathify
-from .Transforms import Transform
 from .Transaction import Transaction
 
 
@@ -16,15 +16,15 @@ from .Transaction import Transaction
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Core:
 
-	Transform = Transform
-	Pathify   = Pathify
+	Transforms = Transforms
+	Pathify = Pathify
 
 	root:         pathlib.Path
 	suffix:       str
 
-	prepare:      Transform[bytes, bytes]
-	sidestep:     Transform[bytes, bytes]
-	pathify:      Transform[Digest, pathlib.Path]
+	prepare:      Transforms.Transform[bytes, bytes]
+	sidestep:     Transforms.Transform[bytes, bytes]
+	pathify:      Transforms.Transform[Digest, pathlib.Path]
 
 	transaction_: Transaction | None = None
 
