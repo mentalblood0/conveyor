@@ -8,6 +8,7 @@ import dataclasses
 
 from .Table import Table
 from ...core import Item, Query
+from .Field import Field, base_fields
 from ...core.Item import Base64String
 
 
@@ -92,13 +93,29 @@ class Core:
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
 		with self.connect(nested=False) as connection:
-			connection.execute(
-				Table(
-					connection=connection,
-					name=row.type,
-					metadata=row.metadata
-				).insert().values((row.dict_,))
-			)
+			try:
+				connection.execute(
+					sqlalchemy.Table(
+						f'conveyor_{row.type.value}',
+						sqlalchemy.MetaData(),
+						*{
+							Field(name_ = n, value = None).column
+							for n in base_fields
+						},
+						*{
+							Field(name_ = k, value = v).column
+							for k, v in row.metadata.value.items()
+						}
+					).insert().values((row.dict_,))
+				)
+			except:
+				connection.execute(
+					Table(
+						connection=connection,
+						name=row.type,
+						metadata=row.metadata
+					).insert().values((row.dict_,))
+				)
 
 
 	@pydantic.validate_arguments
