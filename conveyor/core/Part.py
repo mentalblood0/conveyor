@@ -4,8 +4,14 @@ from .Item import Item
 
 
 
-class AccessError(Exception):
-	pass
+class AccessError(BaseException):
+
+	@pydantic.validate_arguments
+	def __init__(self, field: str):
+		self.message = f'Item part has no field `{field}` yet'
+
+	def __str__(self) -> str:
+		return self.message
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -54,7 +60,7 @@ class Part:
 	def type(self) -> Item.Type:
 		match self.type_:
 			case None:
-				raise AccessError('Item part has no field `type` yet')
+				raise AccessError('type')
 			case _:
 				return self.type_
 
@@ -62,7 +68,7 @@ class Part:
 	def status(self) -> Item.Status:
 		match self.status_:
 			case None:
-				raise AccessError('Item part has no field `status` yet')
+				raise AccessError('status')
 			case _:
 				return self.status_
 
@@ -70,7 +76,7 @@ class Part:
 	def data(self) -> Item.Data:
 		match self.data_:
 			case None:
-				raise AccessError('Item part has no field `data` yet')
+				raise AccessError('data')
 			case _:
 				return self.data_
 
@@ -78,7 +84,7 @@ class Part:
 	def digest(self) -> Item.Data.Digest:
 		match self.digest_:
 			case None:
-				raise AccessError('Item part has no field `digest` yet')
+				raise AccessError('digest')
 			case _:
 				return self.digest_
 
@@ -86,7 +92,7 @@ class Part:
 	def metadata(self) -> Item.Metadata:
 		match self.metadata_:
 			case None:
-				raise AccessError('Item part has no field `metadata` yet')
+				raise AccessError('metadata')
 			case _:
 				return self.metadata_
 
@@ -94,7 +100,7 @@ class Part:
 	def chain(self) -> Item.Chain:
 		match self.chain_:
 			case None:
-				raise AccessError('Item part has no field `chain` yet')
+				raise AccessError('chain')
 			case _:
 				return self.chain_
 
@@ -102,7 +108,7 @@ class Part:
 	def created(self) -> Item.Created:
 		match self.created_:
 			case None:
-				raise AccessError('Item part has no field `created` yet')
+				raise AccessError('created')
 			case _:
 				return self.created_
 
@@ -110,6 +116,6 @@ class Part:
 	def reserver(self) -> Item.Reserver:
 		match self.reserver_:
 			case None:
-				raise AccessError('Item part has no field `reserver` yet')
+				raise AccessError('reserver')
 			case _:
 				return self.reserver_
