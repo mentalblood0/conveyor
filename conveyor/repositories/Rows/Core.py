@@ -5,6 +5,7 @@ import pydantic
 import sqlalchemy
 import contextlib
 import dataclasses
+import sqlalchemy.exc
 
 from .Table import Table
 from ...core import Item, Query
@@ -108,7 +109,7 @@ class Core:
 						}
 					).insert().values((row.dict_,))
 				)
-			except:
+			except sqlalchemy.exc.OperationalError:
 				connection.execute(
 					Table(
 						connection=connection,
@@ -119,17 +120,17 @@ class Core:
 
 
 	@pydantic.validate_arguments
-	def __getitem__(self, item_query: Query) -> typing.Iterable[Row]:
+	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 		with self.connect() as connection:
 			for r in connection.execute(
 				sqlalchemy.sql
 				.select(sqlalchemy.text('*'))
-				.select_from(sqlalchemy.text(f'conveyor_{item_query.mask.type.value}'))
-				.where(*self._where(item_query.mask))
-				.limit(item_query.limit)
+				.select_from(sqlalchemy.text(f'conveyor_{query.mask.type.value}'))
+				.where(*self._where(query.mask))
+				.limit(query.limit)
 			):
 				yield Row(
-					type     = item_query.mask.type,
+					type     = query.mask.type,
 					status   = Item.Status(r.status),
 					chain    = r.chain,
 					created  = Item.Created(r.created),
