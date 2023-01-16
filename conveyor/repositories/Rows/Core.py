@@ -93,8 +93,8 @@ class Core:
 
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
-		with self.connect(nested=False) as connection:
-			try:
+		try:
+			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
 						f'conveyor_{row.type.value}',
@@ -109,7 +109,8 @@ class Core:
 						}
 					).insert().values((row.dict_,))
 				)
-			except sqlalchemy.exc.OperationalError:
+		except:
+			with self.connect() as connection:
 				connection.execute(
 					Table(
 						connection=connection,
@@ -181,7 +182,6 @@ class Core:
 				if nested:
 					with self.connection.begin_nested() as c:
 						yield self.connection
-						c.rollback()
 				else:
 					yield self.connection
 			case None:
