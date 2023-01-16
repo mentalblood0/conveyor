@@ -8,7 +8,6 @@ import dataclasses
 import sqlalchemy.exc
 
 from .Table import Table
-from ...core import Part
 from ...core import Item, Query
 from .Field import Field, base_fields
 from ...core.Item import Base64String
@@ -18,15 +17,15 @@ from ...core.Item import Base64String
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Row:
 
-	type:          Item.Type
-	status:        Item.Status
+	type:     Item.Type
+	status:   Item.Status
 
-	digest:        Item.Data.Digest
-	metadata:      Item.Metadata
+	digest:   Item.Data.Digest
+	metadata: Item.Metadata
 
-	chain:         str
-	created:       Item.Created
-	reserver:      Item.Reserver
+	chain:    str
+	created:  Item.Created
+	reserver: Item.Reserver
 
 	@pydantic.validator('metadata')
 	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
@@ -137,9 +136,9 @@ class Core:
 			with self.connect() as connection:
 				connection.execute(
 					Table(
-						connection=connection,
-						name=row.type,
-						metadata=row.metadata
+						connection = connection,
+						name       = row.type,
+						metadata   = row.metadata
 					).insert().values((row.dict_,))
 				)
 
@@ -259,25 +258,15 @@ class Core:
 				return False
 
 	def __len__(self) -> pydantic.NonNegativeInt:
-
-		result: pydantic.NonNegativeInt = 0
-
-		with self.connect() as c:
-			names = sqlalchemy.inspect(c).get_table_names()
-
 		with self.connect() as connection:
-			for name in names:
-				if name.startswith('conveyor_'):
-					result += connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()
-
-		return result
+			return sum(
+				connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()
+				for name in sqlalchemy.inspect(connection).get_table_names()
+				if name.startswith('conveyor_')
+			)
 
 	def clear(self) -> None:
-
-		with self.connect() as c:
-			names = sqlalchemy.inspect(c).get_table_names()
-
 		with self.connect() as connection:
-			for name in names:
+			for name in sqlalchemy.inspect(connection).get_table_names():
 				if name.startswith('conveyor_'):
 					connection.execute(sqlalchemy.text(f'DROP TABLE {name}'))

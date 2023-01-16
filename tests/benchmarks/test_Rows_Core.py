@@ -33,14 +33,14 @@ def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_al
 
 
 @pytest.mark.benchmark(group='rows')
-def test_set_same(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
+def test_set_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	benchmark(lambda: rows.__setitem__(row, row))
 	rows.clear()
 
 
 @pytest.mark.benchmark(group='rows')
-def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
+def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 
 	initial = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 1}))
 	new     = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 2}))
