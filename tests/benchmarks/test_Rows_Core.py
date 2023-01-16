@@ -16,15 +16,6 @@ def test_get_same_first(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_a
 	rows.clear()
 
 
-def get_next(items: typing.Iterator[Rows.Core.Item]) -> typing.Callable[[], Rows.Core.Item]:
-
-	def f():
-		nonlocal items
-		return items.__next__()
-
-	return f
-
-
 @pytest.mark.benchmark(group='rows')
 def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 
@@ -36,6 +27,6 @@ def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_al
 	iterator = rows.__getitem__(query_limited).__iter__()
 	iterator.__next__()
 
-	benchmark.pedantic(get_next(iterator), rounds = limit - 1)
+	benchmark.pedantic(lambda: iterator.__next__(), rounds = limit - 1)
 
 	rows.clear()
