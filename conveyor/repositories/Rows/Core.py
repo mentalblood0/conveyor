@@ -216,23 +216,26 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
-		with self.connect() as connection:
-			connection.execute(
-				sqlalchemy.Table(
-					f'conveyor_{row.type.value}',
-					sqlalchemy.MetaData(),
-					*(
-						Field(name_ = n, value = None).column
-						for n in base_fields
-					),
-					*(
-						Field(name_ = k, value = v).column
-						for k, v in row.metadata.value.items()
+		try:
+			with self.connect() as connection:
+				connection.execute(
+					sqlalchemy.Table(
+						f'conveyor_{row.type.value}',
+						sqlalchemy.MetaData(),
+						*(
+							Field(name_ = n, value = None).column
+							for n in base_fields
+						),
+						*(
+							Field(name_ = k, value = v).column
+							for k, v in row.metadata.value.items()
+						)
 					)
+					.delete()
+					.where(*self._where(row))
 				)
-				.delete()
-				.where(*self._where(row))
-			)
+		except sqlalchemy.exc.OperationalError:
+			pass
 
 
 	@contextlib.contextmanager
