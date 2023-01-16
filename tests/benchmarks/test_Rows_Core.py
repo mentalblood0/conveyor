@@ -4,8 +4,19 @@ from tests.common import *
 
 
 @pytest.mark.benchmark(group='rows')
-def test_add_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+def test_append_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 	benchmark(rows.append, row)
+	rows.clear()
+
+
+@pytest.mark.benchmark(group='rows')
+def test_append_delete(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+
+	def f():
+		rows.append(row)
+		del rows[row]
+
+	benchmark(f)
 	rows.clear()
 
 

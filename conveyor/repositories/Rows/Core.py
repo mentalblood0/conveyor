@@ -217,9 +217,21 @@ class Core:
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
 		with self.connect() as connection:
-			t = Table(connection, row.type, row.metadata)
 			connection.execute(
-				sqlalchemy.sql.delete(t).where(*self._where(row))
+				sqlalchemy.Table(
+					f'conveyor_{row.type.value}',
+					sqlalchemy.MetaData(),
+					*(
+						Field(name_ = n, value = None).column
+						for n in base_fields
+					),
+					*(
+						Field(name_ = k, value = v).column
+						for k, v in row.metadata.value.items()
+					)
+				)
+				.delete()
+				.where(*self._where(row))
 			)
 
 
