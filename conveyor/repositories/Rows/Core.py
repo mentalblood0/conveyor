@@ -8,6 +8,7 @@ import dataclasses
 import sqlalchemy.exc
 
 from .Table import Table
+from ...core import Part
 from ...core import Item, Query
 from .Field import Field, base_fields
 from ...core.Item import Base64String
@@ -60,6 +61,29 @@ class Row:
 				for word, value in self.metadata.value.items()
 			}
 		}
+
+	def __sub__(self, another: 'Row') -> dict[str, Item.Metadata.Value]:
+
+		result: dict[str, Item.Metadata.Value] = {}
+
+		if self.status != another.status:
+			result['status'] = self.status.value
+		if self.digest != another.digest:
+			result['digest'] = self.digest.string
+		if self.chain != another.chain:
+			result['chain'] = self.chain
+		if self.created != another.created:
+			result['created'] = self.created.value
+		if self.reserver != another.reserver:
+			result['reserver'] = self.reserver.value
+
+		result |= {
+			k.value: v
+			for k, v in self.metadata.value.items()
+			if self.metadata.value[k] != another.metadata.value[k]
+		}
+
+		return result
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -153,11 +177,43 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
-		with self.connect() as connection:
-			t = Table(connection, old.type, old.metadata)
-			connection.execute(
-				sqlalchemy.sql.update(t).where(*self._where(old)).values(**new.dict_)
-			)
+
+		if not (changes := new - old):
+			return
+
+		try:
+			with self.connect() as connection:
+				connection.execute(
+					sqlalchemy.Table(
+						f'conveyor_{old.type.value}',
+						sqlalchemy.MetaData(),
+						*(
+							Field(name_ = n, value = None).column
+							for n in base_fields
+						),
+						*(
+							Field(name_ = k, value = v).column
+							for k, v in new.metadata.value.items()
+						)
+					)
+					.update()
+					.where(*self._where(old))
+					.values(**changes)
+				)
+		except:
+			with self.connect() as connection:
+				connection.execute(
+					sqlalchemy.sql
+					.update(
+						Table(
+							connection = connection,
+							name       = old.type,
+							metadata   = old.metadata
+						)
+					)
+					.where(*self._where(old))
+					.values(**changes)
+				)
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
