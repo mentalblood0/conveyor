@@ -50,6 +50,18 @@ def test_set_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 	rows.clear()
 
 
+def small_change(variants: typing.Sequence[Rows.Core.Item]) -> typing.Callable[[], Rows.Core.Item]:
+
+	i = -1
+
+	def f():
+		nonlocal i
+		i += 1
+		return variants[i % len(variants)]
+
+	return f
+
+
 @pytest.mark.benchmark(group='rows')
 def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 
@@ -58,5 +70,7 @@ def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 
 	rows.append(initial)
 
-	benchmark(lambda: rows.__setitem__(initial, new))
+	generator = small_change([initial, new])
+
+	benchmark(lambda: rows.__setitem__(generator(), generator()))
 	rows.clear()
