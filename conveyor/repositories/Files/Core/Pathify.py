@@ -4,7 +4,7 @@ import pydantic
 
 from ....core.Item import Digest
 
-from .Transforms import Transform, Safe
+from ....core.Transforms import Transform, Safe
 
 
 

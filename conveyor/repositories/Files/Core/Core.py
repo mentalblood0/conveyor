@@ -7,7 +7,7 @@ import dataclasses
 
 from conveyor.core.Item import Digest, Data
 
-from . import Transforms
+from ....core import Transforms
 from .Pathify import Pathify
 from .Transaction import Transaction
 

@@ -27,6 +27,14 @@ class Transform(typing.Generic[I, O], metaclass = abc.ABCMeta):
 		pass
 
 	@typing.final
+	def valid(self, i: I) -> bool:
+		try:
+			self(i)
+			return True
+		except:
+			return False
+
+	@typing.final
 	def __add__(self, another: 'Transform[O, O_]') -> '_Transforms[I, O, O_]':
 		return _Transforms(self, another)
 

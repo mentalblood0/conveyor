@@ -7,81 +7,38 @@ import contextlib
 import dataclasses
 import sqlalchemy.exc
 
+from ....core import Item, Query, Transforms
+
+from .Row import Row
 from .Table import Table
-from ...core import Item, Query
 from .Field import fields, columns
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Row:
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class DbTableName(Transforms.Safe[Item.Type, str]):
 
-	type:     Item.Type
-	status:   Item.Status
+	prefix: str
 
-	digest:   Item.Data.Digest
-	metadata: Item.Metadata
-
-	chain:    str
-	created:  Item.Created
-	reserver: Item.Reserver
-
-	@pydantic.validator('metadata')
-	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
-		for k in metadata.value:
-			if k.value in values:
-				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
-		return metadata
-
-	@classmethod
 	@pydantic.validate_arguments
-	def from_item(cls, item: Item) -> typing.Self:
-		return Row(
-			type     = item.type,
-			status   = item.status,
-			digest   = item.data.digest,
-			chain    = item.chain.value,
-			created  = item.created,
-			reserver = item.reserver,
-			metadata = item.metadata
-		)
+	def transform(self, i: Item.Type) -> str:
+		return f'{self.prefix}_{i.value}'
 
-	@property
-	def dict_(self) -> dict[str, Item.Metadata.Value]:
-		return {
-			'chain':    self.chain,
-			'status':   self.status.value,
-			'digest':   self.digest.string,
-			'created':  self.created.value,
-			'reserver': self.reserver.value,
-			**{
-				word.value: value
-				for word, value in self.metadata.value.items()
-			}
-		}
+	def __invert__(self) -> 'ItemType':
+		return ItemType(self.prefix)
 
-	def __sub__(self, another: 'Row') -> dict[str, Item.Metadata.Value]:
 
-		result: dict[str, Item.Metadata.Value] = {}
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class ItemType(Transforms.Safe[str, Item.Type]):
 
-		if self.status != another.status:
-			result['status'] = self.status.value
-		if self.digest != another.digest:
-			result['digest'] = self.digest.string
-		if self.chain != another.chain:
-			result['chain'] = self.chain
-		if self.created != another.created:
-			result['created'] = self.created.value
-		if self.reserver != another.reserver:
-			result['reserver'] = self.reserver.value
+	prefix: str
 
-		result |= {
-			k.value: v
-			for k, v in self.metadata.value.items()
-			if self.metadata.value[k] != another.metadata.value[k]
-		}
+	@pydantic.validate_arguments
+	def transform(self, i: str) -> Item.Type:
+		return Item.Type(i[len(self.prefix) + 1:])
 
-		return result
+	def __invert__(self) -> DbTableName:
+		return DbTableName(self.prefix)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -91,6 +48,8 @@ class Core:
 
 	db: sqlalchemy.engine.Engine
 	connection: sqlalchemy.Connection | None = None
+
+	table: Transforms.Safe[Item.Type, str] = DbTableName('conveyor')
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
@@ -119,7 +78,7 @@ class Core:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						f'conveyor_{row.type.value}',
+						self.table(row.type),
 						sqlalchemy.MetaData(),
 						*columns(row.metadata)
 					).insert().values((row.dict_,))
@@ -129,7 +88,7 @@ class Core:
 				connection.execute(
 					Table(
 						connection = connection,
-						name       = row.type,
+						name       = self.table(row.type),
 						fields_    = fields(row.metadata)
 					).insert().values((row.dict_,))
 				)
@@ -141,7 +100,7 @@ class Core:
 			for r in connection.execute(
 				sqlalchemy.sql
 				.select(sqlalchemy.text('*'))
-				.select_from(sqlalchemy.text(f'conveyor_{query.mask.type.value}'))
+				.select_from(sqlalchemy.text(self.table(query.mask.type)))
 				.where(*self._where(query.mask))
 				.limit(query.limit)
 			):
@@ -176,7 +135,7 @@ class Core:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						f'conveyor_{old.type.value}',
+						self.table(old.type),
 						sqlalchemy.MetaData(),
 						*columns(new.metadata)
 					)
@@ -191,7 +150,7 @@ class Core:
 					.update(
 						Table(
 							connection = connection,
-							name       = old.type,
+							name       = self.table(old.type),
 							fields_    = fields(old.metadata)
 						)
 					)
@@ -205,7 +164,7 @@ class Core:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						f'conveyor_{row.type.value}',
+						self.table(row.type),
 						sqlalchemy.MetaData(),
 						*columns(row.metadata)
 					)
@@ -242,7 +201,7 @@ class Core:
 			try:
 				return connection.execute(
 					sqlalchemy.sql.exists(
-						Table(connection, row.type, fields(row.metadata))
+						Table(connection, self.table(row.type), fields(row.metadata))
 						.select()
 						.where(*self._where(row))
 					).select()
@@ -255,11 +214,11 @@ class Core:
 			return sum(
 				connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()
 				for name in sqlalchemy.inspect(connection).get_table_names()
-				if name.startswith('conveyor_')
+				if (~self.table).valid(name)
 			)
 
 	def clear(self) -> None:
 		with self.connect() as connection:
 			for name in sqlalchemy.inspect(connection).get_table_names():
-				if name.startswith('conveyor_'):
+				if (~self.table).valid(name):
 					connection.execute(sqlalchemy.text(f'DROP TABLE {name}'))
