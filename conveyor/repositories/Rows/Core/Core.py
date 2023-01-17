@@ -171,7 +171,7 @@ class Core:
 					.delete()
 					.where(*self._where(row))
 				)
-		except sqlalchemy.exc.OperationalError:
+		except:
 			pass
 
 
