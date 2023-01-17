@@ -9,8 +9,7 @@ import sqlalchemy.exc
 
 from .Table import Table
 from ...core import Item, Query
-from .Field import Field, base_fields
-from ...core.Item import Base64String
+from .Field import fields, columns
 
 
 
@@ -122,14 +121,7 @@ class Core:
 					sqlalchemy.Table(
 						f'conveyor_{row.type.value}',
 						sqlalchemy.MetaData(),
-						*{
-							Field(name_ = n, value = None).column
-							for n in base_fields
-						},
-						*{
-							Field(name_ = k, value = v).column
-							for k, v in row.metadata.value.items()
-						}
+						*columns(row.metadata)
 					).insert().values((row.dict_,))
 				)
 		except:
@@ -138,7 +130,7 @@ class Core:
 					Table(
 						connection = connection,
 						name       = row.type,
-						metadata   = row.metadata
+						fields_    = fields(row.metadata)
 					).insert().values((row.dict_,))
 				)
 
@@ -162,7 +154,7 @@ class Core:
 						exists = bool(r.reserver),
 						value  = r.reserver
 					),
-					digest   = Item.Data.Digest(Base64String(r.digest)),
+					digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
 					metadata = Item.Metadata({
 						Item.Metadata.Key(name): getattr(r, name)
 						for name in r.__getstate__()['_parent'].__getstate__()['_keys']
@@ -186,14 +178,7 @@ class Core:
 					sqlalchemy.Table(
 						f'conveyor_{old.type.value}',
 						sqlalchemy.MetaData(),
-						*(
-							Field(name_ = n, value = None).column
-							for n in base_fields
-						),
-						*(
-							Field(name_ = k, value = v).column
-							for k, v in new.metadata.value.items()
-						)
+						*columns(new.metadata)
 					)
 					.update()
 					.where(*self._where(old))
@@ -207,7 +192,7 @@ class Core:
 						Table(
 							connection = connection,
 							name       = old.type,
-							metadata   = old.metadata
+							fields_    = fields(old.metadata)
 						)
 					)
 					.where(*self._where(old))
@@ -222,14 +207,7 @@ class Core:
 					sqlalchemy.Table(
 						f'conveyor_{row.type.value}',
 						sqlalchemy.MetaData(),
-						*(
-							Field(name_ = n, value = None).column
-							for n in base_fields
-						),
-						*(
-							Field(name_ = k, value = v).column
-							for k, v in row.metadata.value.items()
-						)
+						*columns(row.metadata)
 					)
 					.delete()
 					.where(*self._where(row))
@@ -264,7 +242,7 @@ class Core:
 			try:
 				return connection.execute(
 					sqlalchemy.sql.exists(
-						Table(connection, row.type, row.metadata)
+						Table(connection, row.type, fields(row.metadata))
 						.select()
 						.where(*self._where(row))
 					).select()

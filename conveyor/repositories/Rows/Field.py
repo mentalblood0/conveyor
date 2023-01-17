@@ -78,3 +78,17 @@ class Field:
 				return sqlalchemy.Index(f'index__{self.name_.value}', self.name_.value, _table = table)
 			case _:
 				return sqlalchemy.Index(f'index__{self.name_}', self.name_, _table = table)
+
+
+@pydantic.validate_arguments
+def fields(metadata: Item.Metadata) -> typing.Iterable[Field]:
+	for n in base_fields:
+		yield Field(name_ = n, value = None)
+	for k, v in metadata.value.items():
+		yield Field(name_ = k, value = v)
+
+
+@pydantic.validate_arguments
+def columns(metadata: Item.Metadata) -> typing.Iterable[sqlalchemy.Column[typing.Any]]:
+	for f in fields(metadata):
+		yield f.column
