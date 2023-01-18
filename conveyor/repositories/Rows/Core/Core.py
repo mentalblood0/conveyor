@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 import pydantic
+import functools
 import sqlalchemy
 import contextlib
 import dataclasses
@@ -11,34 +12,10 @@ from ....core import Item, Query, Transforms
 
 from .Row import Row
 from .Table import Table
+from .Enum import DbEnumName, Enum
 from .Field import fields, columns
+from .DbTableName import DbTableName
 
-
-
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class DbTableName(Transforms.Safe[Item.Type, str]):
-
-	prefix: str
-
-	@pydantic.validate_arguments
-	def transform(self, i: Item.Type) -> str:
-		return f'{self.prefix}_{i.value}'
-
-	def __invert__(self) -> 'ItemType':
-		return ItemType(self.prefix)
-
-
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class ItemType(Transforms.Safe[str, Item.Type]):
-
-	prefix: str
-
-	@pydantic.validate_arguments
-	def transform(self, i: str) -> Item.Type:
-		return Item.Type(i[len(self.prefix) + 1:])
-
-	def __invert__(self) -> DbTableName:
-		return DbTableName(self.prefix)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
@@ -50,11 +27,16 @@ class Core:
 	connection: sqlalchemy.Connection | None = None
 
 	table: Transforms.Safe[Item.Type, str] = DbTableName('conveyor')
+	enum:  Transforms.Safe[Item.Key,  str] = DbEnumName('enum')
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
-			yield     sqlalchemy.column('status')   == ref.status.value
+			status = Enum(
+				name_ = ref.status,
+				transform = self.enum
+			)
+			yield     status.column                 == status.Int(functools.partial(self.connect, nested = True), ref.type.value)(ref.status.value)
 		if ref.digest is not None:
 			yield     sqlalchemy.column('digest')   == ref.digest.string
 		match ref.chain:
@@ -74,23 +56,26 @@ class Core:
 
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
+
+		name = self.table(row.type)
+
 		try:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						self.table(row.type),
+						name,
 						sqlalchemy.MetaData(),
-						*columns(row.metadata)
-					).insert().values((row.dict_,))
+						*columns(row.metadata, self.db, name, self.enum)
+					).insert().values((row.dict_(self.enum, functools.partial(self.connect, nested = True), row.type.value),))
 				)
 		except:
 			with self.connect() as connection:
 				connection.execute(
 					Table(
 						connection = connection,
-						name       = self.table(row.type),
-						fields_    = fields(row.metadata)
-					).insert().values((row.dict_,))
+						name       = name,
+						fields_    = fields(row.metadata, self.db, name, self.enum)
+					).insert().values((row.dict_(self.enum, functools.partial(self.connect, nested = True), row.type.value),))
 				)
 
 
@@ -104,9 +89,13 @@ class Core:
 				.where(*self._where(query.mask))
 				.limit(query.limit)
 			):
-				yield Row(
+				status = Enum(
+					name_     = Item.Key('status'),
+					transform = self.enum
+				)
+				result = Row(
 					type     = query.mask.type,
-					status   = Item.Status(r.status),
+					status   = Item.Status(status.String(functools.partial(self.connect, nested = True), query.mask.type.value)(getattr(r, status.name))),
 					chain    = r.chain,
 					created  = Item.Created(r.created),
 					reserver = Item.Reserver(
@@ -120,10 +109,12 @@ class Core:
 						if not (
 							name in Item.__dataclass_fields__
 							or
-							name in ('id', 'digest')
+							name in ('id', 'digest', status.name)
 						)
 					})
 				)
+				print(f'__getitem__ yield {result}')
+				yield result
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
@@ -131,13 +122,15 @@ class Core:
 		if not (changes := new - old):
 			return
 
+		name = self.table(old.type)
+
 		try:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						self.table(old.type),
+						name,
 						sqlalchemy.MetaData(),
-						*columns(new.metadata)
+						*columns(new.metadata, self.db, name, self.enum)
 					)
 					.update()
 					.where(*self._where(old))
@@ -150,8 +143,8 @@ class Core:
 					.update(
 						Table(
 							connection = connection,
-							name       = self.table(old.type),
-							fields_    = fields(old.metadata)
+							name       = name,
+							fields_    = fields(old.metadata, self.db, name, self.enum)
 						)
 					)
 					.where(*self._where(old))
@@ -160,13 +153,16 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
+
+		name = self.table(row.type)
+
 		try:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						self.table(row.type),
+						name,
 						sqlalchemy.MetaData(),
-						*columns(row.metadata)
+						*columns(row.metadata, self.db, name, self.enum)
 					)
 					.delete()
 					.where(*self._where(row))
@@ -197,11 +193,14 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
+
+		name = self.table(row.type)
+
 		with self.connect() as connection:
 			try:
 				return connection.execute(
 					sqlalchemy.sql.exists(
-						Table(connection, self.table(row.type), fields(row.metadata))
+						Table(connection, name, fields(row.metadata, self.db, name, self.enum))
 						.select()
 						.where(*self._where(row))
 					).select()

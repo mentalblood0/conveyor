@@ -1,4 +1,5 @@
 import re
+import enum
 import types
 import typing
 import datetime
@@ -28,7 +29,7 @@ class Word:
 class Metadata:
 
 	Key = Word
-	Value = pydantic.StrictStr | int | float | datetime.datetime | None
+	Value = pydantic.StrictStr | int | float | datetime.datetime | enum.Enum | None
 
 	value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
 

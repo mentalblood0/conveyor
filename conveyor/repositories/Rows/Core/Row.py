@@ -1,7 +1,11 @@
+import enum
 import typing
 import pydantic
 
-from ....core import Item
+from ....core import Item, Transforms
+
+from .Enum import Enum
+from .Connect import Connect
 
 
 
@@ -38,19 +42,37 @@ class Row:
 			metadata = item.metadata
 		)
 
-	@property
-	def dict_(self) -> dict[str, Item.Metadata.Value]:
-		return {
-			'chain':    self.chain,
-			'status':   self.status.value,
-			'digest':   self.digest.string,
-			'created':  self.created.value,
-			'reserver': self.reserver.value,
-			**{
-				word.value: value
-				for word, value in self.metadata.value.items()
-			}
-		}
+	def dict_(self, transform: Transforms.Safe[Item.Key, str], connect: Connect, table: str) -> dict[str, Item.Metadata.Value]:
+
+		metadata = {}
+
+		for word, value in self.metadata.value.items():
+			match value:
+				case enum.Enum():
+					e = Enum(
+						name_     = word,
+						transform = transform
+					)
+					metadata[e.name] = e.Int(connect, table)(value.name)
+				case _:
+					metadata[word.value] = value
+
+		status = Enum(
+			name_ = Item.Key('status'),
+			transform = transform
+		)
+
+		result = {
+			'chain':     self.chain,
+			status.name: status.Int(connect, table)(self.status.value),
+			'digest':    self.digest.string,
+			'created':   self.created.value,
+			'reserver':  self.reserver.value,
+		} | metadata
+
+		print(f'dict_ {result}')
+
+		return result
 
 	def __sub__(self, another: 'Row') -> dict[str, Item.Metadata.Value]:
 

@@ -177,6 +177,12 @@ def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 	))
 
 
+@pydantic.validate_arguments
+def test_extend_enum(rows: Rows.Core, row: Rows.Core.Item):
+	rows.append(row)
+	rows.append(dataclasses.replace(row, status = Item.Status(f'{row.status}_')))
+
+
 @pytest.mark.parametrize(
 	'changes_list',
 	itertools.chain(*(
