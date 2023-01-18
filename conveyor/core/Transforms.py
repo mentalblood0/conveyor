@@ -52,8 +52,8 @@ class Safe(Transform[I, O]):
 
 		result = self.transform(i)
 
-		if i != (~self).transform(result):
-			raise ValueError(f'Transform `{self}` not invertible for input `{i}`')
+		if i != (inverted := (~self).transform(result)):
+			raise ValueError(f'Transform `{self}` not invertible for input `{i}`: got `{(inverted)} instead`')
 
 		return result
 
