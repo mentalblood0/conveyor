@@ -240,6 +240,7 @@ class Core:
 			)
 
 	def clear(self) -> None:
+		Enum.cache.clear()
 		with self.connect() as connection:
 			for name in sqlalchemy.inspect(connection).get_table_names():
 				if (~self.table).valid(name):

@@ -1,3 +1,4 @@
+import typing
 import pydantic
 import sqlalchemy
 import sqlalchemy.exc
@@ -36,8 +37,11 @@ class ItemKey(Transforms.Safe[str, Item.Key]):
 
 columns = lambda: (
 	sqlalchemy.Column('value',       sqlalchemy.Integer(),   nullable = False, primary_key = True, autoincrement = 'auto'),
-	sqlalchemy.Column('description', sqlalchemy.String(127), nullable = False, index = True)
+	sqlalchemy.Column('description', sqlalchemy.String(127), nullable = False, unique      = True, index = True)
 )
+
+
+cache: dict[str, tuple[dict[str, int], dict[int, str]]] = {}
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
@@ -57,27 +61,53 @@ class Int(Transforms.Trusted[str, int]):
 	@pydantic.validate_arguments
 	def transform(self, i: str) -> int:
 
+		try:
+			return cache[self.enum_table][0][i]
+		except KeyError:
+			pass
+
 		while True:
+
 			try:
+
 				with self.connect() as connection:
-					return connection.execute(
+
+					result = connection.execute(
 						sqlalchemy.sql
 						.select(sqlalchemy.text('value'))
 						.select_from(sqlalchemy.text(self.enum_table))
 						.where(sqlalchemy.column('description') == i)
 						.limit(1)
 					).scalar_one()
+
+					if self.enum_table in cache:
+						cache[self.enum_table][0][i] = result
+						cache[self.enum_table][1][result] = i
+					else:
+						cache[self.enum_table] = ({i: result}, {result: i})
+
+					return result
+
 			except:
-				try:
-					with self.connect() as connection:
-						connection.execute(
-							self.table.insert().values(({
-								'description': i
-							},))
-						)
-				except:
-					with self.connect() as connection:
-						self.table.create(bind = connection)
+				pass
+
+			try:
+				with self.connect() as connection:
+					connection.execute(
+						self.table.insert().values(({
+							'description': i
+						},))
+					)
+			except:
+				pass
+
+			with self.connect() as connection:
+				self.table.create(bind = connection)
+				connection.execute(
+					self.table.insert().values(({
+						'description': i
+					},))
+				)
 
 	def __invert__(self) -> 'String':
 		return String(
@@ -94,15 +124,32 @@ class String(Transforms.Trusted[int, str]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: int) -> str:
+
 		try:
+			return cache[self.enum_table][1][i]
+		except KeyError:
+			pass
+
+		try:
+
 			with self.connect() as connection:
-				return connection.execute(
+
+				result = connection.execute(
 					sqlalchemy.sql
 					.select(sqlalchemy.text('description'))
 					.select_from(sqlalchemy.text(self.enum_table))
 					.where(sqlalchemy.column('value') == i)
 					.limit(1)
 				).scalar_one()
+
+				if self.enum_table in cache:
+					cache[self.enum_table][0][result] = i
+					cache[self.enum_table][1][i] = result
+				else:
+					cache[self.enum_table] = ({result: i}, {i: result})
+
+				return result
+
 		except Exception as e:
 			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
 
@@ -115,6 +162,8 @@ class String(Transforms.Trusted[int, str]):
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Enum:
+
+	cache: typing.ClassVar = cache
 
 	name_:     Item.Key
 	transform: Transforms.Safe[Item.Key, str]
