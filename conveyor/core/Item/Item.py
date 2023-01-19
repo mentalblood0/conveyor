@@ -1,5 +1,4 @@
 import re
-import enum
 import types
 import typing
 import datetime
@@ -25,11 +24,18 @@ class Word:
 		return value
 
 
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class Enumerable:
+	value: pydantic.StrictStr
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Metadata:
 
 	Key = Word
-	Value = pydantic.StrictStr | int | float | datetime.datetime | enum.Enum | None
+	Value = pydantic.StrictStr | int | float | datetime.datetime | Enumerable | None
+
+	Enumerable = Enumerable
 
 	value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
 

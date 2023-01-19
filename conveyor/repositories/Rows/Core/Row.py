@@ -1,4 +1,3 @@
-import enum
 import typing
 import pydantic
 
@@ -42,57 +41,58 @@ class Row:
 			metadata = item.metadata
 		)
 
-	def dict_(self, transform: Transforms.Safe[Item.Key, str], connect: Connect, table: str) -> dict[str, Item.Metadata.Value]:
+	def dict_(self, transform: Transforms.Safe[Item.Key, str], connect: Connect, table: str, skip: set[str] = set()) -> dict[str, Item.Metadata.Value]:
 
-		metadata = {}
+		result: dict[str, Item.Metadata.Value] = {}
 
-		for word, value in self.metadata.value.items():
-			match value:
-				case enum.Enum():
-					e = Enum(
-						name_     = word,
-						transform = transform
-					)
-					metadata[e.name] = e.Int(connect, table)(value.name)
-				case _:
-					metadata[word.value] = value
-
+		if 'chain' not in skip:
+			result['chain'] = self.chain
 		status = Enum(
 			name_ = Item.Key('status'),
 			transform = transform
 		)
-
-		result = {
-			'chain':     self.chain,
-			status.name: status.Int(connect, table)(self.status.value),
-			'digest':    self.digest.string,
-			'created':   self.created.value,
-			'reserver':  self.reserver.value,
-		} | metadata
-
-		print(f'dict_ {result}')
-
-		return result
-
-	def __sub__(self, another: 'Row') -> dict[str, Item.Metadata.Value]:
-
-		result: dict[str, Item.Metadata.Value] = {}
-
-		if self.status != another.status:
-			result['status'] = self.status.value
-		if self.digest != another.digest:
+		if status.name not in skip:
+			result[status.name] = status.Int(connect, table)(self.status.value)
+		if 'digest' not in skip:
 			result['digest'] = self.digest.string
-		if self.chain != another.chain:
-			result['chain'] = self.chain
-		if self.created != another.created:
+		if 'created' not in skip:
 			result['created'] = self.created.value
-		if self.reserver != another.reserver:
+		if 'reserver' not in skip:
 			result['reserver'] = self.reserver.value
 
-		result |= {
-			k.value: v
-			for k, v in self.metadata.value.items()
-			if self.metadata.value[k] != another.metadata.value[k]
-		}
+		for word, value in self.metadata.value.items():
+			if word.value not in skip:
+				match value:
+					case Item.Metadata.Enumerable():
+						e = Enum(
+							name_     = word,
+							transform = transform
+						)
+						result[e.name] = e.Int(connect, table)(value.value)
+					case _:
+						result[word.value] = value
 
 		return result
+
+	def sub(self, another: 'Row', transform: Transforms.Safe[Item.Key, str], connect: Connect, table: str,) -> dict[str, Item.Metadata.Value]:
+
+		skip: set[str] = set()
+
+		if self.status == another.status:
+			skip.add('status')
+		if self.digest == another.digest:
+			skip.add('digest')
+		if self.chain == another.chain:
+			skip.add('chain')
+		if self.created == another.created:
+			skip.add('created')
+		if self.reserver == another.reserver:
+			skip.add('reserver')
+
+		skip |= {
+			k.value
+			for k in self.metadata.value.keys()
+			if self.metadata.value[k] == another.metadata.value[k]
+		}
+
+		return self.dict_(transform, connect, table, skip)

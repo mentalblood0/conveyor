@@ -1,4 +1,3 @@
-import enum
 import typing
 import pydantic
 import datetime
@@ -65,7 +64,7 @@ class Field:
 				match self.value:
 					case str():
 						return sqlalchemy.Column(self.name_.value, sqlalchemy.String(255), nullable = True)
-					case enum.Enum():
+					case Item.Metadata.Enumerable():
 						return Enum(name_ = self.name_, transform = self.enum).column
 					case int():
 						return sqlalchemy.Column(self.name_.value, sqlalchemy.Integer(),   nullable = True)
@@ -80,7 +79,11 @@ class Field:
 	def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index:
 		match self.name_:
 			case Item.Metadata.Key():
-				return sqlalchemy.Index(f'index__{self.name_.value}', self.name_.value, _table = table)
+				match self.value:
+					case Item.Metadata.Enumerable():
+						return Enum(name_ = self.name_, transform = self.enum).index(table)
+					case _:
+						return sqlalchemy.Index(f'index__{self.name_.value}', self.name_.value, _table = table)
 			case 'status':
 				return Enum(name_ = Item.Key(self.name_), transform = self.enum).index(table)
 			case _:
@@ -111,6 +114,4 @@ def fields(metadata: Item.Metadata, db: sqlalchemy.Engine, table: str, enum_: Tr
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def columns(metadata: Item.Metadata, db: sqlalchemy.Engine, table: str, enum_: Transforms.Safe[Item.Key, str]) -> typing.Iterable[sqlalchemy.Column[typing.Any]]:
 	for f in fields(metadata, db, table, enum_):
-		result = f.column
-		print(f'COLUMN {result}')
-		yield result
+		yield f.column

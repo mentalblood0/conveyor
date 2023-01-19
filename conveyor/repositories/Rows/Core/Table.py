@@ -31,9 +31,6 @@ def Table(
 					for c in sqlalchemy.inspect(connection).get_columns(name)
 				}
 
-				print('fields_', fields_)
-				print('current_columns', current_columns)
-
 				for f in fields_:
 					if f.name not in current_columns:
 						connection.execute(sqlalchemy.sql.text(f'ALTER TABLE {name} ADD {f.column.name} {f.column.type}'))

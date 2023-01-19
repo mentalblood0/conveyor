@@ -28,7 +28,7 @@ class ItemKey(Transforms.Safe[str, Item.Key]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: str) -> Item.Key:
-		return Item.Key(i[:len(self.postfix) + 2])
+		return Item.Key(i[:-len(self.postfix) - 1])
 
 	def __invert__(self) -> DbEnumName:
 		return DbEnumName(self.postfix)
@@ -36,7 +36,7 @@ class ItemKey(Transforms.Safe[str, Item.Key]):
 
 columns = lambda: (
 	sqlalchemy.Column('value',       sqlalchemy.Integer(),   nullable = False, primary_key = True, autoincrement = 'auto'),
-	sqlalchemy.Column('description', sqlalchemy.String(127), nullable = False)
+	sqlalchemy.Column('description', sqlalchemy.String(127), nullable = False, index = True)
 )
 
 
@@ -44,13 +44,12 @@ columns = lambda: (
 class Int(Transforms.Trusted[str, int]):
 
 	connect:    Connect
-	table_name: str
-	field:      str
+	enum_table: str
 
 	@property
 	def table(self):
 		return sqlalchemy.Table(
-			self.table_name,
+			self.enum_table,
 			sqlalchemy.MetaData(),
 			*columns()
 		)
@@ -58,16 +57,13 @@ class Int(Transforms.Trusted[str, int]):
 	@pydantic.validate_arguments
 	def transform(self, i: str) -> int:
 
-		if i is None:
-			raise ValueError(f'`value` must be specified')
-
 		while True:
 			try:
 				with self.connect() as connection:
 					return connection.execute(
 						sqlalchemy.sql
 						.select(sqlalchemy.text('value'))
-						.select_from(sqlalchemy.text(self.table_name))
+						.select_from(sqlalchemy.text(self.enum_table))
 						.where(sqlalchemy.column('description') == i)
 						.limit(1)
 					).scalar_one()
@@ -86,8 +82,7 @@ class Int(Transforms.Trusted[str, int]):
 	def __invert__(self) -> 'String':
 		return String(
 			connect    = self.connect,
-			table_name = self.table_name,
-			field      = self.field
+			enum_table = self.enum_table
 		)
 
 
@@ -95,8 +90,7 @@ class Int(Transforms.Trusted[str, int]):
 class String(Transforms.Trusted[int, str]):
 
 	connect:    Connect
-	table_name: str
-	field:      str
+	enum_table: str
 
 	@pydantic.validate_arguments
 	def transform(self, i: int) -> str:
@@ -105,18 +99,17 @@ class String(Transforms.Trusted[int, str]):
 				return connection.execute(
 					sqlalchemy.sql
 					.select(sqlalchemy.text('description'))
-					.select_from(sqlalchemy.text(self.table_name))
+					.select_from(sqlalchemy.text(self.enum_table))
 					.where(sqlalchemy.column('value') == i)
 					.limit(1)
 				).scalar_one()
 		except Exception as e:
-			raise ValueError(f'No description found for enum value `{i}`') from e
+			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
 
 	def __invert__(self) -> Int:
 		return Int(
 			connect    = self.connect,
-			table_name = self.table_name,
-			field      = self.field
+			enum_table = self.enum_table
 		)
 
 
@@ -141,14 +134,12 @@ class Enum:
 	def Int(self, connect: Connect, table: str) -> Int:
 		return Int(
 			connect    = connect,
-			table_name = table,
-			field      = self.name_.value
+			enum_table = self.name
 		)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def String(self, connect: Connect, table: str) -> String:
 		return String(
 			connect    = connect,
-			table_name = table,
-			field      = self.name_.value
+			enum_table = self.name
 		)

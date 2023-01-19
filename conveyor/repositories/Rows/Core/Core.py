@@ -33,7 +33,7 @@ class Core:
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
 			status = Enum(
-				name_ = ref.status,
+				name_ = Item.Key('status'),
 				transform = self.enum
 			)
 			yield     status.column                 == status.Int(functools.partial(self.connect, nested = True), ref.type.value)(ref.status.value)
@@ -52,7 +52,15 @@ class Core:
 			yield     sqlalchemy.column('reserver') == ref.reserver.value
 		if ref.metadata is not None:
 			for k, v in ref.metadata.value.items():
-				yield sqlalchemy.column(k.value)    == v
+				match v:
+					case Item.Metadata.Enumerable():
+						enumerable = Enum(
+							name_     = k,
+							transform = self.enum
+						)
+						yield enumerable.column     == enumerable.Int(functools.partial(self.connect, nested = True), ref.type.value)(v.value)
+					case _:
+						yield sqlalchemy.column(k.value)    == v
 
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
@@ -81,7 +89,9 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
+
 		with self.connect() as connection:
+
 			for r in connection.execute(
 				sqlalchemy.sql
 				.select(sqlalchemy.text('*'))
@@ -89,11 +99,34 @@ class Core:
 				.where(*self._where(query.mask))
 				.limit(query.limit)
 			):
+
 				status = Enum(
 					name_     = Item.Key('status'),
 					transform = self.enum
 				)
-				result = Row(
+
+				metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
+				for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
+					if not (
+						name in Item.__dataclass_fields__
+						or
+						name in ('id', 'digest', status.name)
+					):
+						if (~self.enum).valid(name):
+							unenumed = (~self.enum)(name)
+							metadata[unenumed] = Item.Metadata.Enumerable(
+								Enum(
+									name_     = unenumed,
+									transform = self.enum
+								).String(
+									connect   = functools.partial(self.connect, nested = True),
+									table     = query.mask.type.value
+								)(getattr(r, name))
+							)
+						else:
+							metadata[Item.Metadata.Key(name)] = getattr(r, name)
+
+				yield Row(
 					type     = query.mask.type,
 					status   = Item.Status(status.String(functools.partial(self.connect, nested = True), query.mask.type.value)(getattr(r, status.name))),
 					chain    = r.chain,
@@ -103,23 +136,13 @@ class Core:
 						value  = r.reserver
 					),
 					digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
-					metadata = Item.Metadata({
-						Item.Metadata.Key(name): getattr(r, name)
-						for name in r.__getstate__()['_parent'].__getstate__()['_keys']
-						if not (
-							name in Item.__dataclass_fields__
-							or
-							name in ('id', 'digest', status.name)
-						)
-					})
+					metadata = Item.Metadata(metadata)
 				)
-				print(f'__getitem__ yield {result}')
-				yield result
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
 
-		if not (changes := new - old):
+		if not (changes := new.sub(old, self.enum, functools.partial(self.connect, nested = True), old.type.value)):
 			return
 
 		name = self.table(old.type)

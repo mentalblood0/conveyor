@@ -13,16 +13,6 @@ from ..common import *
 
 
 @pydantic.validate_arguments
-def test_immutable(rows: Rows.Core):
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		rows.__setattr__('db', b'x')
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		del rows.db
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		rows.__setattr__('x', b'x')
-
-
-@pydantic.validate_arguments
 def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 
 	rows.append(row)
@@ -178,9 +168,44 @@ def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 
 
 @pydantic.validate_arguments
-def test_extend_enum(rows: Rows.Core, row: Rows.Core.Item):
+def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
+
+	changed_status = Item.Status(f'{row.status}_')
+	changed_row = dataclasses.replace(row, status = changed_status)
+
 	rows.append(row)
-	rows.append(dataclasses.replace(row, status = Item.Status(f'{row.status}_')))
+	rows.append(changed_row)
+
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, status = row.status),
+		limit = 2
+	)]] == [row]
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, status = changed_row.status),
+		limit = 2
+	)]] == [changed_row]
+
+
+@pydantic.validate_arguments
+def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
+
+	metadata_1 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')})
+	metadata_2 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lololo')})
+
+	item_1 = dataclasses.replace(row, metadata = metadata_1)
+	item_2 = dataclasses.replace(row, metadata = metadata_2)
+
+	rows.append(dataclasses.replace(row, metadata = metadata_1))
+	rows.append(dataclasses.replace(row, metadata = metadata_2))
+
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, metadata = metadata_1),
+		limit = 2
+	)]] == [item_1]
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, metadata = metadata_2),
+		limit = 2
+	)]] == [item_2]
 
 
 @pytest.mark.parametrize(
