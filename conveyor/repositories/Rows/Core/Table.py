@@ -3,7 +3,7 @@ import pydantic
 import sqlalchemy
 import sqlalchemy.exc
 
-from .Field import Field
+from .Fields import Field
 
 
 
@@ -32,7 +32,7 @@ def Table(
 				}
 
 				for f in fields_:
-					if f.name not in current_columns:
+					if f.db_name not in current_columns:
 						connection.execute(sqlalchemy.sql.text(f'ALTER TABLE {name} ADD {f.column.name} {f.column.type}'))
 						if not (i := f.index(result)) in result.indexes:
 							i.create(bind = connection)
