@@ -44,7 +44,7 @@ class Row:
 
 		result: dict[str, Item.Metadata.Value] = {}
 
-		status = enums[(self.type, Item.Key('status'))]
+		status = enums[(self.type, Item.Metadata.Key('status'))]
 		if status.db_field not in skip:
 			result[status.db_field] = status.Int(Item.Metadata.Enumerable(self.status.value))
 

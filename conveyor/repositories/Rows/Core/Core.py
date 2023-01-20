@@ -27,8 +27,8 @@ class Core:
 	db: sqlalchemy.engine.Engine
 	connection: sqlalchemy.Connection | None = None
 
-	table: Transforms.Safe[Item.Type, str] = DbTableName('conveyor')
-	enum:  Transforms.Safe[Item.Key,  str] = DbEnumName('enum')
+	table: Transforms.Safe[Item.Type, str]          = DbTableName('conveyor')
+	enum:  Transforms.Safe[Item.Metadata.Key,  str] = DbEnumName('enum')
 
 	@property
 	def cache_id(self):
@@ -50,7 +50,7 @@ class Core:
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
-			yield self.enums[(ref.type, Item.Key('status'))].eq(Item.Metadata.Enumerable(ref.status.value))
+			yield self.enums[(ref.type, Item.Metadata.Key('status'))].eq(Item.Metadata.Enumerable(ref.status.value))
 		if ref.digest is not None:
 			yield                sqlalchemy.column('digest') == ref.digest.string
 		match ref.chain:
@@ -120,7 +120,7 @@ class Core:
 				.limit(query.limit)
 			):
 
-				status = self.enums[(query.mask.type, Item.Key('status'))]
+				status = self.enums[(query.mask.type, Item.Metadata.Key('status'))]
 
 				metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
 				for name in r.__getstate__()['_parent'].__getstate__()['_keys']:

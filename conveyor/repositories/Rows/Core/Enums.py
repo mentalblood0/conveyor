@@ -158,8 +158,8 @@ class Enum:
 	type_transform: Transforms.Safe[Item.Type, str]
 
 
-	field:          Item.Key
-	enum_transform: Transforms.Safe[Item.Key,  str]
+	field:          Item.Metadata.Key
+	enum_transform: Transforms.Safe[Item.Metadata.Key,  str]
 
 	connect:        Connect
 	cache_id:       str
@@ -216,9 +216,9 @@ class Enums:
 	cache_id:       str
 
 	type_transform: Transforms.Safe[Item.Type, str]
-	enum_transform: Transforms.Safe[Item.Key,  str]
+	enum_transform: Transforms.Safe[Item.Metadata.Key,  str]
 
-	def __getitem__(self, table_and_field: tuple[Item.Type, Item.Key]):
+	def __getitem__(self, table_and_field: tuple[Item.Type, Item.Metadata.Key]):
 		return Enum(
 			connect        = self.connect,
 			cache_id       = self.cache_id,

@@ -5,12 +5,12 @@ from ....core import Item, Transforms
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class DbEnumName(Transforms.Safe[Item.Key, str]):
+class DbEnumName(Transforms.Safe[Item.Metadata.Key, str]):
 
 	postfix: str
 
 	@pydantic.validate_arguments
-	def transform(self, i: Item.Key) -> str:
+	def transform(self, i: Item.Metadata.Key) -> str:
 		return f'{i.value}_{self.postfix}'
 
 	def __invert__(self) -> 'ItemKey':
@@ -18,13 +18,13 @@ class DbEnumName(Transforms.Safe[Item.Key, str]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class ItemKey(Transforms.Safe[str, Item.Key]):
+class ItemKey(Transforms.Safe[str, Item.Metadata.Key]):
 
 	postfix: str
 
 	@pydantic.validate_arguments
-	def transform(self, i: str) -> Item.Key:
-		return Item.Key(i[:-len(self.postfix) - 1])
+	def transform(self, i: str) -> Item.Metadata.Key:
+		return Item.Metadata.Key(i[:-len(self.postfix) - 1])
 
 	def __invert__(self) -> DbEnumName:
 		return DbEnumName(self.postfix)

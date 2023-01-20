@@ -59,7 +59,7 @@ class Field:
 	def column(self) -> Column:
 		match self.name:
 			case 'status':
-				return         self.enums[(self.table, Item.Key(self.name))].column
+				return         self.enums[(self.table, Item.Metadata.Key(self.name))].column
 			case 'digest':
 				return         sqlalchemy.Column(self.name,       sqlalchemy.String(127), nullable = False)
 			case 'chain':
@@ -93,7 +93,7 @@ class Field:
 					case _:
 						return sqlalchemy.Index(f'index__{self.name.value}', self.name.value, _table = table)
 			case 'status':
-				return self.enums[(self.table, Item.Key(self.name))].index(table)
+				return self.enums[(self.table, Item.Metadata.Key(self.name))].index(table)
 			case _:
 				return sqlalchemy.Index(f'index__{self.name}', self.name, _table = table)
 
