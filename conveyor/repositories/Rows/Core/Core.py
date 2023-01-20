@@ -14,6 +14,8 @@ from . import Cache
 from .Row import Row
 from .Table import Table
 from . import Enums, Fields
+from .DbEnumName import DbEnumName
+from .DbTableName import DbTableName
 
 
 
@@ -25,8 +27,8 @@ class Core:
 	db: sqlalchemy.engine.Engine
 	connection: sqlalchemy.Connection | None = None
 
-	table: Transforms.Safe[Item.Type, str] = Enums.DbTableName('conveyor')
-	enum:  Transforms.Safe[Item.Key,  str] = Enums.DbEnumName('enum')
+	table: Transforms.Safe[Item.Type, str] = DbTableName('conveyor')
+	enum:  Transforms.Safe[Item.Key,  str] = DbEnumName('enum')
 
 	@property
 	def cache_id(self):
