@@ -131,7 +131,7 @@ class Core:
 					):
 						if (~self.enum).valid(name):
 							unenumed = (~self.enum)(name)
-							metadata[unenumed] = self.enums[(query.mask.type, unenumed)].String(getattr(r, name))
+							metadata[Item.Metadata.Key(unenumed.value)] = self.enums[(query.mask.type, unenumed)].String(getattr(r, name))
 						else:
 							metadata[Item.Metadata.Key(name)] = getattr(r, name)
 

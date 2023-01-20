@@ -175,7 +175,7 @@ class Enum:
 	@property
 	def table(self) -> sqlalchemy.Table:
 		return sqlalchemy.Table(
-			DbTableName(f'_conveyor_enum_{self.type.value}')(self.field),
+			DbTableName(f'_conveyor_enum_{self.type.value}')(Item.Type(self.field.value)),
 			sqlalchemy.MetaData(),
 			*columns()
 		)

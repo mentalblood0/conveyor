@@ -29,10 +29,13 @@ class Enumerable:
 	value: pydantic.StrictStr
 
 
+class ItemKey(Word): pass
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Metadata:
 
-	Key = Word
+	class Key(ItemKey): pass
 	Value = pydantic.StrictStr | int | float | datetime.datetime | Enumerable | None
 
 	Enumerable = Enumerable
@@ -48,16 +51,15 @@ class Metadata:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
 
-	Type         = Word
-	Status       = Word
+	class Type(Word): pass
+	class Status(Word): pass
 	Data         = Data
 	Chain        = Chain
 	Created      = Created
 	Reserver     = Reserver
 	Metadata     = Metadata
 
-	BaseKey      = Word
-	Key          = BaseKey | Metadata.Key
+	Key          = ItemKey
 
 	BaseValue    = typing.Union[Type, Status, Chain, Created, Reserver]
 	Value        = BaseValue | Metadata.Value
