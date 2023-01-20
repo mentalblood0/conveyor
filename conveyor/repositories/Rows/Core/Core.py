@@ -118,11 +118,11 @@ class Core:
 					if not (
 						name in Item.__dataclass_fields__
 						or
-						name in ('id', 'digest', status.table)
+						name in ('id', 'digest', status.db_field)
 					):
 						if (~self.enum).valid(name):
 							unenumed = (~self.enum)(name)
-							metadata[unenumed] = self.enums[(query.mask.type, Item.Key(name))].String(getattr(r, name))
+							metadata[unenumed] = self.enums[(query.mask.type, unenumed)].String(getattr(r, name))
 						else:
 							metadata[Item.Metadata.Key(name)] = getattr(r, name)
 

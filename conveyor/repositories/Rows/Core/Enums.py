@@ -83,8 +83,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 						sqlalchemy.sql
 						.select(sqlalchemy.text('value'))
 						.select_from(sqlalchemy.text(self.enum_table))
-						.where(sqlalchemy.column('description') == i)
-						.limit(1)
+						.where(sqlalchemy.column('description') == i.value)
 					).scalar_one()
 
 					if self.enum_table in self.cache:
@@ -105,7 +104,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 				with self.connect() as connection:
 					connection.execute(
 						self.table.insert().values(({
-							'description': i
+							'description': i.value
 						},))
 					)
 			except:
@@ -115,7 +114,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 				self.table.create(bind = connection)
 				connection.execute(
 					self.table.insert().values(({
-						'description': i
+						'description': i.value
 					},))
 				)
 
@@ -146,13 +145,15 @@ class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
 			with self.connect() as connection:
 
-				result = connection.execute(
-					sqlalchemy.sql
-					.select(sqlalchemy.text('description'))
-					.select_from(sqlalchemy.text(self.enum_table))
-					.where(sqlalchemy.column('value') == i)
-					.limit(1)
-				).scalar_one()
+				result = Item.Metadata.Enumerable(
+					connection.execute(
+						sqlalchemy.sql
+						.select(sqlalchemy.text('description'))
+						.select_from(sqlalchemy.text(self.enum_table))
+						.where(sqlalchemy.column('value') == i)
+						.limit(1)
+					).scalar_one()
+				)
 
 				if self.enum_table in self.cache:
 					self.cache[self.enum_table].value[result] = i
@@ -165,7 +166,7 @@ class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
 				return result
 
-		except Exception as e:
+		except:
 			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
 
 	def __invert__(self) -> Int:
@@ -207,11 +208,11 @@ class Enum:
 
 	@property
 	def column(self) -> sqlalchemy.Column[int]:
-		return sqlalchemy.Column(self.table, sqlalchemy.SmallInteger(), nullable = False)
+		return sqlalchemy.Column(self.db_field, sqlalchemy.SmallInteger(), nullable = False)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index[int]:
-		return sqlalchemy.Index(f'index__{self.table}', self.table.name, _table = table)
+		return sqlalchemy.Index(f'index__{self.table.name}', self.db_field, _table = table)
 
 	@pydantic.validate_arguments
 	def eq(self, description: Item.Metadata.Enumerable) -> sqlalchemy.sql.expression.ColumnElement[bool]:
