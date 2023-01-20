@@ -4,30 +4,30 @@ import pydantic
 
 
 
-I = typing.TypeVar('I')
-O = typing.TypeVar('O')
+S = typing.TypeVar('S')
+T = typing.TypeVar('T')
 
-I_ = typing.TypeVar('I_')
-O_ = typing.TypeVar('O_')
+S_ = typing.TypeVar('S_')
+T_ = typing.TypeVar('T_')
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Transform(typing.Generic[I, O], metaclass = abc.ABCMeta):
+class Transform(typing.Generic[S, T], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def transform(self, i: I) -> O:
+	def transform(self, i: S) -> T:
 		pass
 
 	@abc.abstractmethod
-	def __call__(self, i: I) -> O:
+	def __call__(self, i: S) -> T:
 		pass
 
 	@abc.abstractmethod
-	def __invert__(self: 'Transform[I, O]') -> 'Transform[O, I]':
+	def __invert__(self: 'Transform[S, T]') -> 'Transform[T, S]':
 		pass
 
 	@typing.final
-	def valid(self, i: I) -> bool:
+	def valid(self, i: S) -> bool:
 		try:
 			self(i)
 			return True
@@ -35,20 +35,20 @@ class Transform(typing.Generic[I, O], metaclass = abc.ABCMeta):
 			return False
 
 	@typing.final
-	def __add__(self, another: 'Transform[O, O_]') -> '_Transforms[I, O, O_]':
+	def __add__(self, another: 'Transform[T, T_]') -> '_Transforms[S, T, T_]':
 		return _Transforms(self, another)
 
 	@typing.final
-	def __radd__(self, another: 'Transform[I_, I]') -> '_Transforms[I_, I, O]':
+	def __radd__(self, another: 'Transform[S_, S]') -> '_Transforms[S_, S, T]':
 		return _Transforms(another, self)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Safe(Transform[I, O]):
+class Safe(Transform[S, T]):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, i: I) -> O:
+	def __call__(self, i: S) -> T:
 
 		result = self.transform(i)
 
@@ -59,25 +59,25 @@ class Safe(Transform[I, O]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Trusted(Transform[I, O]):
+class Trusted(Transform[S, T]):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, i: I) -> O:
+	def __call__(self, i: S) -> T:
 		return self.transform(i)
 
 
 M = typing.TypeVar('M')
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class _Transforms(Trusted[I, O], typing.Generic[I, M, O]):
+class _Transforms(Trusted[S, T], typing.Generic[S, M, T]):
 
-	first:  '_Transforms[I, typing.Any, M]' | Transform[I, M]
-	second: '_Transforms[M, typing.Any, O]' | Transform[M, O]
+	first:  '_Transforms[S, typing.Any, M]' | Transform[S, M]
+	second: '_Transforms[M, typing.Any, T]' | Transform[M, T]
 
 	@pydantic.validate_arguments
-	def transform(self, i: I) -> O:
+	def transform(self, i: S) -> T:
 		return self.second(self.first(i))
 
-	def __invert__(self) -> '_Transforms[O, M, I]':
+	def __invert__(self) -> '_Transforms[T, M, S]':
 		return _Transforms(~self.second, ~self.first)
