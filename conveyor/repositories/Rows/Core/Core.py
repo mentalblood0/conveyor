@@ -10,6 +10,7 @@ import sqlalchemy.exc
 
 from ....core import Item, Query, Transforms
 
+from . import Cache
 from .Row import Row
 from .Table import Table
 from . import Enums, Fields
@@ -27,7 +28,13 @@ class Core:
 	table: Transforms.Safe[Item.Type, str] = Enums.DbTableName('conveyor')
 	enum:  Transforms.Safe[Item.Key,  str] = Enums.DbEnumName('enum')
 
-	cache: Enums.Cache = dataclasses.field(default_factory = dict)
+	@property
+	def cache_id(self):
+		return str(self.db)
+
+	@property
+	def cache(self):
+		return Cache.cache[self.cache_id]
 
 	@property
 	def enums(self):
@@ -35,7 +42,7 @@ class Core:
 			connect        = functools.partial(self.connect, nested = True),
 			type_transform = self.table,
 			enum_transform = self.enum,
-			cache          = self.cache
+			cache_id       = self.cache_id
 		)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
@@ -184,25 +191,19 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
-
-		fields = Fields.Fields(
-			metadata  = row.metadata,
-			db        = self.db,
-			table     = row.type,
-			transform = self.table,
-			enums     = self.enums
-		)
-
-
-		name = self.table(row.type)
-
 		try:
 			with self.connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
-						name,
+						self.table(row.type),
 						sqlalchemy.MetaData(),
-						*fields.columns
+						*Fields.Fields(
+							metadata  = row.metadata,
+							db        = self.db,
+							table     = row.type,
+							transform = self.table,
+							enums     = self.enums
+						).columns
 					)
 					.delete()
 					.where(*self._where(row))
@@ -231,32 +232,16 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
-
-		fields = Fields.Fields(
-			metadata  = row.metadata,
-			db        = self.db,
-			table     = row.type,
-			transform = self.table,
-			enums     = self.enums
-		)
-
-
-		name = self.table(row.type)
-
 		with self.connect() as connection:
 			try:
 				return connection.execute(
 					sqlalchemy.sql.exists(
-						Table(
-							connection = connection,
-							name       = name,
-							fields_    = fields.fields
-						)
-						.select()
+						sqlalchemy.sql.select('*')
+						.select_from(sqlalchemy.text(self.table(row.type)))
 						.where(*self._where(row))
 					).select()
 				).scalar_one()
-			except KeyError:
+			except:
 				return False
 
 	def __len__(self) -> pydantic.NonNegativeInt:

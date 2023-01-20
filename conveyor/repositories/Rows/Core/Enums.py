@@ -1,10 +1,10 @@
 import pydantic
 import sqlalchemy
-import dataclasses
 import sqlalchemy.exc
 
 from ....core import Transforms, Item
 
+from . import Cache
 from .Connect import Connect
 from .DbTableName import DbTableName
 
@@ -42,20 +42,16 @@ columns = lambda: (
 )
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class TableEnumCache:
-	value:       dict[Item.Metadata.Enumerable, int]
-	description: dict[int, Item.Metadata.Enumerable]
-
-Cache = dict[str, TableEnumCache]
-
-
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 	connect:    Connect
 	enum_table: str
-	cache:      Cache = dataclasses.field(default_factory = dict)
+	cache_id:   str
+
+	@property
+	def cache(self) -> Cache.EnumsCache:
+		return Cache.cache[self.cache_id]
 
 	@property
 	def table(self):
@@ -90,7 +86,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 						self.cache[self.enum_table].description[result] = i
 						self.cache[self.enum_table].value[i]            = result
 					else:
-						self.cache[self.enum_table] = TableEnumCache(
+						self.cache[self.enum_table] = Cache.TableEnumCache(
 							value       = {i: result},
 							description = {result: i}
 						)
@@ -122,7 +118,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		return String(
 			connect    = self.connect,
 			enum_table = self.enum_table,
-			cache      = self.cache
+			cache_id   = self.cache_id
 		)
 
 
@@ -131,7 +127,11 @@ class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
 	connect:    Connect
 	enum_table: str
-	cache:      Cache = dataclasses.field(default_factory = dict)
+	cache_id:   str
+
+	@property
+	def cache(self) -> Cache.EnumsCache:
+		return Cache.cache[self.cache_id]
 
 	@pydantic.validate_arguments
 	def transform(self, i: int) -> Item.Metadata.Enumerable:
@@ -159,21 +159,21 @@ class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
 					self.cache[self.enum_table].value[result] = i
 					self.cache[self.enum_table].description[i] = result
 				else:
-					self.cache[self.enum_table] = TableEnumCache(
+					self.cache[self.enum_table] = Cache.TableEnumCache(
 						value       = {result: i},
 						description = {i: result}
 					)
 
 				return result
 
-		except:
+		except Exception as e:
 			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
 
 	def __invert__(self) -> Int:
 		return Int(
 			connect    = self.connect,
 			enum_table = self.enum_table,
-			cache      = self.cache
+			cache_id   = self.cache_id
 		)
 
 
@@ -188,7 +188,7 @@ class Enum:
 	enum_transform: Transforms.Safe[Item.Key,  str]
 
 	connect:        Connect
-	cache:          Cache = dataclasses.field(default_factory = dict)
+	cache_id:       str
 
 	@property
 	def db_type(self) -> str:
@@ -223,7 +223,7 @@ class Enum:
 		return Int(
 			connect    = self.connect,
 			enum_table = self.table.name,
-			cache      = self.cache
+			cache_id   = self.cache_id
 		)
 
 	@property
@@ -231,7 +231,7 @@ class Enum:
 		return String(
 			connect    = self.connect,
 			enum_table = self.table.name,
-			cache      = self.cache
+			cache_id   = self.cache_id
 		)
 
 
@@ -239,7 +239,7 @@ class Enum:
 class Enums:
 
 	connect:        Connect
-	cache:          Cache = dataclasses.field(default_factory = dict)
+	cache_id:       str
 
 	type_transform: Transforms.Safe[Item.Type, str]
 	enum_transform: Transforms.Safe[Item.Key,  str]
@@ -247,7 +247,7 @@ class Enums:
 	def __getitem__(self, table_and_field: tuple[Item.Type, Item.Key]):
 		return Enum(
 			connect        = self.connect,
-			cache          = self.cache,
+			cache_id       = self.cache_id,
 			type           = table_and_field[0],
 			type_transform = self.type_transform,
 			field          = table_and_field[1],
