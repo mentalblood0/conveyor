@@ -168,6 +168,28 @@ def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 
 
 @pydantic.validate_arguments
+def test_contains(rows: Rows.Core, row: Rows.Core.Item):
+	assert row not in rows
+	rows.append(row)
+	assert row in rows
+
+
+@pydantic.validate_arguments
+def test_delete(rows: Rows.Core, row: Rows.Core.Item):
+	rows.append(row)
+	del rows[row]
+	assert row not in rows
+
+
+@pydantic.validate_arguments
+def test_len(rows: Rows.Core, row: Rows.Core.Item):
+	assert not len(rows)
+	for i in range(3):
+		rows.append(row)
+		assert len(rows) == i + 1
+
+
+@pydantic.validate_arguments
 def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 	changed_status = Item.Status(f'{row.status}_')
@@ -184,6 +206,13 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 		mask  = Mask(type = row.type, status = changed_row.status),
 		limit = 2
 	)]] == [changed_row]
+
+
+@pydantic.validate_arguments
+def test_enums_cache(rows: Rows.Core, row: Rows.Core.Item):
+	assert not rows.cache
+	rows.append(row)
+	assert rows.cache
 
 
 @pydantic.validate_arguments
