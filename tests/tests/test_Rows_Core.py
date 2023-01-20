@@ -210,9 +210,9 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 @pydantic.validate_arguments
 def test_enums_cache(rows: Rows.Core, row: Rows.Core.Item):
-	assert not rows.cache
+	assert not rows._cache
 	rows.append(row)
-	assert rows.cache
+	assert rows._cache
 
 
 @pydantic.validate_arguments

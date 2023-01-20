@@ -24,33 +24,33 @@ class Core:
 
 	Item = Row
 
-	db: sqlalchemy.engine.Engine
+	db:         sqlalchemy.engine.Engine
 	connection: sqlalchemy.Connection | None = None
 
-	table: Transforms.Safe[Item.Type, str]          = DbTableName('conveyor')
-	enum:  Transforms.Safe[Item.Metadata.Key,  str] = DbEnumName('enum')
+	table:      Transforms.Safe[Item.Type,         str] = DbTableName('conveyor')
+	enum:       Transforms.Safe[Item.Metadata.Key, str] = DbEnumName('enum')
 
 	@property
-	def cache_id(self):
+	def _cache_id(self) -> str:
 		return str(self.db)
 
 	@property
-	def cache(self):
-		return Cache.cache[self.cache_id]
+	def _cache(self) -> Cache.EnumsCache:
+		return Cache.cache[self._cache_id]
 
 	@property
-	def enums(self):
+	def _enums(self) -> Enums.Enums:
 		return Enums.Enums(
-			connect        = functools.partial(self.connect, nested = True),
+			connect        = functools.partial(self._connect, nested = True),
 			type_transform = self.table,
 			enum_transform = self.enum,
-			cache_id       = self.cache_id
+			cache_id       = self._cache_id
 		)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
-			yield self.enums[(ref.type, Item.Metadata.Key('status'))].eq(Item.Metadata.Enumerable(ref.status.value))
+			yield self._enums[(ref.type, Item.Metadata.Key('status'))].eq(Item.Metadata.Enumerable(ref.status.value))
 		if ref.digest is not None:
 			yield                sqlalchemy.column('digest') == ref.digest.string
 		match ref.chain:
@@ -68,7 +68,7 @@ class Core:
 			for k, v in ref.metadata.value.items():
 				match v:
 					case Item.Metadata.Enumerable():
-						yield      self.enums[(ref.type, k)].eq(v)
+						yield      self._enums[(ref.type, k)].eq(v)
 					case _:
 						yield     sqlalchemy.column(k.value) == v
 
@@ -80,13 +80,13 @@ class Core:
 			db        = self.db,
 			table     = row.type,
 			transform = self.table,
-			enums     = self.enums
+			enums     = self._enums
 		)
 
 		name = self.table(row.type)
 
 		try:
-			with self.connect() as connection:
+			with self._connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
 						name,
@@ -94,23 +94,23 @@ class Core:
 						*fields.columns
 					)
 					.insert()
-					.values((row.dict_(self.enums),))
+					.values((row.dict_(self._enums),))
 				)
 		except:
-			with self.connect() as connection:
+			with self._connect() as connection:
 				connection.execute(
 					Table(
 						connection = connection,
 						name       = name,
 						fields_    = fields.fields
-					).insert().values((row.dict_(self.enums),))
+					).insert().values((row.dict_(self._enums),))
 				)
 
 
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 
-		with self.connect() as connection:
+		with self._connect() as connection:
 
 			for r in connection.execute(
 				sqlalchemy.sql
@@ -120,7 +120,7 @@ class Core:
 				.limit(query.limit)
 			):
 
-				status = self.enums[(query.mask.type, Item.Metadata.Key('status'))]
+				status = self._enums[(query.mask.type, Item.Metadata.Key('status'))]
 
 				metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
 				for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
@@ -131,7 +131,7 @@ class Core:
 					):
 						if (~self.enum).valid(name):
 							unenumed = (~self.enum)(name)
-							metadata[Item.Metadata.Key(unenumed.value)] = self.enums[(query.mask.type, unenumed)].String(getattr(r, name))
+							metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].String(getattr(r, name))
 						else:
 							metadata[Item.Metadata.Key(name)] = getattr(r, name)
 
@@ -151,7 +151,7 @@ class Core:
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
 
-		if not (changes := new.sub(old, self.enums)):
+		if not (changes := new.sub(old, self._enums)):
 			return
 
 		fields = Fields.Fields(
@@ -159,13 +159,13 @@ class Core:
 			db        = self.db,
 			table     = old.type,
 			transform = self.table,
-			enums     = self.enums
+			enums     = self._enums
 		)
 
 		name = self.table(old.type)
 
 		try:
-			with self.connect() as connection:
+			with self._connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
 						name,
@@ -177,7 +177,7 @@ class Core:
 					.values(**changes)
 				)
 		except:
-			with self.connect() as connection:
+			with self._connect() as connection:
 				connection.execute(
 					sqlalchemy.sql
 					.update(
@@ -194,7 +194,7 @@ class Core:
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
 		try:
-			with self.connect() as connection:
+			with self._connect() as connection:
 				connection.execute(
 					sqlalchemy.Table(
 						self.table(row.type),
@@ -204,7 +204,7 @@ class Core:
 							db        = self.db,
 							table     = row.type,
 							transform = self.table,
-							enums     = self.enums
+							enums     = self._enums
 						).columns
 					)
 					.delete()
@@ -215,12 +215,12 @@ class Core:
 
 	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
-		with self.connect() as connection:
+		with self._connect() as connection:
 			yield dataclasses.replace(self, connection=connection)
 
 	@pydantic.validate_arguments
 	@contextlib.contextmanager
-	def connect(self, nested: bool = True) -> typing.Iterator[sqlalchemy.Connection]:
+	def _connect(self, nested: bool = True) -> typing.Iterator[sqlalchemy.Connection]:
 		match self.connection:
 			case sqlalchemy.Connection():
 				if nested:
@@ -234,7 +234,7 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
-		with self.connect() as connection:
+		with self._connect() as connection:
 			try:
 				return connection.execute(
 					sqlalchemy.sql.exists(
@@ -247,7 +247,7 @@ class Core:
 				return False
 
 	def __len__(self) -> pydantic.NonNegativeInt:
-		with self.connect() as connection:
+		with self._connect() as connection:
 			return sum(
 				connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()
 				for name in sqlalchemy.inspect(connection).get_table_names()
@@ -255,8 +255,8 @@ class Core:
 			)
 
 	def clear(self) -> None:
-		self.cache.clear()
-		with self.connect() as connection:
+		self._cache.clear()
+		with self._connect() as connection:
 			for name in sqlalchemy.inspect(connection).get_table_names():
 				if (~self.table).valid(name):
 					connection.execute(sqlalchemy.text(f'DROP TABLE {name}'))
