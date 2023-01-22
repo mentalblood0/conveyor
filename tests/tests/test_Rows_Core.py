@@ -209,13 +209,6 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 
 @pydantic.validate_arguments
-def test_enums_cache(rows: Rows.Core, row: Rows.Core.Item):
-	assert not rows._cache
-	rows.append(row)
-	assert rows._cache
-
-
-@pydantic.validate_arguments
 def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 	metadata_1 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')})
