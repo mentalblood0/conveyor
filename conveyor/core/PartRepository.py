@@ -35,3 +35,11 @@ class PartRepository(metaclass = abc.ABCMeta):
 	@abc.abstractmethod
 	def __contains__(self, item: Item) -> bool:
 		pass
+
+	@abc.abstractmethod
+	def __len__(self) -> pydantic.NonNegativeInt:
+		pass
+
+	@abc.abstractmethod
+	def clear(self) -> None:
+		pass

@@ -51,5 +51,8 @@ class Rows(PartRepository):
 	def __contains__(self, item: Item) -> bool:
 		return self.rows.Item.from_item(item) in self.rows
 
+	def __len__(self) -> pydantic.NonNegativeInt:
+		return len(self.rows)
+
 	def clear(self) -> None:
 		return self.rows.clear()

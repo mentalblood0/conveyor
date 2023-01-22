@@ -41,5 +41,8 @@ class Files(PartRepository):
 	def __contains__(self, item: Item) -> bool:
 		return item.data.digest in self.files
 
+	def __len__(self) -> pydantic.NonNegativeInt:
+		return len(self.files)
+
 	def clear(self) -> None:
 		self.files.clear()
