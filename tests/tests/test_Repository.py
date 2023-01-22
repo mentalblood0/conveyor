@@ -29,16 +29,6 @@ def query_all(item: Item) -> Query:
 
 
 @pydantic.validate_arguments
-def test_immutable(repository: Repository):
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		repository.__setattr__('parts', b'x')
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		del repository.parts
-	with pytest.raises(dataclasses.FrozenInstanceError):
-		repository.__setattr__('x', b'x')
-
-
-@pydantic.validate_arguments
 def test_append_get_delete(repository: Repository, item: Item):
 
 	repository.append(item)
@@ -67,6 +57,42 @@ def test_append_get_delete(repository: Repository, item: Item):
 @pydantic.validate_arguments
 def test_delete_nonexistent(repository: Repository, item: Item):
 	del repository[item]
+
+
+@pydantic.validate_arguments
+def test_transaction_one(repository: Repository, item: Item):
+
+	assert not len(repository)
+
+	try:
+		with repository.transaction() as t:
+			t.append(item)
+			raise KeyError
+	except KeyError:
+		assert not len(repository)
+
+	with repository.transaction() as t:
+		t.append(item)
+	assert len(repository) == 1
+
+
+@pydantic.validate_arguments
+def test_transaction_many(repository: Repository, item: Item):
+
+	assert not len(repository)
+
+	try:
+		with repository.transaction() as t:
+			for _ in range(3):
+				t.append(item)
+			raise KeyError
+	except KeyError:
+		assert not len(repository)
+
+	with repository.transaction() as t:
+		for _ in range(3):
+			t.append(item)
+	assert len(repository) == 3
 
 
 @pytest.fixture

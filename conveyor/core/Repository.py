@@ -1,6 +1,7 @@
 import typing
 import pydantic
 import itertools
+import contextlib
 import dataclasses
 
 from .Part import Part
@@ -91,9 +92,33 @@ class Repository:
 				break
 
 	@pydantic.validate_arguments
+	@contextlib.contextmanager
+	def _transaction(self, parts_to_include: typing.Sequence[PartRepository]) -> typing.Iterator[typing.Sequence[PartRepository]]:
+		match len(parts_to_include):
+			case 0:
+				yield ()
+			case _:
+				with parts_to_include[0].transaction() as t:
+					with self._transaction(parts_to_include[1:]) as _t:
+						yield (t, *_t)
+						# yield (parts_to_include[0].transaction(), *_t)
+						# yield (parts_to_include[0].transaction(), *(parts_to_include[1].transaction(), *_t))
+
+	@pydantic.validate_arguments
+	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
-		raise NotImplementedError
+		with self._transaction(self.parts) as transaction_parts:
+			yield dataclasses.replace(
+				self,
+				parts = transaction_parts
+			)
 
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
 		return all(item in p for p in self.parts)
+
+	def __len__(self) -> pydantic.NonNegativeInt:
+		return max(
+			len(p)
+			for p in self.parts
+		)
