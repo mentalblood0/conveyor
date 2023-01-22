@@ -118,3 +118,8 @@ class Repository:
 
 	def __len__(self) -> pydantic.NonNegativeInt:
 		return max(len(p) for p in self.parts)
+
+	def clear(self) -> None:
+		with self.transaction() as t:
+			for p in t.parts:
+				p.clear()

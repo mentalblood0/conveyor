@@ -14,7 +14,9 @@ from ..common import *
 @pytest.fixture
 @pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def repository(files: Files.Core, rows: Rows.Core) -> Repository:
-	return Repository([Rows(rows), Files(files)])
+	result = Repository([Rows(rows), Files(files)])
+	result.clear()
+	return result
 
 
 @pytest.fixture
