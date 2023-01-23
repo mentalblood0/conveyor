@@ -112,13 +112,19 @@ class Core:
 
 		with self._connect() as connection:
 
-			for r in connection.execute(
+			q = (
 				sqlalchemy.sql
 				.select(sqlalchemy.text('*'))
 				.select_from(sqlalchemy.text(self.table(query.mask.type)))
 				.where(*self._where(query.mask))
-				.limit(query.limit)
-			):
+			)
+			match query.limit:
+				case None:
+					pass
+				case _:
+					q = q.limit(query.limit)
+
+			for r in connection.execute(q):
 
 				status = self._enums[(query.mask.type, Item.Metadata.Key('status'))]
 

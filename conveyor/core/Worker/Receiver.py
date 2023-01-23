@@ -25,6 +25,6 @@ class Receiver:
 		for f in self.masks:
 			mask = f(previous)
 			previous.clear()
-			for item in repository[Query(mask = mask, limit = 128)]:
+			for item in repository[Query(mask = mask, limit = None)]:
 				yield item
 				previous.append(item)
