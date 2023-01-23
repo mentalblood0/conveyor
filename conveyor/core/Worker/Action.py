@@ -21,8 +21,9 @@ class Actor:
 
 	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
-		for a in self.actions:
-			a(repository)
+		with repository.transaction() as t:
+			for a in self.actions:
+				a(t)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
