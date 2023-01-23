@@ -37,7 +37,7 @@ class Append(Action):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Update:
+class Update(Action):
 
 	old: Item
 	new: Item
@@ -48,7 +48,7 @@ class Update:
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Delete:
+class Delete(Action):
 
 	item: Item
 
