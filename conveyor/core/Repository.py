@@ -20,6 +20,7 @@ class Repository:
 	Parts = Parts
 
 	parts: Parts
+	transaction_: bool = False
 
 	@pydantic.validator('parts')
 	def parts_valid(cls, parts: Parts) -> Parts:
@@ -109,8 +110,16 @@ class Repository:
 
 	@contextlib.contextmanager
 	def transaction(self) -> typing.Iterator[typing.Self]:
-		with self._transaction(self.parts) as transaction_parts:
-			yield dataclasses.replace(self, parts = transaction_parts)
+		match self.transaction_:
+			case True:
+				yield self
+			case False:
+				with self._transaction(self.parts) as transaction_parts:
+					yield dataclasses.replace(
+						self,
+						parts        = transaction_parts,
+						transaction_ = True
+					)
 
 	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
