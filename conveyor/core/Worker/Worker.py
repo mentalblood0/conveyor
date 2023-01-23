@@ -2,7 +2,7 @@ import pydantic
 
 from ..Repository import Repository
 
-from . import Action
+from .Action import Actor
 from .Receiver import Receiver
 from .Processor import Processor
 
@@ -11,13 +11,13 @@ from .Processor import Processor
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Worker:
 
-	receiver:  Receiver
-	processor: Processor
+	receiver:   Receiver
+	processor:  Processor
 
 	repository: Repository
 
 	def __call__(self):
-		Action.Actor(
+		Actor(
 			self.processor(
 				self.receiver(
 					self.repository

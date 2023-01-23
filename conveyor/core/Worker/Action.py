@@ -7,7 +7,7 @@ from ..Repository import Repository
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Action(metaclass = abc.ABCMeta):
 	@abc.abstractmethod
 	def __call__(self, repository: Repository) -> None:
@@ -26,7 +26,7 @@ class Actor:
 				a(t)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Append(Action):
 
 	item: Item
@@ -47,7 +47,7 @@ class Update(Action):
 		repository[self.old] = self.new
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Delete(Action):
 
 	item: Item
