@@ -16,7 +16,7 @@ class Worker:
 
 	repository: Repository
 
-	def __call__(self):
+	def __call__(self) -> None:
 		Actor(
 			self.processor(
 				self.receiver(
