@@ -22,9 +22,14 @@ class Receiver:
 
 		previous: typing.Sequence[Item] = []
 
+		first = True
 		for f in self.masks:
+
 			mask = f(previous)
 			previous.clear()
-			for item in repository[Query(mask = mask, limit = None)]:
+
+			for item in repository[Query(mask = mask, limit = 1 if first else None)]:
 				yield item
 				previous.append(item)
+
+			first = False
