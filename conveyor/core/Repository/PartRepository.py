@@ -3,8 +3,8 @@ import typing
 import pydantic
 import contextlib
 
-from .Item import Item
-from .Part import Part
+from ..Item import Item
+from ..Item.Part import Part
 from .Query import Query
 
 

@@ -3,9 +3,9 @@ import pydantic
 import contextlib
 import dataclasses
 
-from .Part import Part
+from ..Item.Part import Part
 from .Query import Query
-from .Item.Item import Item
+from ..Item.Item import Item
 from .PartRepository import PartRepository
 
 

@@ -3,18 +3,18 @@ import typing
 import pydantic
 import dataclasses
 
-from ..Item import Item
+from ...Item import Item
 
-from . import Action
-from .Processor import Processor
+from .. import Action
+from ..Processor import Processor
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Transformer(Processor, metaclass = abc.ABCMeta):
+class Mover(Processor, metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
+	def process(self, input: Item) -> typing.Iterable[Item.Status | Item]:
 		pass
 
 	@pydantic.validate_arguments
@@ -25,12 +25,6 @@ class Transformer(Processor, metaclass = abc.ABCMeta):
 				match o:
 					case Item.Status():
 						yield Action.Update(old = i, new = dataclasses.replace(i, status = o))
-					case Item.Metadata():
-						yield Action.Update(
-							old = i,
-							new = dataclasses.replace(
-								i,
-								metadata = Item.Metadata(value_ = i.metadata.value | o.value)
-							)
-						)
+					case Item():
+						yield Action.Append(o)
 			break

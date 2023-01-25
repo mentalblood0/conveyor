@@ -3,7 +3,7 @@ import typing
 import pydantic
 
 from ..Item import Item
-from ..Repository import Repository
+from ..Repository.Repository import Repository
 
 
 

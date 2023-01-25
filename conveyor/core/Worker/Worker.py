@@ -1,7 +1,7 @@
 import typing
 import pydantic
 
-from ..Repository import Repository
+from ..Repository.Repository import Repository
 
 from .Action import Actor
 from .Receiver import Receiver

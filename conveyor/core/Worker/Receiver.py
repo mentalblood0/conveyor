@@ -2,8 +2,8 @@ import typing
 import pydantic
 
 from ..Item import Item
-from ..Query import Query
-from ..Repository import Repository
+from ..Repository.Query import Query
+from ..Repository.Repository import Repository
 
 
 

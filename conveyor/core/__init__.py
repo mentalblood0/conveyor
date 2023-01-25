@@ -1,6 +1,6 @@
 from .Item.Item import Item as Item
-from .Mask import Mask as Mask
-from .Query import Query as Query
-from .Part import Part as Part
-from .PartRepository import PartRepository as PartRepository
-from .Repository import Repository as Repository
+from .Repository.Mask import Mask as Mask
+from .Repository.Query import Query as Query
+from .Item.Part import Part as Part
+from .Repository.PartRepository import PartRepository as PartRepository
+from .Repository.Repository import Repository as Repository
