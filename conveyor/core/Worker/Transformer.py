@@ -19,7 +19,7 @@ class Transformer(Processor, metaclass = abc.ABCMeta):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, input: typing.Iterable[Item]) -> typing.Iterable[Action.Action]:
+	def __call__(self, input: typing.Iterable[Item], **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
 		for i in input:
 			for o in self.process(i):
 				match o:

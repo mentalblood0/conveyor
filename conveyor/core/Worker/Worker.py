@@ -1,3 +1,4 @@
+import typing
 import pydantic
 
 from ..Repository import Repository
@@ -16,12 +17,13 @@ class Worker:
 
 	repository: Repository
 
-	def __call__(self) -> None:
+	def __call__(self, **kwargs: dict[str, typing.Any]) -> None:
 		Actor(
 			self.processor(
 				self.receiver(
 					self.repository
-				)
+				),
+				**kwargs
 			)
 		)(
 			self.repository
