@@ -2,18 +2,13 @@ import pydantic
 import sqlalchemy
 import sqlalchemy.exc
 
-from ....core import Transforms, Item
+from .....core import Transforms, Item
 
-from . import Cache
-from .Connect import Connect
-from .DbTableName import DbTableName
+from .. import Cache
+from ..Connect import Connect
+from ..DbTableName import DbTableName
 
-
-
-columns = lambda: (
-	sqlalchemy.Column('value',       sqlalchemy.Integer(), nullable = False, primary_key = True, autoincrement = 'auto'),
-	sqlalchemy.Column('description', sqlalchemy.Text(),    nullable = False, unique      = True, index = True)
-)
+from .Columns import columns
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
@@ -24,8 +19,11 @@ class EnumsTransform:
 	cache_id:   str
 
 	@property
-	def cache(self) -> Cache.EnumsCache:
+	def cache(self) -> Cache.Enums.Cache:
 		return Cache.cache[self.cache_id]
+
+	def load(self) -> None:
+		self.cache.load(self.enum_table, self.connect)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
@@ -50,7 +48,7 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		while True:
 
 			try:
-				self.cache.load(self.enum_table, self.connect)
+				self.load()
 				return self.cache[self.enum_table].value[i]
 			except:
 				pass
@@ -93,7 +91,7 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 			pass
 
 		try:
-			self.cache.load(self.enum_table, self.connect)
+			self.load()
 			return self.cache[self.enum_table].description[i]
 		except Exception as e:
 			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e

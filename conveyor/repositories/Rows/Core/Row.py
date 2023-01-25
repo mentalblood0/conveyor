@@ -3,7 +3,7 @@ import pydantic
 
 from ....core import Item
 
-from . import Enums
+from .Enums import Enums
 
 
 

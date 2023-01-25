@@ -8,12 +8,14 @@ import sqlalchemy
 import dataclasses
 import sqlalchemy.exc
 
+from .Enums import Enums
+
 from ....core import Item, Query, Transforms
 
 from . import Cache
 from .Row import Row
 from .Table import Table
-from . import Enums, Fields
+from . import Fields
 from .DbEnumName import DbEnumName
 from .DbTableName import DbTableName
 
@@ -35,7 +37,7 @@ class Core:
 		return str(self.db)
 
 	@property
-	def _cache(self) -> Cache.EnumsCache:
+	def _cache(self) -> Cache.Enums.Cache:
 		return Cache.cache[self._cache_id]
 
 	@property

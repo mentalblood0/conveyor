@@ -5,7 +5,7 @@ import sqlalchemy
 
 from ....core import Item, Transforms
 
-from . import Enums
+from .Enums import Enums
 
 
 
