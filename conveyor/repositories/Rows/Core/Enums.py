@@ -17,7 +17,7 @@ columns = lambda: (
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
-class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
+class EnumsTransform:
 
 	connect:    Connect
 	enum_table: str
@@ -26,6 +26,10 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 	@property
 	def cache(self) -> Cache.EnumsCache:
 		return Cache.cache[self.cache_id]
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 	@property
 	def table(self):
@@ -46,27 +50,8 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		while True:
 
 			try:
-
-				with self.connect() as connection:
-
-					result = connection.execute(
-						sqlalchemy.sql
-						.select(sqlalchemy.text('value'))
-						.select_from(sqlalchemy.text(self.enum_table))
-						.where(sqlalchemy.column('description') == i.value)
-					).scalar_one()
-
-					if self.enum_table in self.cache:
-						self.cache[self.enum_table].description[result] = i
-						self.cache[self.enum_table].value[i]            = result
-					else:
-						self.cache[self.enum_table] = Cache.TableEnumCache(
-							value       = {i: result},
-							description = {result: i}
-						)
-
-					return result
-
+				self.cache.load(self.enum_table, self.connect)
+				return self.cache[self.enum_table].value[i]
 			except:
 				pass
 
@@ -97,15 +82,7 @@ class Int(Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
-class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
-
-	connect:    Connect
-	enum_table: str
-	cache_id:   str
-
-	@property
-	def cache(self) -> Cache.EnumsCache:
-		return Cache.cache[self.cache_id]
+class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
 	@pydantic.validate_arguments
 	def transform(self, i: int) -> Item.Metadata.Enumerable:
@@ -116,30 +93,8 @@ class String(Transforms.Trusted[int, Item.Metadata.Enumerable]):
 			pass
 
 		try:
-
-			with self.connect() as connection:
-
-				result = Item.Metadata.Enumerable(
-					connection.execute(
-						sqlalchemy.sql
-						.select(sqlalchemy.text('description'))
-						.select_from(sqlalchemy.text(self.enum_table))
-						.where(sqlalchemy.column('value') == i)
-						.limit(1)
-					).scalar_one()
-				)
-
-				if self.enum_table in self.cache:
-					self.cache[self.enum_table].value[result] = i
-					self.cache[self.enum_table].description[i] = result
-				else:
-					self.cache[self.enum_table] = Cache.TableEnumCache(
-						value       = {result: i},
-						description = {i: result}
-					)
-
-				return result
-
+			self.cache.load(self.enum_table, self.connect)
+			return self.cache[self.enum_table].description[i]
 		except Exception as e:
 			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
 
