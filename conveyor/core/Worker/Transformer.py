@@ -14,20 +14,23 @@ from .Processor import Processor
 class Transformer(Processor, metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def process(self, input: Item) -> tuple[Item.Status, Item.Metadata]:
+	def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
 		pass
 
 	@pydantic.validate_arguments
 	@typing.final
 	def __call__(self, input: typing.Iterable[Item]) -> typing.Iterable[Action.Action]:
 		for i in input:
-			status, metadata = self.process(i)
-			yield Action.Update(
-				old = i,
-				new = dataclasses.replace(
-					i,
-					status   = status,
-					metadata = metadata
-				)
-			)
+			for o in self.process(i):
+				match o:
+					case Item.Status():
+						yield Action.Update(old = i, new = dataclasses.replace(i, status = o))
+					case Item.Metadata():
+						yield Action.Update(
+							old = i,
+							new = dataclasses.replace(
+								i,
+								metadata = Item.Metadata(value_ = i.metadata.value | o.value)
+							)
+						)
 			break
