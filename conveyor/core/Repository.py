@@ -1,6 +1,5 @@
 import typing
 import pydantic
-import itertools
 import contextlib
 import dataclasses
 
@@ -54,26 +53,29 @@ class Repository:
 	def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
 
 		reserver = Item.Reserver(exists = True)
+		got: int = 0
 
-		for i in itertools.islice(
-			self._get(
-				query = dataclasses.replace(
-					item_query,
-					mask = dataclasses.replace(
-						item_query.mask,
-						reserver = Item.Reserver(exists = False)
-					)
-				),
-				repositories = self.parts
+		for i in self._get(
+			query = dataclasses.replace(
+				item_query,
+				mask = dataclasses.replace(
+					item_query.mask,
+					reserver = Item.Reserver(exists = False)
+				)
 			),
-			item_query.limit
+			repositories = self.parts
 		):
-			i_reserved = dataclasses.replace(i, reserver = reserver)
+
+			reserved = dataclasses.replace(i, reserver = reserver)
 			try:
-				self.__setitem__(i, i_reserved, True)
+				self.__setitem__(i, reserved, True)
 			except KeyError:
 				continue
-			yield i_reserved
+
+			yield reserved
+			got += 1
+			if got == item_query.limit:
+				break
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
