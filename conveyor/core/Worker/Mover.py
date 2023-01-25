@@ -14,21 +14,17 @@ from .Processor import Processor
 class Mover(Processor, metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def process(self, input: Item) -> tuple[Item.Status, Item]:
+	def process(self, input: Item) -> typing.Iterable[Item.Status | Item]:
 		pass
 
 	@pydantic.validate_arguments
 	@typing.final
 	def __call__(self, input: typing.Iterable[Item]) -> typing.Iterable[Action.Action]:
-
 		for i in input:
-
-			status, output = self.process(i)
-
-			yield Action.Update(
-				old = i,
-				new = dataclasses.replace(i, status = status)
-			)
-			yield Action.Append(output)
-
+			for o in self.process(i):
+				match o:
+					case Item.Status():
+						yield Action.Update(old = i, new = dataclasses.replace(i, status = o))
+					case Item():
+						yield Action.Append(o)
 			break
