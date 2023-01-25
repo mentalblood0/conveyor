@@ -11,8 +11,8 @@ from .DbTableName import DbTableName
 
 
 columns = lambda: (
-	sqlalchemy.Column('value',       sqlalchemy.Integer(),   nullable = False, primary_key = True, autoincrement = 'auto'),
-	sqlalchemy.Column('description', sqlalchemy.String(127), nullable = False, unique      = True, index = True)
+	sqlalchemy.Column('value',       sqlalchemy.Integer(), nullable = False, primary_key = True, autoincrement = 'auto'),
+	sqlalchemy.Column('description', sqlalchemy.Text(),    nullable = False, unique      = True, index = True)
 )
 
 
