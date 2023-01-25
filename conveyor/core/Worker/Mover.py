@@ -18,13 +18,17 @@ class Mover(Processor, metaclass = abc.ABCMeta):
 		pass
 
 	@pydantic.validate_arguments
+	@typing.final
 	def __call__(self, input: typing.Iterable[Item]) -> typing.Iterable[Action.Action]:
 
-		i              = input.__iter__().__next__()
-		status, output = self.process(i)
+		for i in input:
 
-		yield Action.Update(
-			old = i,
-			new = dataclasses.replace(i, status = status)
-		)
-		yield Action.Append(output)
+			status, output = self.process(i)
+
+			yield Action.Update(
+				old = i,
+				new = dataclasses.replace(i, status = status)
+			)
+			yield Action.Append(output)
+
+			break

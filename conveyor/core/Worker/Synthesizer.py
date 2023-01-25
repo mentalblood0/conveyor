@@ -22,14 +22,15 @@ class Synthesizer(Processor, metaclass = abc.ABCMeta):
 	def __call__(self, input: typing.Iterable[Item]) -> typing.Iterable[Action.Action]:
 
 		iterator = input.__iter__()
-		i        = iterator.__next__()
 
-		for o in self.process(i, iterator):
-			match o:
-				case Item.Status():
-					yield Action.Update(
-						old = i,
-						new = dataclasses.replace(i, status = o)
-					)
-				case Item():
-					yield Action.Append(o)
+		for i in iterator:
+			for o in self.process(i, iterator):
+				match o:
+					case Item.Status():
+						yield Action.Update(
+							old = i,
+							new = dataclasses.replace(i, status = o)
+						)
+					case Item():
+						yield Action.Append(o)
+			break
