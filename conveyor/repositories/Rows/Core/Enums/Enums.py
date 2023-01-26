@@ -54,12 +54,17 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 				pass
 
 			try:
+
 				with self.connect() as connection:
-					connection.execute(
+					value = connection.execute(
 						self.table.insert().values(({
 							'description': i.value
-						},))
-					)
+						},)).returning(self.table.columns['value'])
+					).scalar_one()
+
+				self.cache[self.enum_table].value[i] = value
+				return value
+
 			except:
 				pass
 
