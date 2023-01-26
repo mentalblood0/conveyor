@@ -4,19 +4,10 @@ import pydantic
 import itertools
 import dataclasses
 
-from conveyor.repositories.Rows import Rows
-from conveyor.repositories.Files import Files
 from conveyor.core import Item, Query, Mask, Repository
 
 from ..common import *
 
-
-@pytest.fixture
-@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-def repository(files: Files.Core, rows: Rows.Core) -> Repository:
-	result = Repository([Rows(rows), Files(files)])
-	result.clear()
-	return result
 
 
 @pytest.fixture

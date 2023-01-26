@@ -7,8 +7,8 @@ import pydantic
 import datetime
 import sqlalchemy
 
-from conveyor.core import Item, Query
 from conveyor.repositories import Files, Rows
+from conveyor.core import Item, Query, Repository
 
 
 
@@ -112,7 +112,7 @@ def db(db_type: DbType) -> sqlalchemy.engine.Engine:
 		case 'postgres':
 			return sqlalchemy.create_engine('postgresql+psycopg2://postgres:5924@10.8.5.171:5480/postgres', echo=True)
 		case 'sqlite':
-			return sqlalchemy.create_engine('sqlite://', echo=True)
+			return sqlalchemy.create_engine('sqlite://', echo=False)
 
 
 @pytest.fixture
@@ -148,3 +148,11 @@ def query_all(row: Rows.Core.Item) -> Query:
 		),
 		limit=128
 	)
+
+
+@pytest.fixture
+@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+def repository(files: Files.Core, rows: Rows.Core) -> Repository:
+	result = Repository([Rows(rows), Files(files)])
+	result.clear()
+	return result
