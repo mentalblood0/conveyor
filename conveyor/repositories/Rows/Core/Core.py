@@ -162,6 +162,7 @@ class Core:
 		if not (changes := new.sub(old, self._enums)):
 			return
 
+
 		fields = Fields.Fields(
 			metadata  = new.metadata,
 			db        = self.db,

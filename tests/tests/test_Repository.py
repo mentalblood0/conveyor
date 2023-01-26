@@ -10,29 +10,12 @@ from ..common import *
 
 
 
-@pytest.fixture
 @pydantic.validate_arguments
-def query_all(item: Item) -> Query:
-	return Query(
-		mask=Mask(
-			type=item.type
-		),
-		limit=128
-	)
-
-
-@pydantic.validate_arguments
-def test_append_get_delete(repository: Repository, item: Item):
+def test_append_get_delete(repository: Repository, item: Item, query_all: Query):
 
 	repository.append(item)
 
-	query = Query(
-		mask=Mask(
-			type=item.type
-		),
-		limit=128
-	)
-	saved_items = [*repository[query]]
+	saved_items = [*repository[query_all]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
 	assert saved.type == item.type
@@ -44,7 +27,7 @@ def test_append_get_delete(repository: Repository, item: Item):
 	assert saved.reserver.exists
 
 	del repository[saved]
-	assert not len([*repository[query]])
+	assert not len([*repository[query_all]])
 
 
 @pydantic.validate_arguments
@@ -161,7 +144,7 @@ def test_get_exact(repository: Repository, item: Item, query_all: Query, changed
 				created  = item.created,
 				metadata = item.metadata
 			),
-			limit=128
+			limit=None
 		)
 	]]
 	assert len(result) == 1

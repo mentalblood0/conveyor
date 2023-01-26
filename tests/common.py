@@ -112,7 +112,7 @@ def db(db_type: DbType) -> sqlalchemy.engine.Engine:
 		case 'postgres':
 			return sqlalchemy.create_engine('postgresql+psycopg2://postgres:5924@10.8.5.171:5480/postgres', echo=True)
 		case 'sqlite':
-			return sqlalchemy.create_engine('sqlite://', echo=False)
+			return sqlalchemy.create_engine('sqlite://', echo=True)
 
 
 @pytest.fixture
@@ -146,7 +146,7 @@ def query_all(row: Rows.Core.Item) -> Query:
 		mask=Query.Mask(
 			type=row.type
 		),
-		limit=128
+		limit=None
 	)
 
 

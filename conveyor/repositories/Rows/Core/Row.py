@@ -44,8 +44,8 @@ class Row:
 
 		result: dict[str, Item.Metadata.Value] = {}
 
-		status = enums[(self.type, Item.Metadata.Key('status'))]
-		if status.db_field not in skip:
+		if 'status' not in skip:
+			status = enums[(self.type, Item.Metadata.Key('status'))]
 			result[status.db_field] = status.Int(Item.Metadata.Enumerable(self.status.value))
 
 		if 'chain' not in skip:
@@ -83,10 +83,9 @@ class Row:
 		if self.reserver == another.reserver:
 			skip.add('reserver')
 
-		skip |= {
-			k.value
-			for k in self.metadata.value.keys()
-			if self.metadata.value[k] == another.metadata.value[k]
-		}
+		for k in self.metadata.value.keys():
+			if k in another.metadata.value:
+				if self.metadata.value[k] == another.metadata.value[k]:
+					skip.add(k.value)
 
 		return self.dict_(enums, skip)

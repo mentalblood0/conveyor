@@ -13,17 +13,11 @@ from ..common import *
 
 
 @pydantic.validate_arguments
-def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
+def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 
 	rows.append(row)
 
-	query = Query(
-		mask=Mask(
-			type=row.type
-		),
-		limit=128
-	)
-	saved_items = [*rows[query]]
+	saved_items = [*rows[query_all]]
 	assert len(saved_items) == 1
 	saved = saved_items[0]
 	assert saved.type == row.type
@@ -35,7 +29,7 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item):
 	assert saved.reserver == row.reserver
 
 	del rows[row]
-	assert not len([*rows[query]])
+	assert not len([*rows[query_all]])
 
 
 @pydantic.validate_arguments
