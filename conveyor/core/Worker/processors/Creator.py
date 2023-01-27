@@ -18,6 +18,6 @@ class Creator(Processor, metaclass = abc.ABCMeta):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, input: typing.Iterable[Item], **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
+	def __call__(self, _, **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
 		for o in self.process(**kwargs):
 			yield Action.Append(o)

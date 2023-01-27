@@ -19,7 +19,7 @@ class Synthesizer(Processor, metaclass = abc.ABCMeta):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, input: typing.Iterable[Item], **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
+	def __call__(self, input: typing.Iterable[Item], **_) -> typing.Iterable[Action.Action]:
 
 		iterator = input.__iter__()
 
