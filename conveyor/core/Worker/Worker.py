@@ -17,13 +17,13 @@ class Worker:
 
 	repository: Repository
 
-	def __call__(self, **kwargs: dict[str, typing.Any]) -> None:
+	def __call__(self, config: dict[str, typing.Any] = {}) -> None:
 		Actor(
 			self.processor(
 				self.receiver(
 					self.repository
 				),
-				**kwargs
+				config
 			)
 		)(
 			self.repository

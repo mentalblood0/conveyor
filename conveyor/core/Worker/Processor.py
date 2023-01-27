@@ -12,5 +12,5 @@ from .Action import Action
 class Processor(metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def __call__(self, input: typing.Iterable[Item], **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action]:
+	def __call__(self, input: typing.Iterable[Item], config: dict[str, typing.Any]) -> typing.Iterable[Action]:
 		pass

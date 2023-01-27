@@ -13,11 +13,11 @@ from ..Processor import Processor
 class Creator(Processor, metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def process(self, **kwargs: dict[str, typing.Any]) -> typing.Iterable[Item]:
+	def process(self, config: dict[str, typing.Any]) -> typing.Iterable[Item]:
 		pass
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, _, **kwargs: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
-		for o in self.process(**kwargs):
+	def __call__(self, input: typing.Iterable[Item], config: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
+		for o in self.process(config):
 			yield Action.Append(o)
