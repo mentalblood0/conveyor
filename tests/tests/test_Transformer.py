@@ -60,10 +60,14 @@ def worker(receiver: Worker.Receiver, transformer: processors.Transformer, repos
 	'transformer_changes', ((TransformerChanges.status,),)
 )
 def test_transformer_change_status(worker: Worker.Worker, item: Item, query_all: Query):
+
 	status = item.status
 	worker.repository.append(item)
-	worker()
-	assert [*worker.repository[query_all]][0] == dataclasses.replace(item, status = Item.Status(f'{status}_'))
+
+	for _ in range(2):
+		worker()
+		for i in worker.repository[query_all]:
+			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
 
 
 @pydantic.validate_arguments
@@ -74,12 +78,14 @@ def test_transformer_add_metadata(worker: Worker.Worker, item: Item, query_all: 
 
 	metadata = item.metadata
 	worker.repository.append(item)
-	worker()
 
-	assert [*worker.repository[query_all]][0] == dataclasses.replace(
-		item,
-		metadata = Item.Metadata(metadata.value | {Item.Metadata.Key('new'): 1})
-	)
+	for _ in range(2):
+		worker()
+		for i in worker.repository[query_all]:
+			assert i == dataclasses.replace(
+				item,
+				metadata = Item.Metadata(metadata.value | {Item.Metadata.Key('new'): 1})
+			)
 
 
 @pydantic.validate_arguments
@@ -88,5 +94,7 @@ def test_transformer_add_metadata(worker: Worker.Worker, item: Item, query_all: 
 )
 def test_transformer_delete_metadata(worker: Worker.Worker, item: Item, query_all: Query):
 	worker.repository.append(item)
-	worker()
-	assert [*worker.repository[query_all]][0] == item
+	for _ in range(2):
+		worker()
+		for i in worker.repository[query_all]:
+			assert i == item

@@ -44,13 +44,18 @@ def worker(receiver: Worker.Receiver, mover: processors.Mover, repository: Repos
 
 @pydantic.validate_arguments
 def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, query_all: Query):
+
 	status = item.status
 	worker.repository.append(item)
-	worker()
-	assert [*worker.repository[query_all]][0] == dataclasses.replace(item, status = Item.Status(f'{status}_'))
-	assert [*worker.repository[
-		Query(
-			mask = Mask(type = Item.Type('new')),
-			limit = None
-		)
-	]][0] == dataclasses.replace(item, type = Item.Type('new'))
+
+	for _ in range(2):
+		worker()
+		for i in worker.repository[query_all]:
+			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
+		for i in worker.repository[
+			Query(
+				mask = Mask(type = Item.Type('new')),
+				limit = None
+			)
+		]:
+			assert i == dataclasses.replace(item, type = Item.Type('new'))
