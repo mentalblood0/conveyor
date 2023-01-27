@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing
 import pydantic
-import functools
 import contextlib
 import sqlalchemy
 import dataclasses
@@ -43,7 +42,7 @@ class Core:
 	@property
 	def _enums(self) -> Enums.Enums:
 		return Enums.Enums(
-			connect        = functools.partial(self._connect, nested = True),
+			connect        = self._connect,
 			type_transform = self.table,
 			enum_transform = self.enum,
 			cache_id       = self._cache_id
@@ -229,17 +228,14 @@ class Core:
 
 	@pydantic.validate_arguments
 	@contextlib.contextmanager
-	def _connect(self, nested: bool = True) -> typing.Iterator[sqlalchemy.Connection]:
+	def _connect(self) -> typing.Iterator[sqlalchemy.Connection]:
 		match self.connection:
 			case sqlalchemy.Connection():
-				if nested:
-					with self.connection.begin_nested() as c:
-						yield self.connection
-				else:
+				with self.connection.begin_nested() as _:
 					yield self.connection
 			case None:
-				with self.db.begin() as c:
-					yield c
+				with self.db.begin() as connection:
+					yield connection
 
 	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
