@@ -30,9 +30,13 @@ class Repository:
 				return parts
 
 	@pydantic.validate_arguments
+	def _unreserved(self, item: Item) -> Item:
+		return dataclasses.replace(item, reserver = Item.Reserver(exists = False))
+
+	@pydantic.validate_arguments
 	def append(self, item: Item) -> None:
 		for p in reversed(self.parts):
-			p.append(item)
+			p.append(self._unreserved(item))
 
 	@pydantic.validate_arguments
 	def _get(self, query: Query, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[Part] = (Part(),)) -> typing.Iterable[Item]:
@@ -80,13 +84,15 @@ class Repository:
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
 
-		if not for_reserve:
-			new = dataclasses.replace(new, reserver = Item.Reserver(exists = False))
+		if for_reserve:
+			_new = new
+		else:
+			_new = self._unreserved(new)
 
 		with self.transaction() as t:
 			for p in reversed(t.parts):
 				try:
-					p[old] = new
+					p[old] = _new
 				except NotImplementedError:
 					pass
 
