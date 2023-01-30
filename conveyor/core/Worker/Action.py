@@ -1,6 +1,7 @@
 import abc
 import typing
 import pydantic
+import functools
 
 from ..Item import Item
 from ..Repository.Repository import Repository
@@ -30,16 +31,14 @@ class Actor:
 	processors : Processors = ()
 
 	@pydantic.validate_arguments
-	def _process(self, actions: typing.Iterable[Action], processors: Processors) -> typing.Iterable[Action]:
-		for p in processors:
-			return self._process(p(actions, {}), processors)
-		return actions
-
-	@pydantic.validate_arguments
 	def __call__(self, actions: typing.Sequence[Action] | typing.Iterable[Action], repository: Repository) -> None:
 		actions = (*actions,)
 		with repository.transaction() as t:
-			for a in self._process(actions, self.processors):
+			for a in functools.reduce(
+				lambda result, p: p(result, {}),
+				self.processors,
+				actions
+			):
 				a(t)
 
 
