@@ -66,6 +66,7 @@ def test_transformer_change_status(worker: Worker.Worker, item: Item, query_all:
 
 	for _ in range(2):
 		worker()
+		assert len(worker.repository) == 1
 		for i in worker.repository[query_all]:
 			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
 
@@ -81,6 +82,7 @@ def test_transformer_add_metadata(worker: Worker.Worker, item: Item, query_all: 
 
 	for _ in range(2):
 		worker()
+		assert len(worker.repository) == 1
 		for i in worker.repository[query_all]:
 			assert i == dataclasses.replace(
 				item,
@@ -96,5 +98,6 @@ def test_transformer_delete_metadata(worker: Worker.Worker, item: Item, query_al
 	worker.repository.append(item)
 	for _ in range(2):
 		worker()
+		assert len(worker.repository) == 1
 		for i in worker.repository[query_all]:
 			assert i == item

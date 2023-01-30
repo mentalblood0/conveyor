@@ -47,7 +47,18 @@ def worker(receiver: Worker.Receiver, creator: processors.Creator, repository: R
 
 @pydantic.validate_arguments
 def test_creator_create_one_item(worker: Worker.Worker, item: Item, query_all: Query):
-	for _ in range(2):
+	for j in range(2):
 		worker({'items': (item,)})
+		assert len(worker.repository) == j + 1
+		for i in worker.repository[query_all]:
+			assert i == item
+
+
+@pydantic.validate_arguments
+def test_creator_create_many_items(worker: Worker.Worker, item: Item, query_all: Query):
+	n = 3
+	for j in range(2):
+		worker({'items': (item,) * n})
+		assert len(worker.repository) == n * (j + 1)
 		for i in worker.repository[query_all]:
 			assert i == item
