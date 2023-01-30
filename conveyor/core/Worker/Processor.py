@@ -2,15 +2,15 @@ import abc
 import typing
 import pydantic
 
-from ..Item import Item
 
-from .Action import Action
 
+S = typing.TypeVar('S')
+T = typing.TypeVar('T')
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Processor(metaclass = abc.ABCMeta):
+class Processor(typing.Generic[S, T], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def __call__(self, input: typing.Iterable[Item], config: dict[str, typing.Any]) -> typing.Iterable[Action]:
+	def __call__(self, input: typing.Iterable[S], config: dict[str, typing.Any]) -> typing.Iterable[T]:
 		pass

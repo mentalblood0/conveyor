@@ -11,7 +11,7 @@ from ..Processor import Processor
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Transformer(Processor, metaclass = abc.ABCMeta):
+class Transformer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
 	def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:

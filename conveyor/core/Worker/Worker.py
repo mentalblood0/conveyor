@@ -1,30 +1,31 @@
 import typing
 import pydantic
 
+from .. import Item
 from ..Repository.Repository import Repository
 
-from .Action import Actor
 from .Receiver import Receiver
 from .Processor import Processor
+from .Action import Action, Actor
 
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Worker:
 
-	receiver:   Receiver
-	processor:  Processor
+	receiver   : Receiver
+	processor  : Processor[Item, Action]
+	actor      : Actor = Actor()
 
-	repository: Repository
+	repository : Repository
 
 	def __call__(self, config: dict[str, typing.Any] = {}) -> None:
-		Actor(
+		self.actor(
 			self.processor(
 				self.receiver(
 					self.repository
 				),
 				config
-			)
-		)(
+			),
 			self.repository
 		)

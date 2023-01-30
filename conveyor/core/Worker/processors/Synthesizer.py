@@ -11,7 +11,7 @@ from ..Processor import Processor
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Synthesizer(Processor, metaclass = abc.ABCMeta):
+class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
 	def process(self, input: Item, matched: typing.Iterable[Item]) -> typing.Iterable[Item.Status | Item]:

@@ -10,7 +10,7 @@ from ..Processor import Processor
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
-class Creator(Processor, metaclass = abc.ABCMeta):
+class Creator(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
 	def process(self, config: dict[str, typing.Any]) -> typing.Iterable[Item]:
