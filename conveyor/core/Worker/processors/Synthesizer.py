@@ -32,5 +32,7 @@ class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 							new = dataclasses.replace(i, status = o)
 						)
 					case Item():
+						if o.chain != i.chain:
+							raise ValueError(f'Output chain ({o.chain}) must be equal to input chain ({i.chain})')
 						yield Action.Append(o)
 			break

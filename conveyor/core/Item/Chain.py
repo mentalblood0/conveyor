@@ -17,7 +17,6 @@ class Chain:
 		if test is not None:
 
 			ref: Data | str = values['ref']
-			correct: Chain | Data | str | None = None
 
 			match ref:
 				case Data():
