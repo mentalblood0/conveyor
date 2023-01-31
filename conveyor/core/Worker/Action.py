@@ -19,7 +19,7 @@ class Action(metaclass = abc.ABCMeta):
 
 	@property
 	@abc.abstractmethod
-	def output(self) -> typing.Iterable[Item]:
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		pass
 
 
@@ -52,8 +52,8 @@ class Append(Action):
 		repository.append(self.item)
 
 	@property
-	def output(self) -> typing.Iterable[Item]:
-		yield self.item
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('item', self.item)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -67,8 +67,9 @@ class Update(Action):
 		repository[self.old] = self.new
 
 	@property
-	def output(self) -> typing.Iterable[Item]:
-		yield self.new
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('old', self.old)
+		yield ('new', self.new)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
@@ -81,5 +82,5 @@ class Delete(Action):
 		del repository[self.item]
 
 	@property
-	def output(self) -> typing.Iterable[Item]:
-		raise StopIteration
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('item', self.item)
