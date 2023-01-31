@@ -1,5 +1,4 @@
 import zlib
-import math
 import typing
 import pytest
 import pathlib

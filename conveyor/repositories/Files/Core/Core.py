@@ -17,16 +17,16 @@ from .Transaction import Transaction
 class Core:
 
 	Transforms = Transforms
-	Pathify = Pathify
+	Pathify    = Pathify
 
-	root:         pathlib.Path
-	suffix:       str
+	root         : pathlib.Path
+	suffix       : str
 
-	prepare:      Transforms.Transform[bytes, bytes]
-	sidestep:     Transforms.Transform[bytes, bytes]
-	pathify:      Transforms.Transform[Digest, pathlib.Path]
+	prepare      : Transforms.Transform[bytes, bytes]
+	sidestep     : Transforms.Transform[bytes, bytes]
+	pathify      : Transforms.Transform[Digest, pathlib.Path]
 
-	transaction_: Transaction | None = None
+	transaction_ : Transaction | None                         = None
 
 	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:

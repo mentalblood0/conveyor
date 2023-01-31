@@ -11,8 +11,8 @@ from .Columns import columns
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class TableCache:
-	value:       dict[Item.Metadata.Enumerable, int]
-	description: dict[int, Item.Metadata.Enumerable]
+	value       : dict[Item.Metadata.Enumerable, int]
+	description : dict[int, Item.Metadata.Enumerable]
 
 
 class Cache(dict[str, TableCache]):

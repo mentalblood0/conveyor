@@ -51,26 +51,26 @@ class Metadata:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
 
-	class Type(Word): pass
-	class Status(Word): pass
-	Data         = Data
-	Chain        = Chain
-	Created      = Created
-	Reserver     = Reserver
-	Metadata     = Metadata
+	class Type(Word)   : pass
+	class Status(Word) : pass
+	Data      = Data
+	Chain     = Chain
+	Created   = Created
+	Reserver  = Reserver
+	Metadata  = Metadata
 
-	Key          = ItemKey
+	Key       = ItemKey
 
-	BaseValue    = typing.Union[Type, Status, Chain, Created, Reserver]
-	Value        = BaseValue | Metadata.Value
+	BaseValue = typing.Union[Type, Status, Chain, Created, Reserver]
+	Value     = BaseValue | Metadata.Value
 
-	type:          Type
-	status:        Status
+	type      : Type
+	status    : Status
 
-	data:          Data
+	data      : Data
 
-	metadata:      Metadata
+	metadata  : Metadata
 
-	chain:         Chain
-	created:       Created
-	reserver:      Reserver = dataclasses.field(compare=False)
+	chain     : Chain
+	created   : Created
+	reserver  : Reserver = dataclasses.field(compare=False)

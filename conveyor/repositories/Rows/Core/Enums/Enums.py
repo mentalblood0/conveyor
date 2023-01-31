@@ -14,9 +14,9 @@ from .Columns import columns
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class EnumsTransform:
 
-	connect:    Connect
-	enum_table: str
-	cache_id:   str
+	connect    : Connect
+	enum_table : str
+	cache_id   : str
 
 	@property
 	def cache(self) -> Cache.Enums.Cache:
@@ -112,15 +112,14 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Enum:
 
-	type:           Item.Type
-	type_transform: Transforms.Safe[Item.Type, str]
+	type           : Item.Type
+	type_transform : Transforms.Safe[Item.Type, str]
 
+	field          : Item.Metadata.Key
+	enum_transform : Transforms.Safe[Item.Metadata.Key,  str]
 
-	field:          Item.Metadata.Key
-	enum_transform: Transforms.Safe[Item.Metadata.Key,  str]
-
-	connect:        Connect
-	cache_id:       str
+	connect        : Connect
+	cache_id       : str
 
 	@property
 	def db_type(self) -> str:
@@ -170,11 +169,11 @@ class Enum:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Enums:
 
-	connect:        Connect
-	cache_id:       str
+	connect        : Connect
+	cache_id       : str
 
-	type_transform: Transforms.Safe[Item.Type, str]
-	enum_transform: Transforms.Safe[Item.Metadata.Key,  str]
+	type_transform : Transforms.Safe[Item.Type, str]
+	enum_transform : Transforms.Safe[Item.Metadata.Key,  str]
 
 	def __getitem__(self, table_and_field: tuple[Item.Type, Item.Metadata.Key]):
 		return Enum(

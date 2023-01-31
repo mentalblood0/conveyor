@@ -17,10 +17,9 @@ class Data:
 
 	Digest = Digest
 
-	value: pydantic.StrictBytes
-	test: Digest | None = dataclasses.field(default=None, compare=False)
-
-	algorithm: typing.Callable[[bytes], bytes] = default_algorithm
+	value     : pydantic.StrictBytes
+	test      : Digest | None                   = dataclasses.field(default=None, compare=False)
+	algorithm : typing.Callable[[bytes], bytes] = default_algorithm
 
 	@pydantic.validator('test')
 	def test_valid(cls, test: Digest | None, values: dict[str, pydantic.StrictBytes]) -> Digest | None:

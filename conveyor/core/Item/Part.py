@@ -19,14 +19,14 @@ class Part:
 
 	AccessError = AccessError
 
-	type_:        Item.Type        | None = None
-	status_:      Item.Status      | None = None
-	data_:        Item.Data        | None = None
-	digest_:      Item.Data.Digest | None = None
-	metadata_:    Item.Metadata    | None = None
-	chain_:       Item.Chain       | None = None
-	created_:     Item.Created     | None = None
-	reserver_:    Item.Reserver    | None = None
+	type_     : Item.Type        | None = None
+	status_   : Item.Status      | None = None
+	data_     : Item.Data        | None = None
+	digest_   : Item.Data.Digest | None = None
+	metadata_ : Item.Metadata    | None = None
+	chain_    : Item.Chain       | None = None
+	created_  : Item.Created     | None = None
+	reserver_ : Item.Reserver    | None = None
 
 	@pydantic.validator('digest_')
 	def digest__valid(cls, digest: Item.Data.Digest, values: dict[str, Item.Value]) -> Item.Data.Digest:
@@ -47,13 +47,13 @@ class Part:
 	@property
 	def item(self) -> Item:
 		return Item(
-			type=self.type,
-			status=self.status,
-			data=self.data,
-			metadata=self.metadata,
-			chain=self.chain,
-			created=self.created,
-			reserver=self.reserver
+			type     = self.type,
+			status   = self.status,
+			data     = self.data,
+			metadata = self.metadata,
+			chain    = self.chain,
+			created  = self.created,
+			reserver = self.reserver
 		)
 
 	@property

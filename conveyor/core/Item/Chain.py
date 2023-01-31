@@ -8,8 +8,8 @@ from .Data import Data
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Chain:
 
-	ref: Data | pydantic.StrictStr
-	test: str | None = None
+	ref  : Data | pydantic.StrictStr
+	test : str  | None               = None
 
 	@pydantic.validator('test')
 	def test_valid(cls, test: str | None, values: dict[str, Data | pydantic.StrictStr]) -> str | None:

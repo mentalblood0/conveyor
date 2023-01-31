@@ -7,8 +7,8 @@ from .Mask import Mask
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Query:
 
+	Mask  = Mask
 	Limit = pydantic.PositiveInt | None
-	Mask = Mask
 
-	mask: Mask
-	limit: Limit
+	mask  : Mask
+	limit : Limit

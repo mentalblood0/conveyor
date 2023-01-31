@@ -25,11 +25,11 @@ class Core:
 
 	Item = Row
 
-	db:         sqlalchemy.engine.Engine
-	connection: sqlalchemy.Connection | None = None
+	db         : sqlalchemy.engine.Engine
+	connection : sqlalchemy.Connection | None            = None
 
-	table:      Transforms.Safe[Item.Type,         str] = DbTableName('conveyor')
-	enum:       Transforms.Safe[Item.Metadata.Key, str] = DbEnumName('enum')
+	table      : Transforms.Safe[Item.Type,         str] = DbTableName('conveyor')
+	enum       : Transforms.Safe[Item.Metadata.Key, str] = DbEnumName('enum')
 
 	@property
 	def _cache_id(self) -> str:

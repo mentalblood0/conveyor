@@ -15,8 +15,8 @@ class Collision(Exception):
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Action(metaclass = abc.ABCMeta):
 
-	path: pathlib.Path
-	prepare_now: bool = True
+	path        : pathlib.Path
+	prepare_now : bool = True
 
 	@typing.final
 	def __post_init__(self):
@@ -44,12 +44,12 @@ class Action(metaclass = abc.ABCMeta):
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Append(Action):
 
-	data:  pydantic.StrictBytes
+	data              : pydantic.StrictBytes
 
-	equal_path: typing.Callable[[bytes], pathlib.Path]
-	equal_data: Transform[bytes, bytes]
+	equal_path        : typing.Callable[[bytes], pathlib.Path]
+	equal_data        : Transform[bytes, bytes]
 
-	handle_collisions: bool = True
+	handle_collisions : bool = True
 
 	@property
 	def temp(self) -> pathlib.Path:

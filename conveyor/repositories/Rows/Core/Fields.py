@@ -39,13 +39,13 @@ Column = sqlalchemy.Column[int] | sqlalchemy.Column[float] | sqlalchemy.Column[s
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Field:
 
-	name:      BaseField | Item.Metadata.Key
-	value:     Item.Metadata.Value
+	name      : BaseField | Item.Metadata.Key
+	value     : Item.Metadata.Value
 
-	table:     Item.Type
-	transform: Transforms.Safe[Item.Type, str]
+	table     : Item.Type
+	transform : Transforms.Safe[Item.Type, str]
 
-	enums:     Enums.Enums
+	enums     : Enums.Enums
 
 	@property
 	def db_name(self) -> BaseField | str:
@@ -101,13 +101,13 @@ class Field:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Fields:
 
-	metadata:  Item.Metadata
-	db:        sqlalchemy.Engine
+	metadata  : Item.Metadata
+	db        : sqlalchemy.Engine
 
-	table:     Item.Type
-	transform: Transforms.Safe[Item.Type, str]
+	table     : Item.Type
+	transform : Transforms.Safe[Item.Type, str]
 
-	enums:     Enums.Enums
+	enums     : Enums.Enums
 
 	@property
 	def fields(self) -> typing.Iterable[Field]:

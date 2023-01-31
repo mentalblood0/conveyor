@@ -25,7 +25,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 				match v:
 					case Item.Metadata.Value:
 						info[Item.Metadata.Key(f'action_{k}')] = v
-					case Item() :
+					case Item():
 						info[Item.Metadata.Key(f'action_{k}_type')]   = Item.Metadata.Enumerable(v.type.value)
 						info[Item.Metadata.Key(f'action_{k}_status')] = Item.Metadata.Enumerable(v.status.value)
 					case _ :

@@ -18,8 +18,8 @@ class Repository:
 
 	Parts = Parts
 
-	parts: Parts
-	transaction_: bool = False
+	parts        : Parts
+	transaction_ : bool = False
 
 	@pydantic.validator('parts')
 	def parts_valid(cls, parts: Parts) -> Parts:

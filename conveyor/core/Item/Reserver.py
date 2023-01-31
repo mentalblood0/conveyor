@@ -8,8 +8,8 @@ import pydantic
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Reserver:
 
-	exists: bool
-	value: str | None = None
+	exists : bool
+	value  : str | None = None
 
 	@pydantic.validator('value')
 	def value_valid(cls, value: str | None, values: dict[str, bool]) -> str | None:

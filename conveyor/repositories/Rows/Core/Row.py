@@ -10,15 +10,15 @@ from .Enums import Enums
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Row:
 
-	type:     Item.Type
-	status:   Item.Status
+	type     : Item.Type
+	status   : Item.Status
 
-	digest:   Item.Data.Digest
-	metadata: Item.Metadata
+	digest   : Item.Data.Digest
+	metadata : Item.Metadata
 
-	chain:    str
-	created:  Item.Created
-	reserver: Item.Reserver
+	chain    : str
+	created  : Item.Created
+	reserver : Item.Reserver
 
 	@pydantic.validator('metadata')
 	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
