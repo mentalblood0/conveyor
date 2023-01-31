@@ -92,7 +92,7 @@ def files() -> Files.Core:
 		suffix   = '.txt',
 		prepare  = Compress(level = 9),
 		sidestep = AddSpace(),
-		pathify  = Files.Core.Pathify(granulation = lambda n: math.floor(n / 1.5) + 1)
+		pathify  = Files.Core.Pathify(granulation = lambda n: 1024 if n > 1 else 1)
 	)
 	result.clear()
 	return result
