@@ -137,8 +137,12 @@ class Core:
 						name in ('id', 'digest', status.db_field)
 					):
 						if (~self.enum).valid(name):
-							unenumed = (~self.enum)(name)
-							metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].String(getattr(r, name))
+							match value := getattr(r, name):
+								case int() | None | Item.Metadata.Enumerable():
+									unenumed = (~self.enum)(name)
+									metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].convert(value)
+								case _:
+									raise ValueError(f'Expected column named `{name}` to hold enumerable')
 						else:
 							metadata[Item.Metadata.Key(name)] = getattr(r, name)
 

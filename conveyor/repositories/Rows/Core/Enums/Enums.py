@@ -1,3 +1,4 @@
+import typing
 import pydantic
 import sqlalchemy
 import sqlalchemy.exc
@@ -148,6 +149,28 @@ class Enum:
 	@pydantic.validate_arguments
 	def eq(self, description: Item.Metadata.Enumerable) -> sqlalchemy.sql.expression.ColumnElement[bool]:
 		return self.column == self.Int(description)
+
+	@typing.overload
+	def convert(self, value: Item.Metadata.Enumerable) -> int:
+		pass
+
+	@typing.overload
+	def convert(self, value: int) -> Item.Metadata.Enumerable:
+		pass
+
+	@typing.overload
+	def convert(self, value: None) -> None:
+		pass
+
+	@pydantic.validate_arguments
+	def convert(self, value: Item.Metadata.Enumerable | int | None) -> int | Item.Metadata.Enumerable | None:
+		match value:
+			case int():
+				return self.String(value)
+			case Item.Metadata.Enumerable():
+				return self.Int(value)
+			case None:
+				return None
 
 	@property
 	def Int(self) -> Int:

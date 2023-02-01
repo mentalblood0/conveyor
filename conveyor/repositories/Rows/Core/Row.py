@@ -62,7 +62,7 @@ class Row:
 				match value:
 					case Item.Metadata.Enumerable():
 						e = enums[(self.type, key)]
-						result[e.db_field] = e.Int(value)
+						result[e.db_field] = e.convert(value)
 					case _:
 						result[key.value] = value
 
