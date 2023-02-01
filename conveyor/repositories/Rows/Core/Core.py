@@ -146,9 +146,13 @@ class Core:
 						else:
 							metadata[Item.Metadata.Key(name)] = getattr(r, name)
 
+				status_value = status.String(getattr(r, status.db_field)).value
+				if status_value is None:
+					raise ValueError(f'Status value can not be None')
+
 				yield Row(
 					type     = query.mask.type,
-					status   = Item.Status(status.String(getattr(r, status.db_field)).value),
+					status   = Item.Status(status_value),
 					chain    = r.chain,
 					created  = Item.Created(r.created),
 					reserver = Item.Reserver(

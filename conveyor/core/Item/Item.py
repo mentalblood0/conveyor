@@ -26,7 +26,7 @@ class Word:
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Enumerable:
-	value: pydantic.StrictStr
+	value: pydantic.StrictStr | None
 
 
 class ItemKey(Word): pass

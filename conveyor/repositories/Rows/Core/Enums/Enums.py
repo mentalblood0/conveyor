@@ -140,7 +140,7 @@ class Enum:
 
 	@property
 	def column(self) -> sqlalchemy.Column[int]:
-		return sqlalchemy.Column(self.db_field, sqlalchemy.SmallInteger(), nullable = False)
+		return sqlalchemy.Column(self.db_field, sqlalchemy.SmallInteger(), nullable = True)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index[int]:
@@ -148,18 +148,14 @@ class Enum:
 
 	@pydantic.validate_arguments
 	def eq(self, description: Item.Metadata.Enumerable) -> sqlalchemy.sql.expression.ColumnElement[bool]:
-		return self.column == self.Int(description)
+		return self.column == self.convert(description)
 
 	@typing.overload
 	def convert(self, value: Item.Metadata.Enumerable) -> int:
 		pass
 
 	@typing.overload
-	def convert(self, value: int) -> Item.Metadata.Enumerable:
-		pass
-
-	@typing.overload
-	def convert(self, value: None) -> None:
+	def convert(self, value: int | None) -> Item.Metadata.Enumerable:
 		pass
 
 	@pydantic.validate_arguments
@@ -168,9 +164,13 @@ class Enum:
 			case int():
 				return self.String(value)
 			case Item.Metadata.Enumerable():
-				return self.Int(value)
+				match value.value:
+					case str():
+						return self.Int(value)
+					case None:
+						return None
 			case None:
-				return None
+				return Item.Metadata.Enumerable(None)
 
 	@property
 	def Int(self) -> Int:

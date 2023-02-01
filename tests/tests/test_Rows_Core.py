@@ -224,6 +224,28 @@ def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 	)]] == [item_2]
 
 
+@pydantic.validate_arguments
+def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
+
+	metadata_1 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')})
+	metadata_2 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable(None)})
+
+	item_1 = dataclasses.replace(row, metadata = metadata_1)
+	item_2 = dataclasses.replace(row, metadata = metadata_2)
+
+	rows.append(dataclasses.replace(row, metadata = metadata_1))
+	rows.append(dataclasses.replace(row, metadata = metadata_2))
+
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, metadata = metadata_1),
+		limit = 2
+	)]] == [item_1]
+	assert [*rows[Query(
+		mask  = Mask(type = row.type, metadata = metadata_2),
+		limit = 2
+	)]] == [item_2]
+
+
 @pytest.mark.parametrize(
 	'changes_list',
 	itertools.chain(*(
