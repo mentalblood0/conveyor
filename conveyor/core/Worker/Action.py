@@ -45,15 +45,15 @@ class Actor:
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Append(Action):
 
-	item : Item
+	new : Item
 
 	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
-		repository.append(self.item)
+		repository.append(self.new)
 
 	@property
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('item', self.item)
+		yield ('item', self.new)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
@@ -75,12 +75,12 @@ class Update(Action):
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
 class Delete(Action):
 
-	item : Item
+	old : Item
 
 	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
-		del repository[self.item]
+		del repository[self.old]
 
 	@property
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('item', self.item)
+		yield ('item', self.old)
