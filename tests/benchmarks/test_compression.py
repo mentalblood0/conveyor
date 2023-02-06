@@ -1,6 +1,7 @@
 import bz2
 import lzma
 import zlib
+import zopfli
 import pytest
 import pathlib
 import functools
