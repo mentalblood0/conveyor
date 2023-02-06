@@ -35,7 +35,7 @@ class Actor:
 		actions = (*actions,)
 		with repository.transaction() as t:
 			for a in functools.reduce(
-				lambda result, p: p(result, {}),
+				lambda result, p: p(lambda: result, {}),
 				self.processors,
 				actions
 			):

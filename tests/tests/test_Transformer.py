@@ -6,20 +6,10 @@ import dataclasses
 
 from conveyor.core import Worker
 from conveyor.core.Worker import processors
-from conveyor.core import Mask, Query, Repository
+from conveyor.core import Query, Repository
 
 from ..common import *
 
-
-
-@pytest.fixture
-@pydantic.validate_arguments
-def receiver(item: Item) -> Worker.Receiver:
-	return Worker.Receiver((
-		lambda _: Mask(
-			type = item.type
-		),
-	))
 
 
 class TransformerChanges(enum.Enum):

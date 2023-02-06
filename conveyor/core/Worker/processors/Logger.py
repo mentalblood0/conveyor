@@ -16,9 +16,9 @@ class Logger(Processor[Action.Action, Action.Action]):
 	type: Item.Type
 
 	@pydantic.validate_arguments
-	def __call__(self, input: typing.Iterable[Action.Action], config: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
+	def __call__(self, input: typing.Callable[[], typing.Iterable[Action.Action]], config: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
 
-		for a in input:
+		for a in input():
 
 			info: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
 			for k, v in a.info:

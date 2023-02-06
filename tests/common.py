@@ -6,6 +6,7 @@ import pydantic
 import datetime
 import sqlalchemy
 
+from conveyor.core import Worker, Mask
 from conveyor.repositories import Files, Rows
 from conveyor.core import Item, Query, Repository
 
@@ -155,3 +156,16 @@ def repository(files: Files.Core, rows: Rows.Core) -> Repository:
 	result = Repository([Rows(rows), Files(files)])
 	result.clear()
 	return result
+
+
+@pytest.fixture
+@pydantic.validate_arguments
+def receiver(item: Item) -> Worker.Receiver:
+	return Worker.Receiver(
+		masks = (
+			lambda _: Mask(
+				type = item.type
+			),
+		),
+		limit = None
+	)

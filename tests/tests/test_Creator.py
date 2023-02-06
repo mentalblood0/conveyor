@@ -4,20 +4,10 @@ import pydantic
 
 from conveyor.core import Worker
 from conveyor.core.Worker import processors
-from conveyor.core import Mask, Query, Repository
+from conveyor.core import Query, Repository
 
 from ..common import *
 
-
-
-@pytest.fixture
-@pydantic.validate_arguments
-def receiver(item: Item) -> Worker.Receiver:
-	return Worker.Receiver((
-		lambda _: Mask(
-			type = item.type
-		),
-	))
 
 
 @pytest.fixture
@@ -37,9 +27,12 @@ def creator() -> processors.Creator:
 
 @pytest.fixture
 @pydantic.validate_arguments
-def worker(receiver: Worker.Receiver, creator: processors.Creator, repository: Repository) -> Worker.Worker:
+def worker(creator: processors.Creator, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
-		receiver   = receiver,
+		receiver = Worker.Receiver(
+			masks = (),
+			limit = None
+		),
 		processor  = creator,
 		repository = repository
 	)

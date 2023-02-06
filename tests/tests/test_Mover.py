@@ -12,16 +12,6 @@ from ..common import *
 
 
 @pytest.fixture
-@pydantic.validate_arguments
-def receiver(item: Item) -> Worker.Receiver:
-	return Worker.Receiver((
-		lambda _: Mask(
-			type = item.type
-		),
-	))
-
-
-@pytest.fixture
 def mover() -> processors.Mover:
 
 	class M(processors.Mover):
