@@ -5,6 +5,7 @@ import zopfli
 import pytest
 import pathlib
 import functools
+import brotlicffi
 
 
 
@@ -45,3 +46,49 @@ def test_zlib_compress(benchmark, input_: bytes):
 @pytest.mark.benchmark(group='decompression')
 def test_zlib_decompress(benchmark, input_: bytes):
 	benchmark(zlib.decompress, zlib.compress(input_, level = 9))
+
+
+@pytest.mark.benchmark(group='compression')
+def test_zopfli_compress(benchmark, input_: bytes):
+
+	def compress(b: bytes) -> bytes:
+		c = zopfli.ZopfliCompressor(zopfli.ZOPFLI_FORMAT_DEFLATE)
+		return c.compress(b) + c.flush()
+
+	result: bytes = benchmark(compress, input_)
+	benchmark.extra_info['factor'] = len(input_) / len(result)
+
+
+@pytest.mark.benchmark(group='decompression')
+def test_zopfli_decompress(benchmark, input_: bytes):
+
+	def decompress(b: bytes) -> bytes:
+		d = zopfli.ZopfliDecompressor(zopfli.ZOPFLI_FORMAT_DEFLATE)
+		return d.decompress(b) + d.flush()
+
+	c = zopfli.ZopfliCompressor(zopfli.ZOPFLI_FORMAT_DEFLATE)
+
+	benchmark(decompress, c.compress(input_) + c.flush())
+
+
+@pytest.mark.benchmark(group='compression')
+def test_brotlicffi_compress(benchmark, input_: bytes):
+
+	def compress(b: bytes) -> bytes:
+		c = brotlicffi.Compressor(mode=brotlicffi.MODE_TEXT)
+		return c.process(b) + c.finish()
+
+	result: bytes = benchmark(compress, input_)
+	benchmark.extra_info['factor'] = len(input_) / len(result)
+
+
+@pytest.mark.benchmark(group='decompression')
+def test_brotlicffi_decompress(benchmark, input_: bytes):
+
+	def decompress(b: bytes) -> bytes:
+		d = brotlicffi.Decompressor()
+		return d.process(b) + d.finish()
+
+	c = brotlicffi.Compressor(mode=brotlicffi.MODE_TEXT)
+
+	benchmark(decompress, c.process(input_) + c.finish())
