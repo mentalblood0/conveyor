@@ -24,6 +24,7 @@ class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 		iterator = input().__iter__()
 
 		for i in iterator:
+
 			try:
 				for o in self.process(i, iterator):
 					match o:
@@ -38,4 +39,6 @@ class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 							yield Action.Append(o)
 			except Exception as e:
 				raise self.error(i, e)
+
+			yield Action.Success(i)
 			break

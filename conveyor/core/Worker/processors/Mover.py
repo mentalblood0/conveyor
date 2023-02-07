@@ -20,7 +20,9 @@ class Mover(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 	@pydantic.validate_arguments
 	@typing.final
 	def __call__(self, input: typing.Callable[[], typing.Iterable[Item]], config: dict[str, typing.Any] = {}) -> typing.Iterable[Action.Action]:
+
 		for i in input():
+
 			try:
 				for o in self.process(i):
 					match o:
@@ -32,4 +34,6 @@ class Mover(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 							yield Action.Append(o)
 			except Exception as e:
 				raise self.error(i, e)
+
+			yield Action.Success(i)
 			break

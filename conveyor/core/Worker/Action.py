@@ -118,17 +118,39 @@ class Error(Action):
 		Append(self.item)(repository)
 
 	@property
-	@pydantic.validate_arguments
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('old', self.old)
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class Success(Action):
+
+	item : Item
+
+	@pydantic.validate_arguments
+	def __call__(self, repository: Repository) -> None:
+		return
+
+	@property
+	@pydantic.validate_arguments
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('item', self.item)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Solution(Action):
 
-	old  : Item
+	ref  : Item | Success
 
 	type : Item.Type
+
+	@property
+	def old(self) -> Item:
+		match self.ref:
+			case Item():
+				return self.ref
+			case Success():
+				return self.ref.item
 
 	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
@@ -141,6 +163,5 @@ class Solution(Action):
 		)(repository)
 
 	@property
-	@pydantic.validate_arguments
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('old', self.old)
