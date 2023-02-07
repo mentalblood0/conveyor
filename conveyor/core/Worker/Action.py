@@ -88,23 +88,23 @@ class Delete(Action):
 		yield ('item', self.old)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
 class Error(Action):
 
-	old  : Item
-	e    : Exception
+	old       : Item
+	exception : Exception
 
-	type : Item.Type
+	type      : Item.Type
 
 	@property
 	def item(self) -> Item:
 		return Item(
 			type     = self.type,
 			status   = Item.Status('created'),
-			data     = Item.Data(value = '\n'.join(traceback.format_exception(self.e)).encode()),
+			data     = Item.Data(value = '\n'.join(traceback.format_exception(self.exception)).encode()),
 			metadata = Item.Metadata({
-				Item.Metadata.Key('error_type')  : Item.Metadata.Enumerable(self.e.__class__.__name__),
-				Item.Metadata.Key('error_text')  : str(self.e),
+				Item.Metadata.Key('error_type')  : Item.Metadata.Enumerable(self.exception.__class__.__name__),
+				Item.Metadata.Key('error_text')  : str(self.exception),
 				Item.Metadata.Key('item_type')   : Item.Metadata.Enumerable(self.old.type.value),
 				Item.Metadata.Key('item_status') : Item.Metadata.Enumerable(self.old.status.value)
 			}),
@@ -134,9 +134,9 @@ class Solution(Action):
 	def __call__(self, repository: Repository) -> None:
 		Delete(
 			Error(
-				old  = self.old,
-				e    = Exception(),
-				type = self.type
+				old       = self.old,
+				exception = Exception(),
+				type      = self.type
 			).item
 		)(repository)
 
