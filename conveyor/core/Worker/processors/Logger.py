@@ -1,17 +1,85 @@
 import typing
 import pydantic
 import datetime
+import traceback
 import dataclasses
 
-from ... import Item
+from ... import Item, Repository
 
 from .. import Action
 from ..Processor import Processor
 
 
 
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+class Error(Action.Action):
+
+	old       : Item
+	exception : Exception
+
+	type      : Item.Type
+
+	@property
+	def item(self) -> Item:
+		return Item(
+			type     = self.type,
+			status   = Item.Status('created'),
+			data     = Item.Data(value = '\n'.join(traceback.format_exception(self.exception)).encode()),
+			metadata = Item.Metadata({
+				Item.Metadata.Key('error_type')  : Item.Metadata.Enumerable(self.exception.__class__.__name__),
+				Item.Metadata.Key('error_text')  : str(self.exception),
+				Item.Metadata.Key('item_type')   : Item.Metadata.Enumerable(self.old.type.value),
+				Item.Metadata.Key('item_status') : Item.Metadata.Enumerable(self.old.status.value)
+			}),
+			chain    = Item.Chain(ref = Item.Data(value = b'')),
+			reserver = Item.Reserver(exists = False, value = None),
+			created  = Item.Created(datetime.datetime.now())
+		)
+
+	@pydantic.validate_arguments
+	def __call__(self, repository: Repository) -> None:
+		Action.Append(self.item)(repository)
+
+	@property
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('old', self.old)
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+class Solution(Action.Action):
+
+	ref  : Item | Action.Success
+
+	type : Item.Type
+
+	@property
+	def old(self) -> Item:
+		match self.ref:
+			case Item():
+				return self.ref
+			case Action.Success():
+				return self.ref.item
+
+	@pydantic.validate_arguments
+	def __call__(self, repository: Repository) -> None:
+		Action.Delete(
+			Error(
+				old       = self.old,
+				exception = Exception(),
+				type      = self.type
+			).item
+		)(repository)
+
+	@property
+	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+		yield ('old', self.old)
+
+
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Logger(Processor[Action.Action, Action.Action]):
+
+	Error    = Error
+	Solution = Solution
 
 	normal : Item.Type
 	errors : Item.Type
@@ -26,7 +94,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 				match a:
 
 					case Action.Success():
-						yield Action.Solution(
+						yield Solution(
 							ref  = a,
 							type = self.errors
 						)
@@ -65,7 +133,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 
 		except Processor.Error[Item] as e:
 
-			yield Action.Error(
+			yield Error(
 				old       = e.input,
 				exception = e.exception,
 				type      = self.errors
