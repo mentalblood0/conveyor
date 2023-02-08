@@ -45,6 +45,7 @@ class Action(metaclass = abc.ABCMeta):
 class Append(Action):
 
 	data              : pydantic.StrictBytes
+	transforms        : Transform[bytes, bytes]
 
 	equal_path        : typing.Callable[[bytes], pathlib.Path]
 	equal_data        : Transform[bytes, bytes]
@@ -67,18 +68,19 @@ class Append(Action):
 	def prepare(self) -> None:
 
 		action: typing.Self = self
+		transformed = self.transforms(self.data)
 
 		while True:
 
 			if action.path.exists():
-				if action.data != action.path.read_bytes():
+				if transformed != action.path.read_bytes():
 					action = action.equal
 					continue
 				else:
 					break
 
 			action.temp.parent.mkdir(parents=True, exist_ok=True)
-			action.temp.write_bytes(self.data)
+			action.temp.write_bytes(transformed)
 
 			break
 

@@ -38,8 +38,9 @@ class Core:
 			if t.transaction_ is not None:
 				t.transaction_.append(
 					Transaction.Append(
-						path  = self.path(data.digest),
-						data  = self.prepare(data.value),
+						path       = self.path(data.digest),
+						data       = data.value,
+						transforms = self.prepare,
 						equal_path = lambda b: self.path(Data(value = b).digest),
 						equal_data = self.sidestep
 					)
