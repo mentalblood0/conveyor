@@ -36,7 +36,7 @@ class Receiver:
 	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> typing.Iterable[typing.Iterable[Item]]:
 
-		iterator = self.masks.__iter__()
+		iterator = iter(self.masks)
 
 		for f in iterator:
 			for first in repository[Query(mask = f(()), limit = self.limit)]:

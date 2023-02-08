@@ -21,7 +21,7 @@ class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 	@typing.final
 	def __call__(self, input: typing.Callable[[], typing.Iterable[Item]], config: dict[str, typing.Any] = {}) -> typing.Iterable[Action.Action]:
 
-		iterator = input().__iter__()
+		iterator = iter(input())
 
 		for i in iterator:
 

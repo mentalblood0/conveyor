@@ -35,11 +35,11 @@ class Rows(PartRepository):
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item) -> None:
-		return self.rows.__setitem__(self.rows.Item.from_item(old), self.rows.Item.from_item(new))
+		self.rows[self.rows.Item.from_item(old)] = self.rows.Item.from_item(new)
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		return self.rows.__delitem__(self.rows.Item.from_item(item))
+		del self.rows[self.rows.Item.from_item(item)]
 
 	@pydantic.validate_arguments
 	@contextlib.contextmanager

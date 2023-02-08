@@ -96,7 +96,7 @@ class Append(Action):
 					action.temp.rename(action.path)
 				except (FileExistsError, FileNotFoundError):
 					if action.data != action.path.read_bytes():
-						raise Collision(action.path.__str__())
+						raise Collision(str(action.path))
 				break
 
 			except Collision:

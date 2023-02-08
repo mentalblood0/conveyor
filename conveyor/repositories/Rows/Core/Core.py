@@ -132,7 +132,7 @@ class Core:
 				metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
 				for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
 					if not (
-						name in Item.__dataclass_fields__
+						name in (f.name for f in dataclasses.fields(Item))
 						or
 						name in ('id', 'digest', status.db_field)
 					):

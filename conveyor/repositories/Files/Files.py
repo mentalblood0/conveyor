@@ -29,7 +29,7 @@ class Files(PartRepository):
 
 	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
-		return self.files.__delitem__(item.data.digest)
+		del self.files[item.data.digest]
 
 	@pydantic.validate_arguments
 	@contextlib.contextmanager

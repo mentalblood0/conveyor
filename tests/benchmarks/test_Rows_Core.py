@@ -23,7 +23,7 @@ def test_append_delete(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 @pytest.mark.benchmark(group='rows')
 def test_get_same_first(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 	rows.append(row)
-	benchmark(lambda: rows[query_all].__iter__().__next__())
+	benchmark(lambda: next(iter(rows[query_all])))
 	rows.clear()
 
 
@@ -35,10 +35,10 @@ def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_al
 	for _ in range(limit):
 		rows.append(row)
 
-	iterator = rows[query_limited].__iter__()
-	iterator.__next__()
+	iterator = iter(rows[query_limited])
+	next(iterator)
 
-	benchmark.pedantic(lambda: iterator.__next__(), rounds = limit - 1)
+	benchmark.pedantic(lambda: next(iterator), rounds = limit - 1)
 
 	rows.clear()
 
@@ -46,7 +46,9 @@ def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_al
 @pytest.mark.benchmark(group='rows')
 def test_set_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
-	benchmark(lambda: rows.__setitem__(row, row))
+	def f():
+		rows[row] = row
+	benchmark(f)
 	rows.clear()
 
 
@@ -72,5 +74,7 @@ def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 
 	generator = small_change([initial, new])
 
-	benchmark(lambda: rows.__setitem__(generator(), generator()))
+	def f():
+		rows[generator()] = generator()
+	benchmark(f)
 	rows.clear()

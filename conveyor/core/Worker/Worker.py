@@ -21,12 +21,12 @@ class Worker:
 
 	def __call__(self, config: dict[str, typing.Any] = {}) -> None:
 
-		iterator = self.receiver(self.repository).__iter__()
+		iterator = iter(self.receiver(self.repository))
 		received = False
-		def next():
+		def _next():
 			nonlocal received
 			received = True
-			return iterator.__next__()
+			return next(iterator)
 
 		try:
 			i = 0
@@ -36,7 +36,7 @@ class Worker:
 				received = False
 				self.actor(
 					self.processor(
-						next,
+						_next,
 						config
 					),
 					self.repository
