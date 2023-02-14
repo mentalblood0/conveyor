@@ -40,9 +40,9 @@ class Row:
 			metadata = item.metadata
 		)
 
-	def dict_(self, enums: Enums.Enums, skip: set[str] = set()) -> dict[str, Item.Metadata.Value]:
+	def dict_(self, enums: Enums.Enums, skip: set[str] = set()) -> dict[str, Item.Value]:
 
-		result: dict[str, Item.Metadata.Value] = {}
+		result: dict[str, Item.Value] = {}
 
 		if 'status' not in skip:
 			status = enums[(self.type, Item.Metadata.Key('status'))]
@@ -68,7 +68,7 @@ class Row:
 
 		return result
 
-	def sub(self, another: 'Row', enums: Enums.Enums) -> dict[str, Item.Metadata.Value]:
+	def sub(self, another: 'Row', enums: Enums.Enums) -> dict[str, Item.Value]:
 
 		skip: set[str] = set()
 
