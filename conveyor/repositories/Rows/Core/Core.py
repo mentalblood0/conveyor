@@ -123,9 +123,6 @@ class Core:
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 
-		text_query = f'select * from {self.table(query.mask.type)} where {" and ".join(str(c.compile(self.db)) for c in self._where(query.mask))}'
-		print('_______________________________', text_query)
-
 		q = (
 			sqlalchemy.sql
 			.select(sqlalchemy.text('*'))
