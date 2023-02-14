@@ -52,7 +52,7 @@ class Metadata:
 class Item:
 
 	class Type(Word)   : pass
-	class Status(Word) : pass
+	class Status(Word, Enumerable) : pass
 	Data      = Data
 	Chain     = Chain
 	Created   = Created
