@@ -73,6 +73,18 @@ class Core:
 					case _:
 						yield     sqlalchemy.column(k.value) == v
 
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def _where_string(self, ref: Row | Query.Mask) -> str:
+		return ' and '.join(
+			str(
+				c.compile(
+					bind           = self.db,
+					compile_kwargs = {"literal_binds": True}
+				)
+			)
+			for c in self._where(ref)
+		)
+
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
 
@@ -110,6 +122,9 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
+
+		text_query = f'select * from {self.table(query.mask.type)} where {" and ".join(str(c.compile(self.db)) for c in self._where(query.mask))}'
+		print('_______________________________', text_query)
 
 		q = (
 			sqlalchemy.sql
@@ -207,21 +222,9 @@ class Core:
 	def __delitem__(self, row: Row) -> None:
 		try:
 			with self._connect() as connection:
-				connection.execute(
-					sqlalchemy.Table(
-						self.table(row.type),
-						sqlalchemy.MetaData(),
-						*Fields.Fields(
-							metadata  = row.metadata,
-							db        = self.db,
-							table     = row.type,
-							transform = self.table,
-							enums     = self._enums
-						).columns
-					)
-					.delete()
-					.where(*self._where(row))
-				)
+				connection.execute(sqlalchemy.text(
+					f'delete from {self.table(row.type)} where {self._where_string(row)}'
+				))
 		except:
 			pass
 
