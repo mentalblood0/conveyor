@@ -103,7 +103,7 @@ DbType = typing.Literal['postgres'] | typing.Literal['sqlite']
 
 @pytest.fixture
 def db_type() -> DbType:
-	return 'postgres'
+	return 'sqlite'
 
 
 @pytest.fixture

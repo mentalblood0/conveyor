@@ -13,8 +13,8 @@ from ....core import Item, Query, Transforms
 
 from . import Cache
 from .Row import Row
-from .Table import Table
 from . import Fields
+from .Table import Table
 from .DbEnumName import DbEnumName
 from .DbTableName import DbTableName
 
@@ -103,7 +103,7 @@ class Core:
 					Table(
 						connection = connection,
 						name       = name,
-						fields_    = fields.fields
+						fields    = fields.fields
 					).insert().values((row.dict_(self._enums),))
 				)
 
@@ -111,64 +111,60 @@ class Core:
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 
+		q = (
+			sqlalchemy.sql
+			.select(sqlalchemy.text('*'))
+			.select_from(sqlalchemy.text(self.table(query.mask.type)))
+			.where(*self._where(query.mask))
+		)
+		if query.limit is not None:
+			q = q.limit(query.limit)
+
 		with self._connect() as connection:
+			rows = (*connection.execute(q),)
 
-			q = (
-				sqlalchemy.sql
-				.select(sqlalchemy.text('*'))
-				.select_from(sqlalchemy.text(self.table(query.mask.type)))
-				.where(*self._where(query.mask))
+		for r in rows:
+
+			status = self._enums[(query.mask.type, Item.Metadata.Key('status'))]
+
+			metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
+			for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
+				if not (
+					name in (f.name for f in dataclasses.fields(Item))
+					or
+					name in ('id', 'digest', status.db_field)
+				):
+					if (~self.enum).valid(name):
+						match value := getattr(r, name):
+							case int() | None:
+								unenumed = (~self.enum)(name)
+								metadata[unenumed] = self._enums[(query.mask.type, unenumed)].convert(value)
+							case _:
+								raise ValueError(f'Expected column `{name}` in table `{query.mask.type.value}` to hold enumerable using integer or null value')
+					else:
+						metadata[Item.Metadata.Key(name)] = getattr(r, name)
+
+			if (status_value := status.String(getattr(r, status.db_field)).value) is None:
+				raise ValueError(f'Status value can not be None')
+
+			yield Row(
+				type     = query.mask.type,
+				status   = Item.Status(status_value),
+				chain    = r.chain,
+				created  = Item.Created(r.created),
+				reserver = Item.Reserver(
+					exists = bool(r.reserver),
+					value  = r.reserver
+				),
+				digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
+				metadata = Item.Metadata(metadata)
 			)
-			match query.limit:
-				case None:
-					pass
-				case _:
-					q = q.limit(query.limit)
-
-			for r in connection.execute(q):
-
-				status = self._enums[(query.mask.type, Item.Metadata.Key('status'))]
-
-				metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
-				for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
-					if not (
-						name in (f.name for f in dataclasses.fields(Item))
-						or
-						name in ('id', 'digest', status.db_field)
-					):
-						if (~self.enum).valid(name):
-							match value := getattr(r, name):
-								case int() | None | Item.Metadata.Enumerable():
-									unenumed = (~self.enum)(name)
-									metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].convert(value)
-								case _:
-									raise ValueError(f'Expected column named `{name}` to hold enumerable')
-						else:
-							metadata[Item.Metadata.Key(name)] = getattr(r, name)
-
-				status_value = status.String(getattr(r, status.db_field)).value
-				if status_value is None:
-					raise ValueError(f'Status value can not be None')
-
-				yield Row(
-					type     = query.mask.type,
-					status   = Item.Status(status_value),
-					chain    = r.chain,
-					created  = Item.Created(r.created),
-					reserver = Item.Reserver(
-						exists = bool(r.reserver),
-						value  = r.reserver
-					),
-					digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
-					metadata = Item.Metadata(metadata)
-				)
 
 	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
 
 		if not (changes := new.sub(old, self._enums)):
 			return
-
 
 		fields = Fields.Fields(
 			metadata  = new.metadata,
@@ -200,7 +196,7 @@ class Core:
 						Table(
 							connection = connection,
 							name       = name,
-							fields_    = fields.fields
+							fields     = fields.fields
 						)
 					)
 					.where(*self._where(old))
@@ -239,8 +235,12 @@ class Core:
 	def _connect(self) -> typing.Iterator[sqlalchemy.Connection]:
 		match self.connection:
 			case sqlalchemy.Connection():
-				with self.connection.begin_nested() as _:
-					yield self.connection
+				if self.connection.closed:
+					with self.db.begin() as connection:
+						yield connection
+				else:
+					with self.connection.begin_nested() as _:
+						yield self.connection
 			case None:
 				with self.db.begin() as connection:
 					yield connection
