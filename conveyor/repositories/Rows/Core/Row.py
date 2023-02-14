@@ -46,7 +46,7 @@ class Row:
 
 		if 'status' not in skip:
 			status = enums[(self.type, Item.Metadata.Key('status'))]
-			result[status.db_field] = status.Int(Item.Metadata.Enumerable(self.status.value))
+			result[status.db_field] = status.Int(self.status)
 
 		if 'chain' not in skip:
 			result['chain'] = self.chain

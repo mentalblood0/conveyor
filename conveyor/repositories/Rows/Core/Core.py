@@ -51,7 +51,7 @@ class Core:
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
-			yield self._enums[(ref.type, Item.Metadata.Key('status'))].eq(Item.Metadata.Enumerable(ref.status.value))
+			yield self._enums[(ref.type, Item.Metadata.Key('status'))].eq(ref.status)
 		if ref.digest is not None:
 			yield                sqlalchemy.column('digest') == ref.digest.string
 		match ref.chain:

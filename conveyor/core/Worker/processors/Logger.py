@@ -28,8 +28,8 @@ class Error(Action.Action):
 			metadata = Item.Metadata({
 				Item.Metadata.Key('error_type')  : Item.Metadata.Enumerable(self.exception.__class__.__name__),
 				Item.Metadata.Key('error_text')  : str(self.exception),
-				Item.Metadata.Key('item_type')   : Item.Metadata.Enumerable(self.old.type.value),
-				Item.Metadata.Key('item_status') : Item.Metadata.Enumerable(self.old.status.value)
+				Item.Metadata.Key('item_type')   : self.old.type,
+				Item.Metadata.Key('item_status') : self.old.status.value
 			}),
 			chain    = Item.Chain(ref = Item.Data(value = b'')),
 			reserver = Item.Reserver(exists = False, value = None),
@@ -107,8 +107,8 @@ class Logger(Processor[Action.Action, Action.Action]):
 								case Item.Metadata.Value:
 									info[Item.Metadata.Key(f'action_{k}')] = v
 								case Item():
-									info[Item.Metadata.Key(f'action_{k}_type')]   = Item.Metadata.Enumerable(v.type.value)
-									info[Item.Metadata.Key(f'action_{k}_status')] = Item.Metadata.Enumerable(v.status.value)
+									info[Item.Metadata.Key(f'action_{k}_type')]   = v.type.value
+									info[Item.Metadata.Key(f'action_{k}_status')] = v.status.value
 								case _ :
 									pass
 

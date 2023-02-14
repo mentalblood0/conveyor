@@ -13,7 +13,12 @@ from .Reserver import Reserver
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Word:
+class Enumerable:
+	value: pydantic.StrictStr | None
+
+
+@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+class Word(Enumerable):
 
 	value: pydantic.StrictStr
 
@@ -22,11 +27,6 @@ class Word:
 		if re.match(r'\w+', value) is None:
 			raise ValueError('`Word` value must be word')
 		return value
-
-
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
-class Enumerable:
-	value: pydantic.StrictStr | None
 
 
 class ItemKey(Word): pass
@@ -52,7 +52,7 @@ class Metadata:
 class Item:
 
 	class Type(Word)   : pass
-	class Status(Word, Enumerable) : pass
+	class Status(Word) : pass
 	Data      = Data
 	Chain     = Chain
 	Created   = Created
