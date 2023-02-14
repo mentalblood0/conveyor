@@ -29,7 +29,7 @@ class Part:
 	reserver_ : Item.Reserver    | None = None
 
 	@pydantic.validator('digest_')
-	def digest__valid(cls, digest: Item.Data.Digest, values: dict[str, Item.Value]) -> Item.Data.Digest:
+	def digest__valid(cls, digest: Item.Data.Digest | None, values: dict[str, Item.Value]) -> Item.Data.Digest | None:
 
 		match values['data_']:
 			case Item.Data():
