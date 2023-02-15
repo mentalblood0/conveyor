@@ -50,7 +50,7 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 			try:
 				self.load()
-				return self.cache[self.enum_table].value[i]
+				return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
 			except:
 				pass
 
@@ -63,7 +63,7 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 						},)).returning(self.table.columns['value'])
 					).scalar_one()
 
-				self.cache[self.enum_table].value[i] = value
+				self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)] = value
 				return value
 
 			except:
