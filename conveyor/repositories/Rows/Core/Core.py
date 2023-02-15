@@ -98,9 +98,6 @@ class Core:
 
 		name = self.table(row.type)
 
-		print(f'-----------------------------------FIELDS {[f.name.value for f in fields.fields]}')
-		print(f'-----------------------------------DICT {[r for r in row.dict_(self._enums).keys()]}')
-
 		try:
 			with self._connect() as connection:
 				connection.execute(
