@@ -45,7 +45,7 @@ class Row:
 		result: dict[str, Item.Value] = {}
 
 		if 'status' not in skip:
-			status = enums[(self.type, Item.Metadata.Key('status'))]
+			status = enums[(self.type, Item.Key('status'))]
 			result[status.db_field] = status.Int(self.status)
 
 		if 'chain' not in skip:
@@ -61,7 +61,7 @@ class Row:
 			if key.value not in skip:
 				match value:
 					case Item.Metadata.Enumerable():
-						e = enums[(self.type, key)]
+						e = enums[(self.type, Item.Key(key.value))]
 						result[e.db_field] = e.convert(value)
 					case _:
 						result[key.value] = value

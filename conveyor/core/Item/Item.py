@@ -35,7 +35,7 @@ class ItemKey(Word): pass
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
 class Metadata:
 
-	class Key(ItemKey): pass
+	class Key(Word): pass
 	Value = pydantic.StrictStr | int | float | datetime.datetime | Enumerable | None
 
 	Enumerable = Enumerable

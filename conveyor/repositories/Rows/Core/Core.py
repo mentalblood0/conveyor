@@ -29,7 +29,7 @@ class Core:
 	connection : sqlalchemy.Connection | None            = None
 
 	table      : Transforms.Safe[Item.Type,         str] = DbTableName('conveyor')
-	enum       : Transforms.Safe[Item.Metadata.Key, str] = DbEnumName('enum')
+	enum       : Transforms.Safe[Item.Key, str]          = DbEnumName('enum')
 
 	@property
 	def _cache_id(self) -> str:
@@ -51,7 +51,7 @@ class Core:
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
-			yield self._enums[(ref.type, Item.Metadata.Key('status'))].eq(ref.status)
+			yield self._enums[(ref.type, Item.Key('status'))].eq(ref.status)
 		if ref.digest is not None:
 			yield                sqlalchemy.column('digest') == ref.digest.string
 		match ref.chain:
@@ -69,7 +69,7 @@ class Core:
 			for k, v in ref.metadata.value.items():
 				match v:
 					case Item.Metadata.Enumerable():
-						yield      self._enums[(ref.type, k)].eq(v)
+						yield      self._enums[(ref.type, Item.Key(k.value))].eq(v)
 					case _:
 						yield     sqlalchemy.column(k.value) == v
 
@@ -89,7 +89,7 @@ class Core:
 	def append(self, row: Row) -> None:
 
 		fields = Fields.Fields(
-			metadata  = row.metadata,
+			row       = row,
 			db        = self.db,
 			table     = row.type,
 			transform = self.table,
@@ -97,6 +97,9 @@ class Core:
 		)
 
 		name = self.table(row.type)
+
+		print(f'-----------------------------------FIELDS {[f.name.value for f in fields.fields]}')
+		print(f'-----------------------------------DICT {[r for r in row.dict_(self._enums).keys()]}')
 
 		try:
 			with self._connect() as connection:
@@ -115,7 +118,7 @@ class Core:
 					Table(
 						connection = connection,
 						name       = name,
-						fields    = fields.fields
+						fields     = fields.fields
 					).insert().values((row.dict_(self._enums),))
 				)
 
@@ -137,7 +140,7 @@ class Core:
 
 		for r in rows:
 
-			status = self._enums[(query.mask.type, Item.Metadata.Key('status'))]
+			status = self._enums[(query.mask.type, Item.Key('status'))]
 
 			metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
 			for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
@@ -150,7 +153,7 @@ class Core:
 						match value := getattr(r, name):
 							case int() | None:
 								unenumed = (~self.enum)(name)
-								metadata[unenumed] = self._enums[(query.mask.type, unenumed)].convert(value)
+								metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].convert(value)
 							case _:
 								raise ValueError(f'Expected column `{name}` in table `{query.mask.type.value}` to hold enumerable using integer or null value')
 					else:
@@ -179,7 +182,7 @@ class Core:
 			return
 
 		fields = Fields.Fields(
-			metadata  = new.metadata,
+			row  = new,
 			db        = self.db,
 			table     = old.type,
 			transform = self.table,
