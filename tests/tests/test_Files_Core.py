@@ -31,6 +31,27 @@ def test_path(files: Files.Core, data: Data):
 
 
 @pydantic.validate_arguments
+def test_append_one(files: Files.Core, data: Data):
+	files.append(data)
+	assert files[data.digest] == data
+
+
+@pydantic.validate_arguments
+def test_append_many_same(files: Files.Core, data: Data):
+	for _ in range(3):
+		files.append(data)
+		assert files[data.digest] == data
+
+
+@pydantic.validate_arguments
+def test_append_many(files: Files.Core, data: Data):
+	for i in range(3):
+		d = Data(value = data.value + str(i).encode())
+		files.append(d)
+		assert files[d.digest] == d
+
+
+@pydantic.validate_arguments
 def test_append_get_delete(files: Files.Core, data: Data):
 
 	files.append(data)
