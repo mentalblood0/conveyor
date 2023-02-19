@@ -85,40 +85,53 @@ class Core:
 			for c in self._where(ref)
 		)
 
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def _compile(self, v: Item.Value) -> str:
+		return str(
+			sqlalchemy.text(':v').bindparams(v = v).compile(
+				bind           = self.db,
+				compile_kwargs = {"literal_binds": True}
+			)
+		)
+
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def _values(self, d: dict[str, Item.Value]) -> str:
+		keys   = ', '.join(d)
+		values = ', '.join(self._compile(v) for v in d.values())
+		return f'({keys}) values ({values})'
+
+	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
+	def _set(self, d: dict[str, Item.Value]) -> str:
+		return ', '.join(
+			f'{k} = {self._compile(v)}'
+			for k, v in d.items()
+		)
+
 	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
 
-		fields = Fields.Fields(
-			row       = row,
-			db        = self.db,
-			table     = row.type,
-			transform = self.table,
-			enums     = self._enums
-		)
-
 		name = self.table(row.type)
 
-		try:
-			with self._connect() as connection:
-				connection.execute(
-					sqlalchemy.Table(
-						name,
-						sqlalchemy.MetaData(),
-						*fields.columns
+		for _ in range(2):
+			try:
+				with self._connect() as connection:
+					connection.execute(
+						sqlalchemy.text(f'insert into {name} {self._values(row.dict_(self._enums))}')
 					)
-					.insert()
-					.values((row.dict_(self._enums),))
-				)
-		except:
-			with self._connect() as connection:
-				connection.execute(
+				break
+			except:
+				with self._connect() as connection:
 					Table(
 						connection = connection,
 						name       = name,
-						fields     = fields.fields
-					).insert().values((row.dict_(self._enums),))
-				)
-
+						fields     = Fields.Fields(
+							row       = row,
+							db        = self.db,
+							table     = row.type,
+							transform = self.table,
+							enums     = self._enums
+						).fields
+					)
 
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
@@ -178,42 +191,28 @@ class Core:
 		if not (changes := new.sub(old, self._enums)):
 			return
 
-		fields = Fields.Fields(
-			row  = new,
-			db        = self.db,
-			table     = old.type,
-			transform = self.table,
-			enums     = self._enums
-		)
-
 		name = self.table(old.type)
 
-		try:
-			with self._connect() as connection:
-				connection.execute(
-					sqlalchemy.Table(
-						name,
-						sqlalchemy.MetaData(),
-						*fields.columns
+		for _ in range(2):
+			try:
+				with self._connect() as connection:
+					connection.execute(sqlalchemy.text(
+						f'update {name} set {self._set(changes)} where {self._where_string(old)}'
+					))
+				break
+			except:
+				with self._connect() as connection:
+					Table(
+						connection = connection,
+						name       = name,
+						fields     = Fields.Fields(
+							row  = new,
+							db        = self.db,
+							table     = old.type,
+							transform = self.table,
+							enums     = self._enums
+						).fields
 					)
-					.update()
-					.where(*self._where(old))
-					.values(**changes)
-				)
-		except:
-			with self._connect() as connection:
-				connection.execute(
-					sqlalchemy.sql
-					.update(
-						Table(
-							connection = connection,
-							name       = name,
-							fields     = fields.fields
-						)
-					)
-					.where(*self._where(old))
-					.values(**changes)
-				)
 
 	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
