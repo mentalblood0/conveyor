@@ -14,7 +14,7 @@ Library for creating pipeline-oriented systems
 
 ## Key concepts
 
-### [Item](conveyor/core/Item.py)
+### [Item](conveyor/core/Item/Item.py)
 
 **Information** unit conveyor operates on
 
@@ -22,67 +22,27 @@ Each item has:
 
 | name               | description                                 |
 | ------------------ | ------------------------------------------- |
-| data.digest        | constant unique identifier for item         |
 | chain              | constant unique identifier for item's chain |
 | type               | constant common identifier                  |
 | status             | variable common identifier                  |
-| data.value         | constant data                               |
+| data               | constant data                               |
 | metadata           | variable data                               |
 | created            | when was item created                       |
 | reserved           | id of worker reserved item if any           |
 
-### [Repository](conveyor/core/Repository.py)
+### [Repository](conveyor/core/Repository/Repository.py)
 
 **Storage** interface
 
-### Worker
+Each repository consists of some [part repositories](conveyor/core/Repository/PartRepository.py)
+
+### [Worker](conveyor/core/Worker/Worker.py)
 
 **Program** unit that operates on items
 
-All workers should be inherited from [abstract workers](#abstract-workers)
+Each worker consists of given
 
-### [Effect](conveyor/core/Effect.py)
-
-**Decorator**-like class for adding methods calls logging
-
-
-
-## Abstract Workers
-
-|                                                | takes arguments | gets item | creates items | changes item status | changes item metadata | deletes item |
-|------------------------------------------------|:---------------:|:---------:|:-------------:|:-------------------:|:---------------------:|:------------:|
-| [Creator](conveyor/core/Creator.py)            |        +        |           |       +       |                     |                       |              |
-| [Transformer](conveyor/workers/archive/Transformer.py) |                 |     1     |               |          +          |           +           |              |
-| [Mover](conveyor/workers/archive/Mover.py)             |                 |     1     |       +       |          +          |                       |              |
-| [Destroyer](conveyor/workers/archive/Destroyer.py)     |                 |     1     |               |                     |                       |       +      |
-| [Synthesizer](conveyor/workers/archive/Synthesizer.py) |                 |     2     |       +       |          +          |                       |              |
-
-
-
-## Repositories
-
-### [Treegres](conveyor/repositories/Treegres)
-
-Stores `Item.data` in files in **directories tree**
-
-Stores the rest of `Item` in **peewee compatible database**
-
-
-
-## Effects
-
-### [SimpleLogging](conveyor/repository_effects/SimpleLogging)
-
-Logs repository actions **to stderr**
-
-### [DbLogging](conveyor/repository_effects/DbLogging)
-
-Logs repository actions **to peewee compatible database**
-
-### [ExceptionLogging](conveyor/processor_effects/ExceptionLogging/ExceptionLogging.py)
-
-Logs worker exceptions **to stderr**
-
-### [DbLogging](conveyor/processor_effects/ExceptionDbLogging/ExceptionDbLogging.py)
-
-Logs worker exceptions **to peewee compatible database**
+0. [Repository](conveyor/core/Repository/Repository.py)
+1. [Receiver](conveyor/core/Worker/Receiver.py)
+2. [Processor](conveyor/core/Worker/Processor.py)
+3. [Actor](conveyor/core/Worker/Processor.py)
