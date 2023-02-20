@@ -49,7 +49,7 @@ class Core:
 		)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
-	def _where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
+	def __where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
 			yield self._enums[(ref.type, Item.Key('status'))].eq(ref.status)
 		if ref.digest is not None:
@@ -82,7 +82,7 @@ class Core:
 					compile_kwargs = {"literal_binds": True}
 				)
 			)
-			for c in self._where(ref)
+			for c in self.__where(ref)
 		)
 
 	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
@@ -136,17 +136,14 @@ class Core:
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 
-		q = (
-			sqlalchemy.sql
-			.select(sqlalchemy.text('*'))
-			.select_from(sqlalchemy.text(self.table(query.mask.type)))
-			.where(*self._where(query.mask))
-		)
+		q = f'select * from {self.table(query.mask.type)}'
+		if (where := self._where_string(query.mask)):
+			q = f'{q} where {where}'
 		if query.limit is not None:
-			q = q.limit(query.limit)
+			q = f'{q} limit {query.limit}'
 
 		with self._connect() as connection:
-			rows = (*connection.execute(q),)
+			rows = (*connection.execute(sqlalchemy.text(q)),)
 
 		for r in rows:
 
@@ -248,13 +245,9 @@ class Core:
 	def __contains__(self, row: Row) -> bool:
 		with self._connect() as connection:
 			try:
-				return connection.execute(
-					sqlalchemy.sql.exists(
-						sqlalchemy.sql.select('*')
-						.select_from(sqlalchemy.text(self.table(row.type)))
-						.where(*self._where(row))
-					).select()
-				).scalar_one()
+				return connection.execute(sqlalchemy.text(
+					f'select (exists (select * from {self.table(row.type)} where {self._where_string(row)}))'
+				)).scalar_one()
 			except:
 				return False
 
