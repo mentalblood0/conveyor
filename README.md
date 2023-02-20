@@ -45,4 +45,4 @@ Each worker consists of given
 0. [Repository](conveyor/core/Repository/Repository.py)
 1. [Receiver](conveyor/core/Worker/Receiver.py)
 2. [Processor](conveyor/core/Worker/Processor.py)
-3. [Actor](conveyor/core/Worker/Processor.py)
+3. [Actor](conveyor/core/Worker/Action.py)
