@@ -115,9 +115,9 @@ class Core:
 		for _ in range(2):
 			try:
 				with self._connect() as connection:
-					connection.execute(
-						sqlalchemy.text(f'insert into {name} {self._values(row.dict_(self._enums))}')
-					)
+					connection.execute(sqlalchemy.text(
+						f'insert into {name} {self._values(row.dict_(self._enums))}'
+					))
 				break
 			except:
 				with self._connect() as connection:
@@ -203,7 +203,7 @@ class Core:
 						connection = connection,
 						name       = name,
 						fields     = Fields.Fields(
-							row  = new,
+							row       = new,
 							db        = self.db,
 							table     = old.type,
 							transform = self.table,
