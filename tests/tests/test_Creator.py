@@ -29,10 +29,6 @@ def creator() -> processors.Creator:
 @pydantic.validate_arguments
 def worker(creator: processors.Creator, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
-		receiver = Worker.Receiver(
-			masks = (),
-			limit = None
-		),
 		processor  = creator,
 		repository = repository
 	)
