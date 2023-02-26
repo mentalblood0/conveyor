@@ -42,40 +42,32 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 	def transform(self, i: Item.Metadata.Enumerable) -> int:
 
 		try:
-			return self.cache[self.enum_table].value[i]
+			return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
 		except KeyError:
 			pass
 
+		try:
+			self.load()
+			return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
+		except:
+			pass
+
 		while True:
-
 			try:
-				self.load()
-				return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
-			except:
-				pass
-
-			try:
-
 				with self.connect() as connection:
-					value = connection.execute(
-						self.table.insert().values(({
-							'description': i.value
-						},)).returning(self.table.columns['value'])
-					).scalar_one()
-
-				self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)] = value
-				return value
-
+					query = f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
+					print(f'__________________________{query}')
+					value = connection.execute(sqlalchemy.text(
+						query
+					)).scalar_one()
+					print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~{value}')
+				break
 			except:
-				pass
+				with self.connect() as connection:
+					self.table.create(bind = connection)
 
-			with self.connect() as connection:
-				self.table.create(bind = connection)
-				connection.execute(
-					self.table.insert().values(({
-						'description': i.value
-					},))
-				)
+		self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)] = value
+		return value
 
 	def __invert__(self) -> 'String':
 		return String(
@@ -91,16 +83,13 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 	@pydantic.validate_arguments
 	def transform(self, i: int) -> Item.Metadata.Enumerable:
 
-		try:
-			return self.cache[self.enum_table].description[i]
-		except KeyError:
-			pass
+		for _ in range(2):
+			try:
+				return self.cache[self.enum_table].description[i]
+			except KeyError:
+				self.load()
 
-		try:
-			self.load()
-			return self.cache[self.enum_table].description[i]
-		except Exception as e:
-			raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`') from e
+		raise ValueError(f'No description found for enum value `{i}` in table `{self.enum_table}`')
 
 	def __invert__(self) -> Int:
 		return Int(
