@@ -112,7 +112,7 @@ class Core:
 
 		name = self.table(row.type)
 
-		for _ in range(2):
+		for _ in range(3):
 			try:
 				with self._connect() as connection:
 					connection.execute(sqlalchemy.text(

@@ -55,12 +55,9 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		while True:
 			try:
 				with self.connect() as connection:
-					query = f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
-					print(f'__________________________{query}')
 					value = connection.execute(sqlalchemy.text(
-						query
+						f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
 					)).scalar_one()
-					print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~{value}')
 				break
 			except:
 				with self.connect() as connection:
