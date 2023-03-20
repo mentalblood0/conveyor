@@ -26,7 +26,7 @@ def transformer(transformer_changes: typing.Sequence[TransformerChanges]) -> pro
 			for c in transformer_changes:
 				match c:
 					case TransformerChanges.status:
-						yield Item.Status(f'{input.status}_')
+						yield Item.Status(f'{input.status.value}_')
 					case TransformerChanges.metadata_add:
 						yield Item.Metadata({Item.Metadata.Key('new'): 1})
 					case TransformerChanges.metadata_delete:
@@ -58,7 +58,7 @@ def test_transformer_change_status(worker: Worker.Worker, item: Item, query_all:
 		worker()
 		assert len(worker.repository) == 1
 		for i in worker.repository[query_all]:
-			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
+			assert i == dataclasses.replace(item, status = Item.Status(f'{status.value}_'))
 
 
 @pydantic.validate_arguments

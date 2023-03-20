@@ -52,16 +52,18 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		except:
 			pass
 
-		while True:
-			try:
-				with self.connect() as connection:
-					value = connection.execute(sqlalchemy.text(
-						f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
-					)).scalar_one()
-				break
-			except:
-				with self.connect() as connection:
-					self.table.create(bind = connection)
+		try:
+			with self.connect() as connection:
+				value = connection.execute(sqlalchemy.text(
+					f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
+				)).scalar_one()
+		except:
+			with self.connect() as connection:
+				self.table.create(bind = connection)
+				value = connection.execute(sqlalchemy.text(
+					f"insert into {self.enum_table} (description) values ('{i.value}') returning value"
+				)).scalar_one()
+			self.load()
 
 		self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)] = value
 		return value

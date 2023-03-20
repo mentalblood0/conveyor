@@ -112,7 +112,8 @@ class Core:
 
 		name = self.table(row.type)
 
-		for _ in range(3):
+		created = False
+		for _ in range(5):
 			try:
 				with self._connect() as connection:
 					connection.execute(sqlalchemy.text(
@@ -120,18 +121,20 @@ class Core:
 					))
 				break
 			except:
-				with self._connect() as connection:
-					Table(
-						connection = connection,
-						name       = name,
-						fields     = Fields.Fields(
-							row       = row,
-							db        = self.db,
-							table     = row.type,
-							transform = self.table,
-							enums     = self._enums
-						).fields
-					)
+				if not created:
+					with self._connect() as connection:
+						Table(
+							connection = connection,
+							name       = name,
+							fields     = Fields.Fields(
+								row       = row,
+								db        = self.db,
+								table     = row.type,
+								transform = self.table,
+								enums     = self._enums
+							).fields
+						)
+				created = True
 
 	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:

@@ -18,7 +18,7 @@ def mover() -> processors.Mover:
 
 		def process(self, input: Item) -> typing.Iterable[Item.Status | Item]:
 
-			yield Item.Status(f'{input.status}_')
+			yield Item.Status(f'{input.status.value}_')
 
 			n = input.metadata.value[Item.Metadata.Key('n')]
 			match n:
@@ -52,7 +52,7 @@ def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, 
 		worker()
 		assert len(worker.repository) == 2
 		for i in worker.repository[query_all]:
-			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
+			assert i == dataclasses.replace(item, status = Item.Status(f'{status.value}_'))
 		for i in worker.repository[
 			Query(
 				mask = Mask(type = Item.Type('new')),
@@ -74,7 +74,7 @@ def test_mover_change_status_create_many_items(worker: Worker.Worker, item: Item
 		worker()
 		assert len(worker.repository) == 1 + n
 		for i in worker.repository[query_all]:
-			assert i == dataclasses.replace(item, status = Item.Status(f'{status}_'))
+			assert i == dataclasses.replace(item, status = Item.Status(f'{status.value}_'))
 		for i in worker.repository[
 			Query(
 				mask = Mask(type = Item.Type('new')),

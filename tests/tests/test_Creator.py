@@ -39,7 +39,7 @@ def test_creator_create_one_item(worker: Worker.Worker, item: Item, query_all: Q
 	for j in range(2):
 		worker({'items': (item,)})
 		assert len(worker.repository) == j + 1
-		for i in worker.repository[query_all]:
+		for i in (*worker.repository[query_all],):
 			assert i == item
 
 

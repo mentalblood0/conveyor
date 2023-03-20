@@ -16,6 +16,9 @@ class TableCache:
 
 
 class Cache(dict[str, TableCache]):
+
+	TableCache = TableCache
+
 	@pydantic.validate_arguments
 	def load(self, table: str, connect: Connect):
 		with connect() as connection:

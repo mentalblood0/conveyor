@@ -186,7 +186,7 @@ def test_len(rows: Rows.Core, row: Rows.Core.Item):
 @pydantic.validate_arguments
 def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 
-	changed_status = Item.Status(f'{row.status}_')
+	changed_status = Item.Status(f'{row.status.value}_')
 	changed_row = dataclasses.replace(row, status = changed_status)
 
 	rows.append(row)
