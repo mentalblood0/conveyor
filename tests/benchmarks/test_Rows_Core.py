@@ -1,16 +1,18 @@
 import dataclasses
+import pytest_benchmark.plugin
+
 from tests.common import *
 
 
 
 @pytest.mark.benchmark(group='rows')
-def test_append_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+def test_append_same(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item):
 	benchmark(rows.append, row)
 	rows.clear()
 
 
 @pytest.mark.benchmark(group='rows')
-def test_append_delete(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+def test_append_delete(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item):
 
 	def f():
 		rows.append(row)
@@ -21,14 +23,14 @@ def test_append_delete(benchmark, rows: Rows.Core, row: Rows.Core.Item):
 
 
 @pytest.mark.benchmark(group='rows')
-def test_get_same_first(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
+def test_get_same_first(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 	rows.append(row)
 	benchmark(lambda: next(iter(rows[query_all])))
 	rows.clear()
 
 
 @pytest.mark.benchmark(group='rows')
-def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
+def test_get_same_next(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 
 	limit = 1000
 	query_limited = dataclasses.replace(query_all, limit = limit)
@@ -44,7 +46,7 @@ def test_get_same_next(benchmark, rows: Rows.Core, row: Rows.Core.Item, query_al
 
 
 @pytest.mark.benchmark(group='rows')
-def test_set_same(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+def test_set_same(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	def f():
 		rows[row] = row
@@ -65,7 +67,7 @@ def small_change(variants: typing.Sequence[Rows.Core.Item]) -> typing.Callable[[
 
 
 @pytest.mark.benchmark(group='rows')
-def test_set_small_change(benchmark, rows: Rows.Core, row: Rows.Core.Item):
+def test_set_small_change(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item):
 
 	initial = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 1}))
 	new     = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 2}))

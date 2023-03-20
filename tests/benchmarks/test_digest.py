@@ -2,6 +2,7 @@ import random
 import pytest
 import hashlib
 from blake3 import blake3
+import pytest_benchmark.plugin
 
 
 
@@ -23,7 +24,7 @@ def blake3_digest(i: bytes) -> bytes:
 
 
 @pytest.mark.benchmark(group='digest')
-def test_blake3(benchmark, input_: bytes):
+def test_blake3(benchmark: pytest_benchmark.plugin.BenchmarkFixture, input_: bytes):
 	benchmark(blake3_digest, input_)
 
 
@@ -32,7 +33,7 @@ def sha3_512_digest(i: bytes) -> bytes:
 
 
 @pytest.mark.benchmark(group='digest')
-def test_sha3_512(benchmark, input_: bytes):
+def test_sha3_512(benchmark: pytest_benchmark.plugin.BenchmarkFixture, input_: bytes):
 	benchmark(sha3_512_digest, input_)
 
 
@@ -41,5 +42,5 @@ def sha3_256_digest(i: bytes) -> bytes:
 
 
 @pytest.mark.benchmark(group='digest')
-def test_sha3_256(benchmark, input_: bytes):
+def test_sha3_256(benchmark: pytest_benchmark.plugin.BenchmarkFixture, input_: bytes):
 	benchmark(sha3_256_digest, input_)

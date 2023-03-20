@@ -1,6 +1,7 @@
 import pytest
 import typing
 import pathlib
+import pytest_benchmark.plugin
 
 from tests.common import *
 
@@ -14,7 +15,7 @@ def empty() -> Data:
 
 
 @pytest.mark.benchmark(group='files')
-def test_add_same_empty(benchmark, files: Files.Core, empty: Data):
+def test_add_same_empty(benchmark: pytest_benchmark.plugin.BenchmarkFixture, files: Files.Core, empty: Data):
 	benchmark(files.append, empty)
 	files.clear()
 
@@ -25,7 +26,7 @@ def big() -> Data:
 
 
 @pytest.mark.benchmark(group='files')
-def test_add_same_big(benchmark, files: Files.Core, big: Data):
+def test_add_same_big(benchmark: pytest_benchmark.plugin.BenchmarkFixture, files: Files.Core, big: Data):
 	benchmark(files.append, big)
 	files.clear()
 
@@ -43,6 +44,6 @@ def append_different(files: Files.Core, data: Data) -> typing.Callable[[], None]
 
 
 @pytest.mark.benchmark(group='files')
-def test_add_different_big(benchmark, files: Files.Core, big: Data):
+def test_add_different_big(benchmark: pytest_benchmark.plugin.BenchmarkFixture, files: Files.Core, big: Data):
 	benchmark(append_different(files, big))
 	files.clear()
