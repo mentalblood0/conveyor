@@ -61,7 +61,7 @@ class Item:
 
 	Key       = ItemKey
 
-	BaseValue = typing.Union[Type, Status, Chain, Created, Reserver]
+	BaseValue = typing.Union[Data, Type, Status, Chain, Created, Reserver]
 	Value     = BaseValue | Metadata.Value
 
 	type      : Type

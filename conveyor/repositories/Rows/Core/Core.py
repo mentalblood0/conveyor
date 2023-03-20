@@ -52,8 +52,6 @@ class Core:
 	def __where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
 			yield self._enums[(ref.type, Item.Key('status'))].eq(ref.status)
-		if ref.digest is not None:
-			yield                sqlalchemy.column('digest') == ref.digest.string
 		match ref.chain:
 			case None:
 				pass

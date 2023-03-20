@@ -1,5 +1,4 @@
 import base64
-import typing
 import pydantic
 
 
@@ -31,8 +30,6 @@ class Digest:
 				value = value_or_string
 			case Base64String():
 				value = value_or_string.decoded
-			case _ as unreachable:
-				typing.assert_never(unreachable)
 
 		if len(value) < 32:
 			raise ValueError(f'`Digest` value must be of minimum length 32 (got {value} which is of length {len(value)})')
@@ -46,8 +43,6 @@ class Digest:
 				return self.value_or_string
 			case Base64String():
 				return self.value_or_string.decoded
-			case _ as unreachable:
-				typing.assert_never(unreachable)
 
 	@property
 	def string(self) -> str:
@@ -56,8 +51,6 @@ class Digest:
 				return self.value_or_string.value
 			case bytes():
 				return base64.b64encode(self.value_or_string).decode('ascii')
-			case _ as unreachable:
-				typing.assert_never(unreachable)
 
 	def __eq__(self, another: object) -> bool:
 		match another:

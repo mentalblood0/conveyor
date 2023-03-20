@@ -1,4 +1,3 @@
-import typing
 import pydantic
 
 from .Data import Data
@@ -23,8 +22,6 @@ class Chain:
 					correct = Chain(ref=values['ref']).value
 				case str():
 					correct = ref
-				case _ as unreachable:
-					assert typing.assert_never(unreachable)
 
 			if correct != test:
 				raise ValueError(f'Provided chain value "{test}" is not correct (correct is "{correct}")')
@@ -38,8 +35,6 @@ class Chain:
 				return self.ref.digest.string
 			case str():
 				return self.ref
-			case _ as unreachable:
-				assert typing.assert_never(unreachable)
 
 	def __eq__(self, another: object) -> bool:
 		match another:

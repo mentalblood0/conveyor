@@ -1,6 +1,5 @@
 import uuid
 import base64
-import typing
 import pydantic
 
 
@@ -19,7 +18,5 @@ class Reserver:
 					return value
 				case None:
 					return base64.b64encode(uuid.uuid4().bytes).decode('ascii')
-				case _ as unreachable:
-					typing.assert_never(unreachable)
 		else:
 			return None

@@ -76,9 +76,9 @@ class Field:
 				return sqlalchemy.Column(self.name.value, sqlalchemy.Integer(),                nullable = True)
 			case float():
 				return sqlalchemy.Column(self.name.value, sqlalchemy.Float(),                  nullable = True)
-			case datetime.datetime() | type(datetime.datetime()):
+			case datetime.datetime():
 				return sqlalchemy.Column(self.name.value, sqlalchemy.DateTime(timezone=False), nullable = True)
-			case None:
+			case _:
 				raise ValueError(f'Can not guess column type corresponding to value with type `{type(self.value)}`')
 
 	@pydantic.validate_arguments(config = {'arbitrary_types_allowed': True})
