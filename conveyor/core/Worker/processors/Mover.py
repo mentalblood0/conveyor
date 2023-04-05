@@ -14,7 +14,7 @@ from ..Processor import Processor
 class Mover(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
-	def process(self, input: Item) -> typing.Iterable[Item.Status | Item]:
+	def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata | Item]:
 		pass
 
 	@pydantic.validate_arguments
@@ -28,6 +28,14 @@ class Mover(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 					match o:
 						case Item.Status():
 							yield Action.Update(old = i, new = dataclasses.replace(i, status = o))
+						case Item.Metadata():
+							yield Action.Update(
+								old = i,
+								new = dataclasses.replace(
+									i,
+									metadata = Item.Metadata(value_ = i.metadata.value | o.value)
+								)
+							)
 						case Item():
 							if o.chain != i.chain:
 								raise ValueError(f'Output chain ({o.chain}) must be equal to input chain ({i.chain})')
