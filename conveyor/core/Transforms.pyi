@@ -1,0 +1,33 @@
+import abc
+import typing
+from _typeshed import Incomplete
+
+S: Incomplete
+T: Incomplete
+S_: Incomplete
+T_: Incomplete
+
+class Transform(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def transform(self, i: S) -> T: ...
+    @abc.abstractmethod
+    def __call__(self, i: S) -> T: ...
+    @abc.abstractmethod
+    def __invert__(self) -> Transform[T, S]: ...
+    def valid(self, i: S) -> bool: ...
+    def __add__(self, another: Transform[T, T_]) -> _Transforms[S, T, T_]: ...
+    def __radd__(self, another: Transform[S_, S]) -> _Transforms[S_, S, T]: ...
+
+class Safe(Transform[S, T], metaclass=abc.ABCMeta):
+    def __call__(self, i: S) -> T: ...
+
+class Trusted(Transform[S, T], metaclass=abc.ABCMeta):
+    def __call__(self, i: S) -> T: ...
+
+M: Incomplete
+
+class _Transforms(Trusted[S, T]):
+    first: _Transforms[S, typing.Any, M] | Transform[S, M]
+    second: _Transforms[M, typing.Any, T] | Transform[M, T]
+    def transform(self, i: S) -> T: ...
+    def __invert__(self) -> _Transforms[T, M, S]: ...

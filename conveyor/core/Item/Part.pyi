@@ -1,0 +1,36 @@
+from . import Item as Item
+from _typeshed import Incomplete
+
+class AccessError(BaseException):
+    message: Incomplete
+    def __init__(self, field: str) -> None: ...
+
+class Part:
+    AccessError = AccessError
+    type_: Item.Type | None
+    status_: Item.Status | None
+    data_: Item.Data | None
+    digest_: Item.Data.Digest | None
+    metadata_: Item.Metadata | None
+    chain_: Item.Chain | None
+    created_: Item.Created | None
+    reserver_: Item.Reserver | None
+    def digest__valid(cls, digest: Item.Data.Digest | None, values: dict[str, Item.Value]) -> Item.Data.Digest | None: ...
+    @property
+    def item(self) -> Item: ...
+    @property
+    def type(self) -> Item.Type: ...
+    @property
+    def status(self) -> Item.Status: ...
+    @property
+    def data(self) -> Item.Data: ...
+    @property
+    def digest(self) -> Item.Data.Digest: ...
+    @property
+    def metadata(self) -> Item.Metadata: ...
+    @property
+    def chain(self) -> Item.Chain: ...
+    @property
+    def created(self) -> Item.Created: ...
+    @property
+    def reserver(self) -> Item.Reserver: ...

@@ -1,0 +1,16 @@
+import pydantic
+
+class Base64String:
+    value: str
+    @property
+    def decoded(self): ...
+
+class Digest:
+    Base64String = Base64String
+    value_or_string: pydantic.StrictBytes | Base64String
+    def value_or_string_valid(cls, value_or_string: pydantic.StrictBytes | Base64String) -> pydantic.StrictBytes | Base64String: ...
+    @property
+    def value(self) -> bytes: ...
+    @property
+    def string(self) -> str: ...
+    def __eq__(self, another: object) -> bool: ...
