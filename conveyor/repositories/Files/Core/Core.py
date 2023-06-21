@@ -28,12 +28,18 @@ class Core:
 
 	transaction_ : Transaction | None                         = None
 
+	empty        : Digest = Data(value = b'').digest
+
 	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:
 		return pathlib.Path(self.root, self.pathify(digest)).with_suffix(self.suffix)
 
 	@pydantic.validate_arguments
 	def append(self, data: Data) -> None:
+
+		if not data.value:
+			return
+
 		with self.transaction() as t:
 			if t.transaction_ is not None:
 				t.transaction_.append(
@@ -50,6 +56,10 @@ class Core:
 
 	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
+
+		if digest == self.empty:
+			return Data(value = b'')
+
 		try:
 			return Data(
 				value = (~self.prepare)(

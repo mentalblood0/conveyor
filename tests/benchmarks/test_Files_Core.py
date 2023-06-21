@@ -11,7 +11,7 @@ from conveyor.core.Item import Data
 
 @pytest.fixture
 def empty() -> Data:
-	return Data(value = b'')
+	return Data(value = b'v')
 
 
 @pytest.mark.benchmark(group='files')

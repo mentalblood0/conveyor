@@ -10,6 +10,11 @@ from ..common import *
 
 @pytest.fixture
 def data() -> Data:
+	return Data(value=b'v')
+
+
+@pytest.fixture
+def empty() -> Data:
 	return Data(value=b'')
 
 
@@ -34,6 +39,13 @@ def test_path(files: Files.Core, data: Data):
 def test_append_one(files: Files.Core, data: Data):
 	files.append(data)
 	assert files[data.digest] == data
+
+
+@pydantic.validate_arguments
+def test_append_empty(files: Files.Core, empty: Data):
+	assert files[empty.digest]
+	files.append(empty)
+	assert files[empty.digest] == empty
 
 
 @pydantic.validate_arguments

@@ -15,7 +15,7 @@ from conveyor.core import Item, Query, Repository
 @pytest.fixture
 def item() -> Item:
 
-	data = Item.Data(value=b'')
+	data = Item.Data(value=b'v')
 
 	return Item(
 		type     = Item.Type('type'),
@@ -26,15 +26,6 @@ def item() -> Item:
 		created  = Item.Created(value=datetime.datetime.utcnow()),
 		reserver = Item.Reserver(exists=False)
 	)
-
-
-@pydantic.validate_arguments
-def withSpace(i: bytes) -> bytes:
-	return i + b' '
-
-@pydantic.validate_arguments
-def withoutLast(i: bytes) -> bytes:
-	return i[:-1]
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
@@ -69,20 +60,20 @@ class Compress(Files.Core.Transforms.Safe[bytes, bytes]):
 		return zlib.compress(i, level = self.level)
 
 	def __invert__(self) -> 'Decompress':
-		return Decompress(inverted_level = 9)
+		return Decompress(inverted_level = self.level)
 
 
 @pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
 class Decompress(Files.Core.Transforms.Safe[bytes, bytes]):
 
-	inverted_level: int = 9
+	inverted_level: int
 
 	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return zlib.decompress(i)
 
 	def __invert__(self) -> Compress:
-		return Compress(level = 9)
+		return Compress(level = self.inverted_level)
 
 
 @pytest.fixture
@@ -125,28 +116,28 @@ def rows(db: sqlalchemy.Engine) -> Rows.Core:
 @pytest.fixture
 def row() -> Rows.Core.Item:
 
-	data = Item.Data(value=b'')
+	data = Item.Data(value=b'v')
 
 	return Rows.Core.Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		digest=data.digest,
-		metadata=Item.Metadata({
+		type     = Item.Type('type'),
+		status   = Item.Status('status'),
+		digest   = data.digest,
+		metadata = Item.Metadata({
 			Item.Metadata.Key('key'): 'value'
 		}),
-		chain=Item.Chain(ref=data).value,
-		created=Item.Created(datetime.datetime.utcnow()),
-		reserver=Item.Reserver(exists=False)
+		chain    = Item.Chain(ref=data).value,
+		created  = Item.Created(datetime.datetime.utcnow()),
+		reserver = Item.Reserver(exists=False)
 	)
 
 
 @pytest.fixture
 def query_all(row: Rows.Core.Item) -> Query:
 	return Query(
-		mask=Query.Mask(
-			type=row.type
+		mask = Query.Mask(
+			type = row.type
 		),
-		limit=None
+		limit = None
 	)
 
 
