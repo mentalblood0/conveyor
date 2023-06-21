@@ -46,7 +46,7 @@ def worker(synthesizer: processors.Synthesizer, repository: Repository) -> Worke
 				lambda items: Mask(
 					type     = Item.Type('another'),
 					metadata = Item.Metadata({
-						Item.Metadata.Key('identifier'): items[-1].metadata.value[Item.Metadata.Key('identifier')]
+						Item.Metadata.Key('id'): items[-1].metadata.value[Item.Metadata.Key('id')]
 					})
 				),
 			),
@@ -64,7 +64,7 @@ def test_synthesizer(worker: Worker.Worker, item: Item):
 		dataclasses.replace(
 			item,
 			type = Item.Type('type'),
-			metadata = Item.Metadata({Item.Metadata.Key('identifier'): '123'})
+			metadata = Item.Metadata({Item.Metadata.Key('id'): '123'})
 		)
 	)
 	worker.repository.append(
@@ -72,7 +72,7 @@ def test_synthesizer(worker: Worker.Worker, item: Item):
 			item,
 			type = Item.Type('another'),
 			metadata = Item.Metadata({
-				Item.Metadata.Key('identifier'): '123',
+				Item.Metadata.Key('id'): '123',
 				Item.Metadata.Key('color'): 'red'
 			})
 		)
@@ -88,6 +88,6 @@ def test_synthesizer(worker: Worker.Worker, item: Item):
 		)
 	]:
 		assert i.metadata == Item.Metadata({
-			Item.Metadata.Key('identifier'): '123',
+			Item.Metadata.Key('id'): '123',
 			Item.Metadata.Key('color'): 'red'
 		})

@@ -155,7 +155,7 @@ class Core:
 				if not (
 					name in (f.name for f in dataclasses.fields(Item))
 					or
-					name in ('id', 'digest', status.db_field)
+					name in ('digest', status.db_field)
 				):
 					if (~self.enum).valid(name):
 						match value := getattr(r, name):
