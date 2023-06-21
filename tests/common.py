@@ -18,13 +18,13 @@ def item() -> Item:
 	data = Item.Data(value=b'')
 
 	return Item(
-		type=Item.Type('type'),
-		status=Item.Status('status'),
-		data=data,
-		metadata=Item.Metadata({Item.Metadata.Key('key'): 'value'}),
-		chain=Item.Chain(ref=data),
-		created=Item.Created(value=datetime.datetime.utcnow()),
-		reserver=Item.Reserver(exists=False)
+		type     = Item.Type('type'),
+		status   = Item.Status('status'),
+		data     = data,
+		metadata = Item.Metadata({Item.Metadata.Key('key'): 'value'}),
+		chain    = Item.Chain(ref=data),
+		created  = Item.Created(value=datetime.datetime.utcnow()),
+		reserver = Item.Reserver(exists=False)
 	)
 
 

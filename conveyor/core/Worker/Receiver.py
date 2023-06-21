@@ -37,8 +37,10 @@ class Receiver:
 	def __call__(self, repository: Repository) -> typing.Iterable[typing.Iterable[Item]]:
 
 		iterator = iter(self.masks)
+		sequence: typing.Iterable[Item] = ()
 
 		for f in iterator:
-			for first in repository[Query(mask = f(()), limit = self.limit)]:
-				yield self.sequence(repository, first, copy.deepcopy(iterator))
+			for first in repository[Query(mask = f(sequence), limit = self.limit)]:
+				sequence = (*self.sequence(repository, first, copy.deepcopy(iterator)),)
+				yield sequence
 			break

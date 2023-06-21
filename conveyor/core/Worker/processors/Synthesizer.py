@@ -26,7 +26,7 @@ class Synthesizer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 		for i in iterator:
 
 			try:
-				for o in self.process(i, iterator):
+				for o in self.process(i, iter(iterator)):
 					match o:
 						case Item.Status():
 							yield Action.Update(
