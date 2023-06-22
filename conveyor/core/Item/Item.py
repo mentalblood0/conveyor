@@ -1,82 +1,14 @@
-import re
-import types
 import typing
-import datetime
 import pydantic
 import dataclasses
 
+from .Word import Word
 from .Data import Data
 from .Chain import Chain
 from .Created import Created
 from .Reserver import Reserver
+from .Metadata import Metadata
 
-
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
-class Enumerable:
-	value: pydantic.StrictStr | None
-
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
-class Word(Enumerable):
-
-	value: pydantic.StrictStr
-
-	@pydantic.validator('value')
-	def value_valid(cls, value: pydantic.StrictStr) -> pydantic.StrictStr:
-		if re.match(r'\w+', value) is None:
-			raise ValueError('`Word` value must be word')
-		return value
-
-
-class ItemKey(Word): pass
-
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False, config = {'arbitrary_types_allowed': True})
-class Metadata:
-
-	class Key(Word): pass
-	Value = pydantic.StrictStr | int | float | datetime.datetime | Enumerable | None
-
-	Enumerable = Enumerable
-
-	value_: dict[Key, Value] | types.MappingProxyType[Key, Value]
-
-	@property
-	def value(self) -> types.MappingProxyType[Key, Value]:
-		return types.MappingProxyType(self.value_)
-
-	@pydantic.validate_arguments
-	def __getitem__(self, key: str | Key) -> Value:
-		match key:
-			case Metadata.Key():
-				return self.value[key]
-			case str():
-				return self[Metadata.Key(key)]
-
-	def __or__(self, o: typing.Any) -> typing.Self:
-		match o:
-			case dict():
-				return Metadata(self.value | o)
-			case Metadata():
-				return self | o.value
-			case _:
-				raise ValueError(f'Metadata instance can be joined only with another Metadata instance or dictionary (got {type(o)})')
-
-	def __ror__(self, __value: typing.Any) -> typing.Self:
-		return self | __value
-
-	def keys(self):
-		return self.value.keys()
-
-	def values(self):
-		return self.value.values()
-
-	def items(self):
-		return self.value.items()
-
-	def __iter__(self):
-		return self.value.__iter__()
 
 
 @pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
@@ -90,7 +22,7 @@ class Item:
 	Reserver  = Reserver
 	Metadata  = Metadata
 
-	Key       = ItemKey
+	class Key(Word): pass
 
 	BaseValue = typing.Union[Data, Type, Status, Chain, Created, Reserver]
 	Value     = BaseValue | Metadata.Value
