@@ -85,7 +85,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 	errors : Item.Type
 
 	@pydantic.validate_arguments
-	def __call__(self, input: typing.Callable[[], typing.Iterable[Action.Action]], config: dict[str, typing.Any]) -> typing.Iterable[Action.Action]:
+	def __call__(self, input: typing.Callable[[], typing.Iterable[Action.Action]], config: typing.Any) -> typing.Iterable[Action.Action]:
 
 		try:
 

@@ -19,7 +19,7 @@ class Worker:
 
 	repository : Repository
 
-	def __call__(self, config: dict[str, typing.Any] = {}) -> None:
+	def __call__(self, config: typing.Any = {}) -> None:
 
 		match self.receiver:
 

@@ -28,5 +28,5 @@ class Processor(typing.Generic[S, T], metaclass = abc.ABCMeta):
 		)
 
 	@abc.abstractmethod
-	def __call__(self, input: typing.Callable[[], typing.Iterable[S]], config: dict[str, typing.Any]) -> typing.Iterable[T]:
+	def __call__(self, input: typing.Callable[[], typing.Iterable[S]], config: typing.Any) -> typing.Iterable[T]:
 		pass

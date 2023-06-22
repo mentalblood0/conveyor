@@ -19,7 +19,7 @@ class Transformer(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@pydantic.validate_arguments
 	@typing.final
-	def __call__(self, input: typing.Callable[[], typing.Iterable[Item]], config: dict[str, typing.Any] = {}) -> typing.Iterable[Action.Action]:
+	def __call__(self, input: typing.Callable[[], typing.Iterable[Item]], config: typing.Any = {}) -> typing.Iterable[Action.Action]:
 
 		for i in input():
 
