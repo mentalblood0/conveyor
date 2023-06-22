@@ -115,10 +115,10 @@ class Fields:
 				transform = self.transform
 			)
 
-		for k in self.row.metadata.value:
+		for k in self.row.metadata:
 			yield Field(
 				name      = Item.Key(k.value),
-				value     = self.row.metadata.value[k],
+				value     = self.row.metadata[k],
 				table     = self.table,
 				enums     = self.enums,
 				transform = self.transform

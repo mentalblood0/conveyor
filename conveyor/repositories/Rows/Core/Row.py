@@ -22,7 +22,7 @@ class Row:
 
 	@pydantic.validator('metadata')
 	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
-		for k in metadata.value:
+		for k in metadata:
 			if k.value in values:
 				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
 		return metadata
@@ -57,7 +57,7 @@ class Row:
 		if 'reserver' not in skip:
 			result['reserver'] = self.reserver.value
 
-		for key, value in self.metadata.value.items():
+		for key, value in self.metadata.items():
 			if key.value not in skip:
 				match value:
 					case Item.Metadata.Enumerable():
@@ -83,9 +83,9 @@ class Row:
 		if self.reserver == another.reserver:
 			skip.add('reserver')
 
-		for k in self.metadata.value.keys():
-			if k in another.metadata.value:
-				if self.metadata.value[k] == another.metadata.value[k]:
+		for k in self.metadata.keys():
+			if k in another.metadata:
+				if self.metadata[k] == another.metadata[k]:
 					skip.add(k.value)
 
 		return self.dict_(enums, skip)

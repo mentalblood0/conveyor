@@ -64,7 +64,7 @@ class Core:
 		if ref.reserver is not None:
 			yield              sqlalchemy.column('reserver') == ref.reserver.value
 		if ref.metadata is not None:
-			for k, v in ref.metadata.value.items():
+			for k, v in ref.metadata.items():
 				match v:
 					case Item.Metadata.Enumerable():
 						yield      self._enums[(ref.type, Item.Key(k.value))].eq(v)

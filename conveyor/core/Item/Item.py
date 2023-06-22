@@ -66,6 +66,18 @@ class Metadata:
 	def __ror__(self, __value: typing.Any) -> typing.Self:
 		return self | __value
 
+	def keys(self):
+		return self.value.keys()
+
+	def values(self):
+		return self.value.values()
+
+	def items(self):
+		return self.value.items()
+
+	def __iter__(self):
+		return self.value.__iter__()
+
 
 @pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Item:

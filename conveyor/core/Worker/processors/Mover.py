@@ -33,7 +33,7 @@ class Mover(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 								old = i,
 								new = dataclasses.replace(
 									i,
-									metadata = Item.Metadata(value_ = i.metadata.value | o.value)
+									metadata = i.metadata | o.value
 								)
 							)
 						case Item():

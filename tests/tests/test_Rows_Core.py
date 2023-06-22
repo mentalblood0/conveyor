@@ -112,7 +112,7 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 			case 'created':
 				value = Item.Created(row.created.value - datetime.timedelta(seconds=1))
 			case 'metadata':
-				current = row.metadata.value[Item.Metadata.Key('key')]
+				current = row.metadata[Item.Metadata.Key('key')]
 				match current:
 					case str():
 						new = '_'
