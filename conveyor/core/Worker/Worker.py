@@ -10,7 +10,7 @@ from .Action import Action, Actor
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Worker:
 
 	receiver   : Receiver | None         = None

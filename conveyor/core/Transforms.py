@@ -11,7 +11,7 @@ S_ = typing.TypeVar('S_')
 T_ = typing.TypeVar('T_')
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Transform(typing.Generic[S, T], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
@@ -43,7 +43,7 @@ class Transform(typing.Generic[S, T], metaclass = abc.ABCMeta):
 		return _Transforms(another, self)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Safe(Transform[S, T]):
 
 	@pydantic.validate_arguments
@@ -58,7 +58,7 @@ class Safe(Transform[S, T]):
 		return result
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Trusted(Transform[S, T]):
 
 	@pydantic.validate_arguments
@@ -69,7 +69,7 @@ class Trusted(Transform[S, T]):
 
 M = typing.TypeVar('M')
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class _Transforms(Trusted[S, T], typing.Generic[S, M, T]):
 
 	first:  '_Transforms[S, typing.Any, M]' | Transform[S, M]

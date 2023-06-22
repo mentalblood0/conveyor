@@ -38,7 +38,7 @@ base_fields: tuple[
 Column = sqlalchemy.Column[int] | sqlalchemy.Column[float] | sqlalchemy.Column[str] | sqlalchemy.Column[datetime.datetime]
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class Field:
 
 	name      : Item.Key
@@ -90,7 +90,7 @@ class Field:
 				return sqlalchemy.Index(f'index__{self.name.value}', self.name.value, _table = table)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class Fields:
 
 	row       : Row

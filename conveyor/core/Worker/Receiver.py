@@ -8,7 +8,7 @@ from ..Repository.Repository import Repository
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Receiver:
 
 	MasksElement = typing.Callable[[typing.Sequence[Item]], Query.Mask]

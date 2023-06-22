@@ -8,7 +8,7 @@ from ....core.Transforms import Transform, Safe
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Segment(Safe[Digest, typing.Sequence[str]]):
 
 	@pydantic.validate_arguments
@@ -31,7 +31,7 @@ class Segment(Safe[Digest, typing.Sequence[str]]):
 		return Desegment()
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Desegment(Safe[typing.Sequence[str], Digest]):
 
 	@pydantic.validate_arguments
@@ -64,7 +64,7 @@ class Desegment(Safe[typing.Sequence[str], Digest]):
 Granulation = typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Group(Safe[typing.Sequence[str], pathlib.Path]):
 
 	granulation: Granulation
@@ -102,7 +102,7 @@ class Group(Safe[typing.Sequence[str], pathlib.Path]):
 		return Ungroup(inverted_granulation = self.granulation)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Ungroup(Safe[pathlib.Path, typing.Sequence[str]]):
 
 	inverted_granulation: Granulation = lambda n: 2

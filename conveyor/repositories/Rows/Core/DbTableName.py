@@ -4,7 +4,7 @@ from ....core import Item, Transforms
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class DbTableName(Transforms.Safe[Item.Type, str]):
 
 	prefix: str
@@ -17,7 +17,7 @@ class DbTableName(Transforms.Safe[Item.Type, str]):
 		return ItemType(self.prefix)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class ItemType(Transforms.Safe[str, Item.Type]):
 
 	prefix: str

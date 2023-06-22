@@ -118,7 +118,7 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 						new = '_'
 					case _:
 						raise ValueError
-				value = Item.Metadata(row.metadata.value | {Item.Metadata.Key('key'): new})
+				value = row.metadata | {Item.Metadata.Key('key'): new}
 			case _:
 				continue
 		changes[key] = value
@@ -135,7 +135,7 @@ def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
 		limit = 1
 	)]] == [row]
 
-	new_metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): 'lalala'})
+	new_metadata = row.metadata | {Item.Metadata.Key('new_column'): 'lalala'}
 	new_row = dataclasses.replace(row, metadata = new_metadata)
 
 	rows.append(new_row)
@@ -154,10 +154,10 @@ def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	rows.append(dataclasses.replace(
 		row,
-		metadata = Item.Metadata(row.metadata.value | {
+		metadata = row.metadata | {
 			Item.Metadata.Key('new_column_1'): 'lalala',
 			Item.Metadata.Key('new_column_2'): 'lololo'
-		})
+		}
 	))
 
 
@@ -205,8 +205,8 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 @pydantic.validate_arguments
 def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 
-	metadata_1 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')})
-	metadata_2 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lololo')})
+	metadata_1 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')}
+	metadata_2 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lololo')}
 
 	item_1 = dataclasses.replace(row, metadata = metadata_1)
 	item_2 = dataclasses.replace(row, metadata = metadata_2)
@@ -227,8 +227,8 @@ def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 @pydantic.validate_arguments
 def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
 
-	metadata_1 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')})
-	metadata_2 = Item.Metadata(row.metadata.value | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable(None)})
+	metadata_1 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')}
+	metadata_2 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable(None)}
 
 	item_1 = dataclasses.replace(row, metadata = metadata_1)
 	item_2 = dataclasses.replace(row, metadata = metadata_2)

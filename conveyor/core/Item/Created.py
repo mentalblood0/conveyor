@@ -3,7 +3,7 @@ import pydantic
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Created:
 
 	value: datetime.datetime

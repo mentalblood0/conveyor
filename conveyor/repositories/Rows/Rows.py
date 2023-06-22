@@ -8,7 +8,7 @@ from ...core import Item, Query, Part, PartRepository
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Rows(PartRepository):
 
 	Core = Core

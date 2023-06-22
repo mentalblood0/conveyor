@@ -69,8 +69,8 @@ def small_change(variants: typing.Sequence[Rows.Core.Item]) -> typing.Callable[[
 @pytest.mark.benchmark(group='rows')
 def test_set_small_change(benchmark: pytest_benchmark.plugin.BenchmarkFixture, rows: Rows.Core, row: Rows.Core.Item):
 
-	initial = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 1}))
-	new     = dataclasses.replace(row, metadata = Item.Metadata(row.metadata.value | {Item.Metadata.Key('i'): 2}))
+	initial = dataclasses.replace(row, metadata = row.metadata | {Item.Metadata.Key('i'): 1})
+	new     = dataclasses.replace(row, metadata = row.metadata | {Item.Metadata.Key('i'): 2})
 
 	rows.append(initial)
 

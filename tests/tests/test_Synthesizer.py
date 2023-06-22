@@ -46,7 +46,7 @@ def worker(synthesizer: processors.Synthesizer, repository: Repository) -> Worke
 				lambda items: Mask(
 					type     = Item.Type('another'),
 					metadata = Item.Metadata({
-						Item.Metadata.Key('id'): items[-1].metadata.value[Item.Metadata.Key('id')]
+						Item.Metadata.Key('id'): items[-1].metadata['id']
 					})
 				),
 			),

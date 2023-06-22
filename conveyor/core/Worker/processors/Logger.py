@@ -11,7 +11,7 @@ from ..Processor import Processor
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class Error(Action.Action):
 
 	old       : Item
@@ -45,7 +45,7 @@ class Error(Action.Action):
 		yield ('old', self.old)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Solution(Action.Action):
 
 	ref  : Item | Action.Success
@@ -75,7 +75,7 @@ class Solution(Action.Action):
 		yield ('old', self.old)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Logger(Processor[Action.Action, Action.Action]):
 
 	Error    = Error
@@ -101,14 +101,14 @@ class Logger(Processor[Action.Action, Action.Action]):
 
 					case _:
 
-						info: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
+						info = Item.Metadata({})
 						for k, v in a.info:
 							match v:
 								case Item.Metadata.Value:
-									info[Item.Metadata.Key(f'action_{k}')] = v
+									info = info | {Item.Metadata.Key(f'action_{k}'): v}
 								case Item():
-									info[Item.Metadata.Key(f'action_{k}_type')]   = v.type.value
-									info[Item.Metadata.Key(f'action_{k}_status')] = v.status.value
+									info = info | {Item.Metadata.Key(f'action_{k}_type'):   v.type.value}
+									info = info | {Item.Metadata.Key(f'action_{k}_status'): v.status.value}
 								case _ :
 									pass
 
@@ -116,9 +116,9 @@ class Logger(Processor[Action.Action, Action.Action]):
 							type     = self.normal,
 							status   = Item.Status('preaction'),
 							data     = Item.Data(value = b''),
-							metadata = Item.Metadata(info | {
+							metadata = info | {
 								Item.Metadata.Key('action') : Item.Metadata.Enumerable(a.__class__.__name__),
-							}),
+							},
 							chain    = Item.Chain(ref = Item.Data(value = str(a).encode())),
 							reserver = Item.Reserver(exists = False, value = None),
 							created  = Item.Created(datetime.datetime.now())

@@ -13,7 +13,7 @@ from .PartRepository import PartRepository
 Parts = typing.Sequence[PartRepository]
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Repository:
 
 	Parts = Parts

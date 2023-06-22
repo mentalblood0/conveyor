@@ -20,7 +20,7 @@ from .DbTableName import DbTableName
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False, config = {'arbitrary_types_allowed': True})
 class Core:
 
 	Item = Row
@@ -150,7 +150,7 @@ class Core:
 
 			status = self._enums[(query.mask.type, Item.Key('status'))]
 
-			metadata: dict[Item.Metadata.Key, Item.Metadata.Value] = {}
+			metadata = Item.Metadata({})
 			for name in r.__getstate__()['_parent'].__getstate__()['_keys']:
 				if not (
 					name in (f.name for f in dataclasses.fields(Item))
@@ -161,11 +161,11 @@ class Core:
 						match value := getattr(r, name):
 							case int() | None:
 								unenumed = (~self.enum)(name)
-								metadata[Item.Metadata.Key(unenumed.value)] = self._enums[(query.mask.type, unenumed)].convert(value)
+								metadata = metadata | {Item.Metadata.Key(unenumed.value): self._enums[(query.mask.type, unenumed)].convert(value)}
 							case _:
 								raise ValueError(f'Expected column `{name}` in table `{query.mask.type.value}` to hold enumerable using integer or null value')
 					else:
-						metadata[Item.Metadata.Key(name)] = getattr(r, name)
+						metadata = metadata | {Item.Metadata.Key(name): getattr(r, name)}
 
 			if (status_value := status.String(getattr(r, status.db_field)).value) is None:
 				raise ValueError(f'Status value can not be None')
@@ -180,7 +180,7 @@ class Core:
 					value  = r.reserver
 				),
 				digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
-				metadata = Item.Metadata(metadata)
+				metadata = metadata
 			)
 
 	@pydantic.validate_arguments

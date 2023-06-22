@@ -3,7 +3,7 @@ import pydantic
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Base64String:
 
 	value: str
@@ -15,7 +15,7 @@ class Base64String:
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Digest:
 
 	Base64String = Base64String

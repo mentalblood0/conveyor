@@ -12,7 +12,7 @@ from ..DbTableName import DbTableName
 from .Columns import columns
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class EnumsTransform:
 
 	connect    : Connect
@@ -27,7 +27,7 @@ class EnumsTransform:
 		self.cache.load(self.enum_table, self.connect)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 	@property
@@ -76,7 +76,7 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
 	@pydantic.validate_arguments
@@ -98,7 +98,7 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Enum:
 
 	type           : Item.Type
@@ -177,7 +177,7 @@ class Enum:
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Enums:
 
 	connect        : Connect

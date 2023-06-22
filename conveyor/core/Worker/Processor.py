@@ -8,13 +8,13 @@ S = typing.TypeVar('S')
 T = typing.TypeVar('T')
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True, config={'arbitrary_types_allowed': True})
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
 class Error(RuntimeError, typing.Generic[S]):
 	input     : S
 	exception : Exception
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Processor(typing.Generic[S, T], metaclass = abc.ABCMeta):
 
 	Error = Error

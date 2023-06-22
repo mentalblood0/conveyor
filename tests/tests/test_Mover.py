@@ -20,7 +20,7 @@ def mover() -> processors.Mover:
 
 			yield Item.Status(f'{input.status.value}_')
 
-			n = input.metadata.value[Item.Metadata.Key('n')]
+			n = input.metadata['n']
 			match n:
 				case int():
 					for _ in range(n):
@@ -44,7 +44,7 @@ def worker(receiver: Worker.Receiver, mover: processors.Mover, repository: Repos
 @pydantic.validate_arguments
 def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, query_all: Query):
 
-	item = dataclasses.replace(item, metadata = Item.Metadata(item.metadata.value | {Item.Metadata.Key('n'): 1}))
+	item = dataclasses.replace(item, metadata = item.metadata | {Item.Metadata.Key('n'): 1})
 	status = item.status
 	worker.repository.append(item)
 
@@ -66,7 +66,7 @@ def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, 
 def test_mover_change_status_create_many_items(worker: Worker.Worker, item: Item, query_all: Query):
 
 	n = 3
-	item = dataclasses.replace(item, metadata = Item.Metadata(item.metadata.value | {Item.Metadata.Key('n'): n}))
+	item = dataclasses.replace(item, metadata = item.metadata | {Item.Metadata.Key('n'): n})
 	status = item.status
 	worker.repository.append(item)
 

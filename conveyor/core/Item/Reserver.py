@@ -4,7 +4,7 @@ import pydantic
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Reserver:
 
 	exists : bool

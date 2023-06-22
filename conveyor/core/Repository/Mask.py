@@ -4,7 +4,7 @@ from ..Item import Item
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Mask:
 
 	type     : Item.Type

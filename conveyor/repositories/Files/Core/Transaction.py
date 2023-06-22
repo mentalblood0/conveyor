@@ -12,7 +12,7 @@ class Collision(Exception):
 	pass
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Action(metaclass = abc.ABCMeta):
 
 	path        : pathlib.Path
@@ -41,7 +41,7 @@ class Action(metaclass = abc.ABCMeta):
 		pass
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Append(Action):
 
 	data              : pydantic.StrictBytes
@@ -118,7 +118,7 @@ class Append(Action):
 			p = p.parent
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Delete(Action):
 
 	@property

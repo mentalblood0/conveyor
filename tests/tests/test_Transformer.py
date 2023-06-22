@@ -76,7 +76,7 @@ def test_transformer_add_metadata(worker: Worker.Worker, item: Item, query_all: 
 		for i in worker.repository[query_all]:
 			assert i == dataclasses.replace(
 				item,
-				metadata = Item.Metadata(metadata.value | {Item.Metadata.Key('new'): 1})
+				metadata = metadata | {Item.Metadata.Key('new'): 1}
 			)
 
 

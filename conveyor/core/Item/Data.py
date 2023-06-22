@@ -12,7 +12,7 @@ def default_algorithm(input_: bytes) -> bytes:
 	return hashlib.sha3_512(input_).digest()
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Data:
 
 	Digest = Digest

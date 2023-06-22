@@ -28,7 +28,7 @@ def item() -> Item:
 	)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	@pydantic.validate_arguments
@@ -39,7 +39,7 @@ class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
 		return AddSpace()
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class AddSpace(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	@pydantic.validate_arguments
@@ -50,7 +50,7 @@ class AddSpace(Files.Core.Transforms.Safe[bytes, bytes]):
 		return RemoveLast()
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Compress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	level: int
@@ -63,7 +63,7 @@ class Compress(Files.Core.Transforms.Safe[bytes, bytes]):
 		return Decompress(inverted_level = self.level)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Decompress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	inverted_level: int

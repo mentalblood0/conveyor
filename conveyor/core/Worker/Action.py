@@ -10,7 +10,7 @@ from .Processor import Processor
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Action(metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
@@ -23,7 +23,7 @@ class Action(metaclass = abc.ABCMeta):
 		pass
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Actor:
 
 	Processors = typing.Sequence[Processor[Action, Action]] | typing.Iterable[Processor[Action, Action]]
@@ -42,7 +42,7 @@ class Actor:
 				a(t)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Append(Action):
 
 	new : Item
@@ -56,7 +56,7 @@ class Append(Action):
 		yield ('item', self.new)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Update(Action):
 
 	old : Item
@@ -72,7 +72,7 @@ class Update(Action):
 		yield ('new', self.new)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Delete(Action):
 
 	old : Item
@@ -86,7 +86,7 @@ class Delete(Action):
 		yield ('item', self.old)
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=False)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
 class Success(Action):
 
 	item : Item

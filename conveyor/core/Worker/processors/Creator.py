@@ -9,7 +9,7 @@ from ..Processor import Processor
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True, kw_only=True)
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
 class Creator(Processor[Item, Action.Action], metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
