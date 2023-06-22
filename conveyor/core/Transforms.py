@@ -81,3 +81,14 @@ class _Transforms(Trusted[S, T], typing.Generic[S, M, T]):
 
 	def __invert__(self) -> '_Transforms[T, M, S]':
 		return _Transforms(~self.second, ~self.first)
+
+
+@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+class Nothing(Trusted[T, T], typing.Generic[T]):
+
+	@pydantic.validate_arguments
+	def transform(self, i: T) -> T:
+		return i
+
+	def __invert__(self) -> typing.Self:
+		return self
