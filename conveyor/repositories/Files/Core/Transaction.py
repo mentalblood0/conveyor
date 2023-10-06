@@ -1,7 +1,6 @@
 import abc
 import typing
 import pathlib
-import pydantic
 import dataclasses
 
 from ....core.Transforms import Transform
@@ -12,7 +11,7 @@ class Collision(Exception):
 	pass
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Action(metaclass = abc.ABCMeta):
 
 	path        : pathlib.Path
@@ -40,11 +39,10 @@ class Action(metaclass = abc.ABCMeta):
 	def rollback(self) -> None:
 		pass
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Append(Action):
 
-	data              : pydantic.StrictBytes
+	data              : bytes
 	transforms        : Transform[bytes, bytes]
 
 	equal_path        : typing.Callable[[bytes], pathlib.Path]
@@ -118,7 +116,7 @@ class Append(Action):
 			p = p.parent
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Delete(Action):
 
 	@property

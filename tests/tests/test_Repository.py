@@ -1,6 +1,5 @@
 import typing
 import pytest
-import pydantic
 import itertools
 import dataclasses
 
@@ -10,7 +9,6 @@ from ..common import *
 
 
 
-@pydantic.validate_arguments
 def test_append_get_delete(repository: Repository, item: Item, query_all: Query):
 
 	repository.append(item)
@@ -30,12 +28,10 @@ def test_append_get_delete(repository: Repository, item: Item, query_all: Query)
 	assert not len([*repository[query_all]])
 
 
-@pydantic.validate_arguments
 def test_delete_nonexistent(repository: Repository, item: Item):
 	del repository[item]
 
 
-@pydantic.validate_arguments
 def test_transaction_one(repository: Repository, item: Item):
 
 	assert not len(repository)
@@ -52,7 +48,6 @@ def test_transaction_one(repository: Repository, item: Item):
 	assert len(repository) == 1
 
 
-@pydantic.validate_arguments
 def test_transaction_many(repository: Repository, item: Item):
 
 	assert not len(repository)
@@ -123,7 +118,6 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
 		if not (('chain' in c and 'data' not in c) or ('chain' not in c and 'data' in c))
 	)
 )
-@pydantic.validate_arguments
 def test_get_exact(repository: Repository, item: Item, query_all: Query, changed_item: Item):
 
 	repository.append(item)

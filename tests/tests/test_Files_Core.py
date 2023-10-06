@@ -1,5 +1,4 @@
 import pytest
-import pydantic
 
 from conveyor.core.Item import Data
 from conveyor.repositories import Files
@@ -18,7 +17,6 @@ def empty() -> Data:
 	return Data(value=b'')
 
 
-@pydantic.validate_arguments
 def test_path(files: Files.Core, data: Data):
 
 	p = files.path(data.digest)
@@ -35,27 +33,23 @@ def test_path(files: Files.Core, data: Data):
 			pass
 
 
-@pydantic.validate_arguments
 def test_append_one(files: Files.Core, data: Data):
 	files.append(data)
 	assert files[data.digest] == data
 
 
-@pydantic.validate_arguments
 def test_append_empty(files: Files.Core, empty: Data):
 	assert files[empty.digest]
 	files.append(empty)
 	assert files[empty.digest] == empty
 
 
-@pydantic.validate_arguments
 def test_append_many_same(files: Files.Core, data: Data):
 	for _ in range(3):
 		files.append(data)
 		assert files[data.digest] == data
 
 
-@pydantic.validate_arguments
 def test_append_many(files: Files.Core, data: Data):
 	for i in range(3):
 		d = Data(value = data.value + str(i).encode())
@@ -63,7 +57,6 @@ def test_append_many(files: Files.Core, data: Data):
 		assert files[d.digest] == d
 
 
-@pydantic.validate_arguments
 def test_append_get_delete(files: Files.Core, data: Data):
 
 	files.append(data)
@@ -74,13 +67,11 @@ def test_append_get_delete(files: Files.Core, data: Data):
 		files[data.digest]
 
 
-@pydantic.validate_arguments
 def test_delete_nonexistent(files: Files.Core, data: Data):
 	with pytest.raises(KeyError):
 		del files[data.digest]
 
 
-@pydantic.validate_arguments
 def test_transaction_append_one(files: Files.Core, data: Data):
 
 	try:
@@ -97,7 +88,6 @@ def test_transaction_append_one(files: Files.Core, data: Data):
 	assert len(files) == 1
 
 
-@pydantic.validate_arguments
 def test_transaction_append_many(files: Files.Core, data: Data):
 
 	try:

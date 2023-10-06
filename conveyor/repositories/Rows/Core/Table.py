@@ -1,5 +1,4 @@
 import typing
-import pydantic
 import sqlalchemy
 import sqlalchemy.exc
 
@@ -7,7 +6,6 @@ from .Fields import Field
 
 
 
-@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def Table(
 	connection: sqlalchemy.Connection,
 	name:       str,

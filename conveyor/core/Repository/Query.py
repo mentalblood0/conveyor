@@ -1,14 +1,13 @@
-import pydantic
+import dataclasses
 
 from .Mask import Mask
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Query:
 
 	Mask  = Mask
-	Limit = pydantic.PositiveInt | None
+	Limit = int | None
 
 	mask  : Mask
 	limit : Limit

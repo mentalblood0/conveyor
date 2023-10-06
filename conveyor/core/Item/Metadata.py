@@ -1,18 +1,18 @@
 import types
 import typing
-import pydantic
 import datetime
+import dataclasses
 
 from .Word import Word
 from .Enumerable import Enumerable
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Metadata:
 
 	class Key(Word): pass
-	Value = pydantic.StrictStr | int | float | datetime.datetime | Enumerable | None
+	Value = str | int | float | datetime.datetime | Enumerable | None
 
 	Enumerable = Enumerable
 
@@ -22,7 +22,6 @@ class Metadata:
 	def value(self) -> types.MappingProxyType[Key, Value]:
 		return types.MappingProxyType(self.value_)
 
-	@pydantic.validate_arguments
 	def __getitem__(self, key: str | Key) -> Value:
 		match key:
 			case Metadata.Key():
@@ -30,14 +29,13 @@ class Metadata:
 			case str():
 				return self[Metadata.Key(key)]
 
-	def __or__(self, o: typing.Any) -> typing.Self:
+	def __or__(self, o: dict[Key, Value] | typing.Mapping[Key, Value] | 'Metadata') -> typing.Self:
 		match o:
-			case dict():
+			case dict() | typing.Mapping():
 				return Metadata(self.value | o)
 			case Metadata():
 				return self | o.value
-			case _:
-				raise ValueError(f'Metadata instance can be joined only with another Metadata instance or dictionary (got {type(o)})')
+		raise ValueError(f'Metadata instance can be joined only with another Metadata instance or dictionary (got {type(o)})')
 
 	def __ror__(self, __value: typing.Any) -> typing.Self:
 		return self | __value

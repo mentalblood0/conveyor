@@ -2,9 +2,9 @@ import zlib
 import typing
 import pytest
 import pathlib
-import pydantic
 import datetime
 import sqlalchemy
+import dataclasses
 
 from conveyor.core import Worker, Mask
 from conveyor.repositories import Files, Rows
@@ -28,10 +28,9 @@ def item() -> Item:
 	)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
 
-	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return i[:-1]
 
@@ -39,36 +38,31 @@ class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
 		return AddSpace()
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class AddSpace(Files.Core.Transforms.Safe[bytes, bytes]):
 
-	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return i + b' '
 
 	def __invert__(self) -> RemoveLast:
 		return RemoveLast()
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Compress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	level: int
 
-	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return zlib.compress(i, level = self.level)
 
 	def __invert__(self) -> 'Decompress':
 		return Decompress(inverted_level = self.level)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Decompress(Files.Core.Transforms.Safe[bytes, bytes]):
 
 	inverted_level: int
 
-	@pydantic.validate_arguments
 	def transform(self, i: bytes) -> bytes:
 		return zlib.decompress(i)
 
@@ -142,7 +136,6 @@ def query_all(row: Rows.Core.Item) -> Query:
 
 
 @pytest.fixture
-@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 def repository(files: Files.Core, rows: Rows.Core) -> Repository:
 	result = Repository([Rows(rows), Files(files)])
 	result.clear()
@@ -150,7 +143,6 @@ def repository(files: Files.Core, rows: Rows.Core) -> Repository:
 
 
 @pytest.fixture
-@pydantic.validate_arguments
 def receiver(item: Item) -> Worker.Receiver:
 	return Worker.Receiver(
 		masks = (

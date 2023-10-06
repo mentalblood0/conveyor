@@ -1,7 +1,7 @@
 import typing
-import pydantic
 import sqlalchemy
 import sqlalchemy.exc
+import dataclasses
 
 from .....core import Transforms, Item
 
@@ -12,7 +12,7 @@ from ..DbTableName import DbTableName
 from .Columns import columns
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class EnumsTransform:
 
 	connect    : Connect
@@ -27,7 +27,7 @@ class EnumsTransform:
 		self.cache.load(self.enum_table, self.connect)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 
 	@property
@@ -38,7 +38,6 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 			*columns()
 		)
 
-	@pydantic.validate_arguments
 	def transform(self, i: Item.Metadata.Enumerable) -> int:
 
 		try:
@@ -76,10 +75,9 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 
-	@pydantic.validate_arguments
 	def transform(self, i: int) -> Item.Metadata.Enumerable:
 
 		for _ in range(2):
@@ -97,8 +95,7 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
 			cache_id   = self.cache_id
 		)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Enum:
 
 	type           : Item.Type
@@ -130,11 +127,9 @@ class Enum:
 	def column(self) -> sqlalchemy.Column[int]:
 		return sqlalchemy.Column(self.db_field, sqlalchemy.SmallInteger(), nullable = True)
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index[int]:
 		return sqlalchemy.Index(f'index__{self.table.name}', self.db_field, _table = table)
 
-	@pydantic.validate_arguments
 	def eq(self, description: Item.Metadata.Enumerable) -> sqlalchemy.sql.expression.ColumnElement[bool]:
 		return self.column == self.convert(description)
 
@@ -146,7 +141,6 @@ class Enum:
 	def convert(self, value: int | None) -> Item.Metadata.Enumerable:
 		pass
 
-	@pydantic.validate_arguments
 	def convert(self, value: Item.Metadata.Enumerable | int | None) -> int | Item.Metadata.Enumerable | None:
 		match value:
 			case int():
@@ -176,8 +170,7 @@ class Enum:
 			cache_id   = self.cache_id
 		)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Enums:
 
 	connect        : Connect

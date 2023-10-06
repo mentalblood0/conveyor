@@ -1,5 +1,4 @@
 import typing
-import pydantic
 import dataclasses
 
 from .Word import Word
@@ -10,8 +9,7 @@ from .Reserver import Reserver
 from .Metadata import Metadata
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Item:
 
 	class Type(Word)   : pass

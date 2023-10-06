@@ -1,7 +1,6 @@
 import pytest
 import typing
 import datetime
-import pydantic
 import itertools
 import dataclasses
 
@@ -12,7 +11,6 @@ from ..common import *
 
 
 
-@pydantic.validate_arguments
 def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item, query_all: Query):
 
 	rows.append(row)
@@ -32,7 +30,6 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item, query_all: Quer
 	assert not len([*rows[query_all]])
 
 
-@pydantic.validate_arguments
 def test_transaction_append_one_in_one_table(rows: Rows.Core, row: Rows.Core.Item):
 
 	try:
@@ -49,7 +46,6 @@ def test_transaction_append_one_in_one_table(rows: Rows.Core, row: Rows.Core.Ite
 	assert len(rows) == 1
 
 
-@pydantic.validate_arguments
 def test_transaction_append_many_in_one_table(rows: Rows.Core, row: Rows.Core.Item):
 
 	try:
@@ -68,7 +64,6 @@ def test_transaction_append_many_in_one_table(rows: Rows.Core, row: Rows.Core.It
 	assert len(rows) == 3
 
 
-@pydantic.validate_arguments
 def test_transaction_append_one_in_many_tables(rows: Rows.Core, row: Rows.Core.Item):
 
 	another_row = dataclasses.replace(
@@ -92,7 +87,6 @@ def test_transaction_append_one_in_many_tables(rows: Rows.Core, row: Rows.Core.I
 	assert len(rows) == 2
 
 
-@pydantic.validate_arguments
 def test_delete_nonexistent(rows: Rows.Core, row: Rows.Core.Item):
 	del rows[row]
 
@@ -126,7 +120,6 @@ def changed_row(row: Rows.Core.Item, changes_list: typing.Iterable[str]) -> Rows
 	return dataclasses.replace(row, **changes)
 
 
-@pydantic.validate_arguments
 def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
 
 	rows.append(row)
@@ -149,7 +142,6 @@ def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
 
 
 
-@pydantic.validate_arguments
 def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	rows.append(dataclasses.replace(
@@ -161,21 +153,18 @@ def test_add_columns_many(rows: Rows.Core, row: Rows.Core.Item):
 	))
 
 
-@pydantic.validate_arguments
 def test_contains(rows: Rows.Core, row: Rows.Core.Item):
 	assert row not in rows
 	rows.append(row)
 	assert row in rows
 
 
-@pydantic.validate_arguments
 def test_delete(rows: Rows.Core, row: Rows.Core.Item):
 	rows.append(row)
 	del rows[row]
 	assert row not in rows
 
 
-@pydantic.validate_arguments
 def test_len(rows: Rows.Core, row: Rows.Core.Item):
 	assert not len(rows)
 	for i in range(3):
@@ -183,7 +172,6 @@ def test_len(rows: Rows.Core, row: Rows.Core.Item):
 		assert len(rows) == i + 1
 
 
-@pydantic.validate_arguments
 def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 	changed_status = Item.Status(f'{row.status.value}_')
@@ -202,7 +190,6 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
 	)]] == [changed_row]
 
 
-@pydantic.validate_arguments
 def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 
 	metadata_1 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')}
@@ -224,7 +211,6 @@ def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
 	)]] == [item_2]
 
 
-@pydantic.validate_arguments
 def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
 
 	metadata_1 = row.metadata | {Item.Metadata.Key('new_column'): Item.Metadata.Enumerable('lalala')}
@@ -261,7 +247,6 @@ def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
 		for n in range(1, 5)
 	))
 )
-@pydantic.validate_arguments
 def test_get_exact(rows: Rows.Core, row: Rows.Core.Item, query_all: Query, changed_row: Rows.Core.Item):
 
 	rows.append(row)

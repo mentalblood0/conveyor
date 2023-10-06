@@ -1,6 +1,5 @@
 import pytest
 import typing
-import pydantic
 
 from conveyor.core import Worker
 from conveyor.core.Worker import processors
@@ -21,7 +20,6 @@ def creator() -> processors.Creator:
 
 
 @pytest.fixture
-@pydantic.validate_arguments
 def worker(creator: processors.Creator, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
 		processor  = creator,
@@ -29,7 +27,6 @@ def worker(creator: processors.Creator, repository: Repository) -> Worker.Worker
 	)
 
 
-@pydantic.validate_arguments
 def test_creator_create_one_item(worker: Worker.Worker, item: Item, query_all: Query):
 	for j in range(2):
 		worker((item,))
@@ -38,7 +35,6 @@ def test_creator_create_one_item(worker: Worker.Worker, item: Item, query_all: Q
 			assert i == item
 
 
-@pydantic.validate_arguments
 def test_creator_create_many_items(worker: Worker.Worker, item: Item, query_all: Query):
 	n = 3
 	for j in range(2):

@@ -1,5 +1,4 @@
 import typing
-import pydantic
 import contextlib
 import dataclasses
 
@@ -13,7 +12,7 @@ from .PartRepository import PartRepository
 Parts = typing.Sequence[PartRepository]
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Repository:
 
 	Parts = Parts
@@ -21,24 +20,17 @@ class Repository:
 	parts        : Parts
 	transaction_ : bool = False
 
-	@pydantic.validator('parts')
-	def parts_valid(cls, parts: Parts) -> Parts:
-		match len(parts):
-			case 0:
-				raise pydantic.ListMinLengthError(limit_value = 1)
-			case _:
-				return parts
+	def __post_init__(self):
+		if not len(self.parts):
+			raise ValueError('`parts` must contain at least one element')
 
-	@pydantic.validate_arguments
 	def _unreserved(self, item: Item) -> Item:
 		return dataclasses.replace(item, reserver = Item.Reserver(exists = False))
 
-	@pydantic.validate_arguments
 	def append(self, item: Item) -> None:
 		for p in reversed(self.parts):
 			p.append(self._unreserved(item))
 
-	@pydantic.validate_arguments
 	def _get(self, query: Query, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[Part] = (Part(),)) -> typing.Iterable[Item]:
 		match len(repositories):
 			case 0:
@@ -53,7 +45,6 @@ class Repository:
 					):
 						yield item
 
-	@pydantic.validate_arguments
 	def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
 
 		reserver = Item.Reserver(exists = True)
@@ -81,7 +72,6 @@ class Repository:
 			if got == item_query.limit:
 				break
 
-	@pydantic.validate_arguments
 	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
 
 		if for_reserve:
@@ -96,7 +86,6 @@ class Repository:
 				except NotImplementedError:
 					pass
 
-	@pydantic.validate_arguments
 	def __delitem__(self, item: Item) -> None:
 		with self.transaction() as t:
 			for p in t.parts:
@@ -105,7 +94,6 @@ class Repository:
 				except KeyError:
 					break
 
-	@pydantic.validate_arguments
 	@contextlib.contextmanager
 	def _transaction(self, parts_to_include: typing.Sequence[PartRepository]) -> typing.Iterator[typing.Sequence[PartRepository]]:
 		match len(parts_to_include):
@@ -129,11 +117,10 @@ class Repository:
 						transaction_ = True
 					)
 
-	@pydantic.validate_arguments
 	def __contains__(self, item: Item) -> bool:
 		return all(item in p for p in self.parts)
 
-	def __len__(self) -> pydantic.NonNegativeInt:
+	def __len__(self) -> int:
 		return max(len(p) for p in self.parts)
 
 	def clear(self) -> None:

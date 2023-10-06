@@ -1,5 +1,4 @@
 import typing
-import pydantic
 import datetime
 import sqlalchemy
 import dataclasses
@@ -38,7 +37,7 @@ base_fields: tuple[
 Column = sqlalchemy.Column[int] | sqlalchemy.Column[float] | sqlalchemy.Column[str] | sqlalchemy.Column[datetime.datetime]
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Field:
 
 	name      : Item.Key
@@ -81,7 +80,6 @@ class Field:
 			case _:
 				raise ValueError(f'Can not guess column type corresponding to value with type `{type(self.value)}`')
 
-	@pydantic.validate_arguments(config = {'arbitrary_types_allowed': True})
 	def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index:
 		match self.value:
 			case Item.Metadata.Enumerable():
@@ -90,7 +88,7 @@ class Field:
 				return sqlalchemy.Index(f'index__{self.name.value}', self.name.value, _table = table)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Fields:
 
 	row       : Row

@@ -1,7 +1,7 @@
-import pydantic
+import dataclasses
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Enumerable:
-	value: pydantic.StrictStr | None
+	value: str | None

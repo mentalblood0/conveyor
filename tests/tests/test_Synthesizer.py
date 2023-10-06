@@ -1,6 +1,5 @@
 import pytest
 import typing
-import pydantic
 import dataclasses
 
 from conveyor.core import Worker
@@ -35,7 +34,6 @@ def synthesizer() -> processors.Synthesizer:
 
 
 @pytest.fixture
-@pydantic.validate_arguments
 def worker(synthesizer: processors.Synthesizer, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
 		receiver   = Worker.Receiver(
@@ -57,7 +55,6 @@ def worker(synthesizer: processors.Synthesizer, repository: Repository) -> Worke
 	)
 
 
-@pydantic.validate_arguments
 def test_synthesizer(worker: Worker.Worker, item: Item):
 
 	worker.repository.append(

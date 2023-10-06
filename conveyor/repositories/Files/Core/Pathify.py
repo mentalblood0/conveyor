@@ -1,6 +1,6 @@
 import typing
 import pathlib
-import pydantic
+import dataclasses
 
 from ....core.Item import Digest
 
@@ -8,10 +8,9 @@ from ....core.Transforms import Transform, Safe
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Segment(Safe[Digest, typing.Sequence[str]]):
 
-	@pydantic.validate_arguments
 	def _segment(self, s: str) -> str:
 		match s:
 			case '+':
@@ -23,7 +22,6 @@ class Segment(Safe[Digest, typing.Sequence[str]]):
 			case _:
 				return s
 
-	@pydantic.validate_arguments
 	def transform(self, i: Digest) -> typing.Sequence[str]:
 		return [*map(self._segment, i.string)]
 
@@ -31,10 +29,9 @@ class Segment(Safe[Digest, typing.Sequence[str]]):
 		return Desegment()
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Desegment(Safe[typing.Sequence[str], Digest]):
 
-	@pydantic.validate_arguments
 	def _desegment(self, s: str) -> str:
 		match s:
 			case 'plus':
@@ -46,7 +43,6 @@ class Desegment(Safe[typing.Sequence[str], Digest]):
 			case _:
 				return s
 
-	@pydantic.validate_arguments
 	def transform(self, i: typing.Sequence[str]) -> Digest:
 		return Digest(
 			Digest.Base64String(
@@ -61,15 +57,14 @@ class Desegment(Safe[typing.Sequence[str], Digest]):
 		return Segment()
 
 
-Granulation = typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]
+Granulation = typing.Callable[[int], int]
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Group(Safe[typing.Sequence[str], pathlib.Path]):
 
 	granulation: Granulation
 
-	@pydantic.validate_arguments
 	def _group(self, l: typing.Iterable[str], size: typing.Callable[[int], int]) -> typing.Iterable[str]:
 
 		buffer = ''
@@ -89,7 +84,6 @@ class Group(Safe[typing.Sequence[str], pathlib.Path]):
 				yield e
 				n += 1
 
-	@pydantic.validate_arguments
 	def transform(self, i: typing.Sequence[str]) -> pathlib.Path:
 		return pathlib.Path(
 			*self._group(
@@ -102,12 +96,11 @@ class Group(Safe[typing.Sequence[str], pathlib.Path]):
 		return Ungroup(inverted_granulation = self.granulation)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Ungroup(Safe[pathlib.Path, typing.Sequence[str]]):
 
 	inverted_granulation: Granulation = lambda n: 2
 
-	@pydantic.validate_arguments
 	def transform(self, i: pathlib.Path) -> typing.Sequence[str]:
 
 		result: list[str] = []
@@ -125,5 +118,5 @@ class Ungroup(Safe[pathlib.Path, typing.Sequence[str]]):
 
 
 class Pathify:
-	def __new__(cls, granulation: typing.Callable[[pydantic.NonNegativeInt], pydantic.PositiveInt]) -> Transform[Digest, pathlib.Path]:
+	def __new__(cls, granulation: typing.Callable[[int], int]) -> Transform[Digest, pathlib.Path]:
 		return Segment() + Group(granulation)

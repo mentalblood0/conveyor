@@ -1,13 +1,12 @@
 import typing
-import pydantic
+import dataclasses
 
 from ....core import Item
 
 from .Enums import Enums
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Row:
 
 	type     : Item.Type
@@ -20,15 +19,12 @@ class Row:
 	created  : Item.Created
 	reserver : Item.Reserver
 
-	@pydantic.validator('metadata')
-	def metadata_valid(cls, metadata: Item.Metadata, values: dict[str, Item.Value | Item.Metadata.Value]) -> Item.Metadata:
-		for k in metadata:
-			if k.value in values:
+	def __post_init__(self):
+		for k in self.metadata:
+			if k.value in dir(self):
 				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
-		return metadata
 
 	@classmethod
-	@pydantic.validate_arguments
 	def from_item(cls, item: Item) -> typing.Self:
 		return Row(
 			type     = item.type,

@@ -1,17 +1,15 @@
 import re
-import pydantic
+import dataclasses
 
 from .Enumerable import Enumerable
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Word(Enumerable):
 
-	value: pydantic.StrictStr
+	value: str
 
-	@pydantic.validator('value')
-	def value_valid(cls, value: pydantic.StrictStr) -> pydantic.StrictStr:
-		if re.match(r'\w+', value) is None:
+	def __post_init__(self):
+		if re.match(r'\w+', self.value) is None:
 			raise ValueError('`Word` value must be word')
-		return value

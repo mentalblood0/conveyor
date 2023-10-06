@@ -1,7 +1,7 @@
 import abc
 import typing
-import pydantic
 import contextlib
+import dataclasses
 
 from ..Item import Item
 from ..Item.Part import Part
@@ -9,7 +9,7 @@ from .Query import Query
 
 
 
-@pydantic.dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class PartRepository(metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
@@ -37,7 +37,7 @@ class PartRepository(metaclass = abc.ABCMeta):
 		pass
 
 	@abc.abstractmethod
-	def __len__(self) -> pydantic.NonNegativeInt:
+	def __len__(self) -> int:
 		pass
 
 	@abc.abstractmethod

@@ -1,4 +1,4 @@
-import pydantic
+import dataclasses
 
 from . import Item
 
@@ -6,15 +6,13 @@ from . import Item
 
 class AccessError(BaseException):
 
-	@pydantic.validate_arguments
 	def __init__(self, field: str):
 		self.message = f'Item part has no field `{field}` yet'
 
 	def __str__(self) -> str:
 		return self.message
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Part:
 
 	AccessError = AccessError
@@ -28,21 +26,15 @@ class Part:
 	created_  : Item.Created     | None = None
 	reserver_ : Item.Reserver    | None = None
 
-	@pydantic.validator('digest_')
-	def digest__valid(cls, digest: Item.Data.Digest | None, values: dict[str, Item.Value]) -> Item.Data.Digest | None:
-
-		match values['data_']:
+	def __post_init__(self):
+		match self.data_:
 			case Item.Data():
-				if digest is None:
-					return values['data_'].digest
-				elif values['data_'].digest != digest:
+				if self.digest_ is None:
+					return self.data_.digest
+				elif self.data_.digest != self.digest_:
 					raise ValueError('Data digest not match separate digest')
 			case None:
 				pass
-			case _:
-				raise ValueError
-
-		return digest
 
 	@property
 	def item(self) -> Item:

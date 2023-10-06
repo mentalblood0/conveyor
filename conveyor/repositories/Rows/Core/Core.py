@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-import pydantic
 import contextlib
 import sqlalchemy
 import dataclasses
@@ -20,7 +19,7 @@ from .DbTableName import DbTableName
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Core:
 
 	Item = Row
@@ -48,7 +47,6 @@ class Core:
 			cache_id       = self._cache_id
 		)
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def __where(self, ref: Row | Query.Mask) -> typing.Iterable[sqlalchemy.sql.expression.ColumnElement[bool]]:
 		if ref.status is not None:
 			yield self._enums[(ref.type, Item.Key('status'))].eq(ref.status)
@@ -71,7 +69,6 @@ class Core:
 					case _:
 						yield     sqlalchemy.column(k.value) == v
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _where_string(self, ref: Row | Query.Mask) -> str:
 		return ' and '.join(
 			str(
@@ -83,7 +80,6 @@ class Core:
 			for c in self.__where(ref)
 		)
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _compile(self, v: Item.Value) -> str:
 		return str(
 			sqlalchemy.text(':v').bindparams(v = v).compile(
@@ -92,20 +88,17 @@ class Core:
 			)
 		)
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _values(self, d: dict[str, Item.Value]) -> str:
 		keys   = ', '.join(d)
 		values = ', '.join(self._compile(v) for v in d.values())
 		return f'({keys}) values ({values})'
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	def _set(self, d: dict[str, Item.Value]) -> str:
 		return ', '.join(
 			f'{k} = {self._compile(v)}'
 			for k, v in d.items()
 		)
 
-	@pydantic.validate_arguments
 	def append(self, row: Row) -> None:
 
 		name = self.table(row.type)
@@ -134,7 +127,6 @@ class Core:
 						)
 				created = True
 
-	@pydantic.validate_arguments
 	def __getitem__(self, query: Query) -> typing.Iterable[Row]:
 
 		q = f'select * from {self.table(query.mask.type)}'
@@ -183,7 +175,6 @@ class Core:
 				metadata = metadata
 			)
 
-	@pydantic.validate_arguments
 	def __setitem__(self, old: Row, new: Row) -> None:
 
 		if not (changes := new.sub(old, self._enums)):
@@ -212,7 +203,6 @@ class Core:
 						).fields
 					)
 
-	@pydantic.validate_arguments
 	def __delitem__(self, row: Row) -> None:
 		try:
 			with self._connect() as connection:
@@ -227,7 +217,6 @@ class Core:
 		with self._connect() as connection:
 			yield dataclasses.replace(self, connection=connection)
 
-	@pydantic.validate_arguments
 	@contextlib.contextmanager
 	def _connect(self) -> typing.Iterator[sqlalchemy.Connection]:
 		match self.connection:
@@ -242,7 +231,6 @@ class Core:
 				with self.db.begin() as connection:
 					yield connection
 
-	@pydantic.validate_arguments
 	def __contains__(self, row: Row) -> bool:
 		with self._connect() as connection:
 			try:
@@ -252,7 +240,7 @@ class Core:
 			except:
 				return False
 
-	def __len__(self) -> pydantic.NonNegativeInt:
+	def __len__(self) -> int:
 		with self._connect() as connection:
 			return sum(
 				connection.execute(sqlalchemy.text(f'SELECT COUNT(*) from {name}')).scalar_one()

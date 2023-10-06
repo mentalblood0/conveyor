@@ -1,5 +1,4 @@
 import typing
-import pydantic
 import datetime
 import traceback
 import dataclasses
@@ -11,7 +10,7 @@ from ..Processor import Processor
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Error(Action.Action):
 
 	old       : Item
@@ -32,11 +31,10 @@ class Error(Action.Action):
 				Item.Metadata.Key('item_status') : self.old.status.value
 			}),
 			chain    = Item.Chain(ref = Item.Data(value = b'')),
-			reserver = Item.Reserver(exists = False, value = None),
+			reserver = Item.Reserver(exists = False),
 			created  = Item.Created(datetime.datetime.now())
 		)
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		Action.Append(self.item)(repository)
 
@@ -44,8 +42,7 @@ class Error(Action.Action):
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('old', self.old)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Solution(Action.Action):
 
 	ref  : Item | Action.Success
@@ -60,7 +57,6 @@ class Solution(Action.Action):
 			case Action.Success():
 				return self.ref.item
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		Action.Delete(
 			Error(
@@ -74,8 +70,7 @@ class Solution(Action.Action):
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('old', self.old)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Logger(Processor[Action.Action, Action.Action]):
 
 	Error    = Error
@@ -84,7 +79,6 @@ class Logger(Processor[Action.Action, Action.Action]):
 	normal : Item.Type
 	errors : Item.Type
 
-	@pydantic.validate_arguments
 	def __call__(self, input: typing.Callable[[], typing.Iterable[Action.Action]], config: typing.Any) -> typing.Iterable[Action.Action]:
 
 		try:
@@ -120,7 +114,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 								Item.Metadata.Key('action') : Item.Metadata.Enumerable(a.__class__.__name__),
 							},
 							chain    = Item.Chain(ref = Item.Data(value = str(a).encode())),
-							reserver = Item.Reserver(exists = False, value = None),
+							reserver = Item.Reserver(exists = False),
 							created  = Item.Created(datetime.datetime.now())
 						)
 

@@ -1,5 +1,5 @@
 import typing
-import pydantic
+import dataclasses
 
 from .. import Item
 from ..Repository.Repository import Repository
@@ -9,8 +9,7 @@ from .Processor import Processor
 from .Action import Action, Actor
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Worker:
 
 	receiver   : Receiver | None         = None

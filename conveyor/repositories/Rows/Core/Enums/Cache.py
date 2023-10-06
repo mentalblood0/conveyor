@@ -1,4 +1,4 @@
-import pydantic
+import dataclasses
 import sqlalchemy
 
 from .....core import Item
@@ -8,8 +8,7 @@ from ..Connect import Connect
 from .Columns import columns
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class TableCache:
 	value       : dict[Item.Metadata.Enumerable, int]
 	description : dict[int, Item.Metadata.Enumerable]
@@ -19,7 +18,6 @@ class Cache(dict[str, TableCache]):
 
 	TableCache = TableCache
 
-	@pydantic.validate_arguments
 	def load(self, table: str, connect: Connect):
 		with connect() as connection:
 			for r in connection.execute(

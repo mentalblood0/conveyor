@@ -1,7 +1,7 @@
 import abc
 import typing
-import pydantic
 import functools
+import dataclasses
 
 from ..Item import Item
 from ..Repository.Repository import Repository
@@ -10,7 +10,7 @@ from .Processor import Processor
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Action(metaclass = abc.ABCMeta):
 
 	@abc.abstractmethod
@@ -23,14 +23,13 @@ class Action(metaclass = abc.ABCMeta):
 		pass
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Actor:
 
 	Processors = typing.Sequence[Processor[Action, Action]] | typing.Iterable[Processor[Action, Action]]
 
 	processors : Processors = ()
 
-	@pydantic.validate_arguments
 	def __call__(self, actions: typing.Sequence[Action] | typing.Iterable[Action], repository: Repository) -> None:
 		actions = (*actions,)
 		with repository.transaction() as t:
@@ -42,12 +41,11 @@ class Actor:
 				a(t)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Append(Action):
 
 	new : Item
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		repository.append(self.new)
 
@@ -55,14 +53,12 @@ class Append(Action):
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('item', self.new)
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Update(Action):
 
 	old : Item
 	new : Item
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		repository[self.old] = self.new
 
@@ -72,12 +68,11 @@ class Update(Action):
 		yield ('new', self.new)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Delete(Action):
 
 	old : Item
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		del repository[self.old]
 
@@ -86,16 +81,14 @@ class Delete(Action):
 		yield ('item', self.old)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Success(Action):
 
 	item : Item
 
-	@pydantic.validate_arguments
 	def __call__(self, repository: Repository) -> None:
 		return
 
 	@property
-	@pydantic.validate_arguments
 	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
 		yield ('item', self.item)

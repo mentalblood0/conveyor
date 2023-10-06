@@ -1,7 +1,6 @@
 import typing
 import shutil
 import pathlib
-import pydantic
 import contextlib
 import dataclasses
 
@@ -12,8 +11,7 @@ from .Pathify import Pathify
 from .Transaction import Transaction
 
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Core:
 
 	Transforms = Transforms
@@ -30,11 +28,9 @@ class Core:
 
 	empty        : Digest = Data(value = b'').digest
 
-	@pydantic.validate_arguments
 	def path(self, digest: Digest) -> pathlib.Path:
 		return pathlib.Path(self.root, self.pathify(digest)).with_suffix(self.suffix)
 
-	@pydantic.validate_arguments
 	def append(self, data: Data) -> None:
 
 		if not data.value:
@@ -54,7 +50,6 @@ class Core:
 			else:
 				raise ValueError
 
-	@pydantic.validate_arguments
 	def __getitem__(self, digest: Digest) -> Data:
 
 		if digest == self.empty:
@@ -72,7 +67,6 @@ class Core:
 		except ValueError:
 			raise
 
-	@pydantic.validate_arguments
 	def __delitem__(self, digest: Digest) -> None:
 		with self.transaction() as t:
 			if t.transaction_ is not None:
@@ -105,13 +99,12 @@ class Core:
 		except FileNotFoundError as e:
 			raise KeyError from e
 
-	@pydantic.validate_arguments
 	def __contains__(self, digest: Digest) -> bool:
 		return self.path(digest).exists()
 
-	def __len__(self) -> pydantic.NonNegativeInt:
+	def __len__(self) -> int:
 
-		result: pydantic.NonNegativeInt = 0
+		result: int = 0
 
 		for _ in self.root.rglob(f'*{self.suffix}'):
 			result += 1

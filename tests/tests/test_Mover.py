@@ -1,6 +1,5 @@
 import pytest
 import typing
-import pydantic
 import dataclasses
 
 from conveyor.core import Worker
@@ -32,7 +31,6 @@ def mover() -> processors.Mover:
 
 
 @pytest.fixture
-@pydantic.validate_arguments
 def worker(receiver: Worker.Receiver, mover: processors.Mover, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
 		receiver   = receiver,
@@ -41,7 +39,6 @@ def worker(receiver: Worker.Receiver, mover: processors.Mover, repository: Repos
 	)
 
 
-@pydantic.validate_arguments
 def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, query_all: Query):
 
 	item = dataclasses.replace(item, metadata = item.metadata | {Item.Metadata.Key('n'): 1})
@@ -62,7 +59,6 @@ def test_mover_change_status_create_one_item(worker: Worker.Worker, item: Item, 
 			assert i == dataclasses.replace(item, type = Item.Type('new'))
 
 
-@pydantic.validate_arguments
 def test_mover_change_status_create_many_items(worker: Worker.Worker, item: Item, query_all: Query):
 
 	n = 3

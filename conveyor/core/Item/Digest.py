@@ -1,9 +1,9 @@
 import base64
-import pydantic
+import dataclasses
 
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Base64String:
 
 	value: str
@@ -15,26 +15,16 @@ class Base64String:
 		)
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Digest:
 
 	Base64String = Base64String
 
-	value_or_string: pydantic.StrictBytes | Base64String
+	value_or_string: bytes | Base64String
 
-	@pydantic.validator('value_or_string')
-	def value_or_string_valid(cls, value_or_string: pydantic.StrictBytes | Base64String) -> pydantic.StrictBytes | Base64String:
-
-		match value_or_string:
-			case bytes():
-				value = value_or_string
-			case Base64String():
-				value = value_or_string.decoded
-
-		if len(value) < 32:
-			raise ValueError(f'`Digest` value must be of minimum length 32 (got {value} which is of length {len(value)})')
-
-		return value_or_string
+	def __post_init__(self):
+		if (given := len(self.value)) < (required := 32):
+			raise ValueError(f'`Digest` value must be of minimum length {required} (got {self.value} which is of length {given})')
 
 	@property
 	def value(self) -> bytes:

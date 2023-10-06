@@ -1,6 +1,6 @@
 import abc
 import typing
-import pydantic
+import dataclasses
 
 
 
@@ -8,18 +8,16 @@ S = typing.TypeVar('S')
 T = typing.TypeVar('T')
 
 
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True, config = {'arbitrary_types_allowed': True})
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Error(RuntimeError, typing.Generic[S]):
 	input     : S
 	exception : Exception
 
-
-@pydantic.dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = True)
 class Processor(typing.Generic[S, T], metaclass = abc.ABCMeta):
 
 	Error = Error
 
-	@pydantic.validate_arguments(config={'arbitrary_types_allowed': True})
 	@typing.final
 	def error(self, i: S, exception: Exception) -> Error[S]:
 		return Error(

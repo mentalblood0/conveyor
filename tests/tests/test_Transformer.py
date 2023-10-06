@@ -1,7 +1,6 @@
 import enum
 import pytest
 import typing
-import pydantic
 import dataclasses
 
 from conveyor.core import Worker
@@ -36,7 +35,6 @@ def transformer(transformer_changes: typing.Sequence[TransformerChanges]) -> pro
 
 
 @pytest.fixture
-@pydantic.validate_arguments
 def worker(receiver: Worker.Receiver, transformer: processors.Transformer, repository: Repository) -> Worker.Worker:
 	return Worker.Worker(
 		receiver   = receiver,
@@ -45,7 +43,6 @@ def worker(receiver: Worker.Receiver, transformer: processors.Transformer, repos
 	)
 
 
-@pydantic.validate_arguments
 @pytest.mark.parametrize(
 	'transformer_changes', ((TransformerChanges.status,),)
 )
@@ -61,7 +58,6 @@ def test_transformer_change_status(worker: Worker.Worker, item: Item, query_all:
 			assert i == dataclasses.replace(item, status = Item.Status(f'{status.value}_'))
 
 
-@pydantic.validate_arguments
 @pytest.mark.parametrize(
 	'transformer_changes', ((TransformerChanges.metadata_add,),)
 )
@@ -80,7 +76,6 @@ def test_transformer_add_metadata(worker: Worker.Worker, item: Item, query_all: 
 			)
 
 
-@pydantic.validate_arguments
 @pytest.mark.parametrize(
 	'transformer_changes', ((TransformerChanges.metadata_delete,),)
 )
