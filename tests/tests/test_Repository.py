@@ -22,7 +22,7 @@ def test_append_get_delete(repository: Repository, item: Item, query_all: Query)
 	assert saved.metadata == item.metadata
 	assert saved.chain == item.chain
 	assert saved.created == item.created
-	assert saved.reserver.exists
+	assert saved.reserver.value is not None
 
 	del repository[saved]
 	assert not len([*repository[query_all]])

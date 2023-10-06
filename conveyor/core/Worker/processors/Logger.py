@@ -31,7 +31,7 @@ class Error(Action.Action):
 				Item.Metadata.Key('item_status') : self.old.status.value
 			}),
 			chain    = Item.Chain(ref = Item.Data(value = b'')),
-			reserver = Item.Reserver(exists = False),
+			reserver = Item.Reserver(None),
 			created  = Item.Created(datetime.datetime.now())
 		)
 
@@ -114,7 +114,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 								Item.Metadata.Key('action') : Item.Metadata.Enumerable(a.__class__.__name__),
 							},
 							chain    = Item.Chain(ref = Item.Data(value = str(a).encode())),
-							reserver = Item.Reserver(exists = False),
+							reserver = Item.Reserver(None),
 							created  = Item.Created(datetime.datetime.now())
 						)
 

@@ -4,8 +4,7 @@ import dataclasses
 
 
 
-@dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen = True, kw_only = False)
 class Reserver:
 
-	exists : bool
-	value  : str  = dataclasses.field(default_factory = lambda: base64.b64encode(uuid.uuid4().bytes).decode('ascii'))
+	value  : str | None = dataclasses.field(default_factory = lambda: base64.b64encode(uuid.uuid4().bytes).decode('ascii'))

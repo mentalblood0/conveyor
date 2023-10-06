@@ -25,7 +25,7 @@ class Repository:
 			raise ValueError('`parts` must contain at least one element')
 
 	def _unreserved(self, item: Item) -> Item:
-		return dataclasses.replace(item, reserver = Item.Reserver(exists = False))
+		return dataclasses.replace(item, reserver = Item.Reserver(None))
 
 	def append(self, item: Item) -> None:
 		for p in reversed(self.parts):
@@ -47,7 +47,7 @@ class Repository:
 
 	def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
 
-		reserver = Item.Reserver(exists = True)
+		reserver = Item.Reserver()
 		got: int = 0
 
 		for i in self._get(
@@ -55,7 +55,7 @@ class Repository:
 				item_query,
 				mask = dataclasses.replace(
 					item_query.mask,
-					reserver = Item.Reserver(exists = False)
+					reserver = Item.Reserver(None)
 				)
 			),
 			repositories = self.parts

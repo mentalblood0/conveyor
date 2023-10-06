@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
 	setuptools.setup(
 		name                          = 'conveyor',
-		version                       = '2.2.7',
+		version                       = '2.3.0',
 		description                   = 'Library for creating cold-pipeline-oriented systems',
 		long_description              = (pathlib.Path(__file__).parent / 'README.md').read_text(),
 		long_description_content_type = 'text/markdown',
@@ -20,7 +20,6 @@ if __name__ == '__main__':
 			for name in packages
 		},
 		install_requires              = [
-			'pydantic',
 			'sqlalchemy'
 		]
 	)

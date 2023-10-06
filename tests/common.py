@@ -24,7 +24,7 @@ def item() -> Item:
 		metadata = Item.Metadata({Item.Metadata.Key('key'): 'value'}),
 		chain    = Item.Chain(ref=data),
 		created  = Item.Created(value=datetime.datetime.utcnow()),
-		reserver = Item.Reserver(exists=False)
+		reserver = Item.Reserver(None)
 	)
 
 
@@ -121,7 +121,7 @@ def row() -> Rows.Core.Item:
 		}),
 		chain    = Item.Chain(ref=data).value,
 		created  = Item.Created(datetime.datetime.utcnow()),
-		reserver = Item.Reserver(exists=False)
+		reserver = Item.Reserver(value = None)
 	)
 
 

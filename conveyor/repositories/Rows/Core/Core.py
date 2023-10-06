@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+import datetime
 import contextlib
 import sqlalchemy
 import dataclasses
@@ -166,11 +167,8 @@ class Core:
 				type     = query.mask.type,
 				status   = Item.Status(status_value),
 				chain    = r.chain,
-				created  = Item.Created(r.created),
-				reserver = Item.Reserver(
-					exists = bool(r.reserver),
-					value  = r.reserver
-				),
+				created  = Item.Created(datetime.datetime.fromisoformat(r.created)),
+				reserver = Item.Reserver(r.reserver) if bool(r.reserver) else Item.Reserver(None),
 				digest   = Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
 				metadata = metadata
 			)
