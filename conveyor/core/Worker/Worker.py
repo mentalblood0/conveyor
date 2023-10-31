@@ -14,26 +14,22 @@ class Worker:
     receiver: Receiver | None = None
     processor: Processor[Item, Action]
     actor: Actor = Actor()
-
     repository: Repository
 
-    def __call__(self, config: typing.Any = {}) -> None:
-        match self.receiver:
-            case Receiver():
-                iterator = iter(self.receiver(self.repository))
-                received = True
+    def _with_receiver(self, config: typing.Any = {}):
+        assert isinstance(self.receiver, Receiver)
+        iterator = iter(self.receiver(self.repository))
+        try:
+            while True:
+                self.actor(self.processor(iterator.__next__, config), self.repository)
+        except RuntimeError:
+            pass
 
-                def _next():
-                    nonlocal received
-                    received = True
-                    return next(iterator)
+    def _without_receiver(self, config: typing.Any = {}):
+        self.actor(self.processor(lambda: (), config), self.repository)
 
-                try:
-                    while received:
-                        received = False
-                        self.actor(self.processor(_next, config), self.repository)
-                except RuntimeError:
-                    pass
-
-            case None:
-                self.actor(self.processor(lambda: (), config), self.repository)
+    def __call__(self, config: typing.Any = {}):
+        if self.receiver is None:
+            self._without_receiver(config)
+        else:
+            self._with_receiver(config)
