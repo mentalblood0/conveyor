@@ -8,122 +8,119 @@ from ..Item.Item import Item
 from .PartRepository import PartRepository
 
 
-
 Parts = typing.Sequence[PartRepository]
 
 
-@dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Repository:
+    Parts = Parts
 
-	Parts = Parts
+    parts: Parts
+    transaction_: bool = False
 
-	parts        : Parts
-	transaction_ : bool = False
+    def __post_init__(self):
+        if not len(self.parts):
+            raise ValueError("`parts` must contain at least one element")
 
-	def __post_init__(self):
-		if not len(self.parts):
-			raise ValueError('`parts` must contain at least one element')
+    def _unreserved(self, item: Item) -> Item:
+        return dataclasses.replace(item, reserver=Item.Reserver(None))
 
-	def _unreserved(self, item: Item) -> Item:
-		return dataclasses.replace(item, reserver = Item.Reserver(None))
+    def append(self, item: Item) -> None:
+        for p in reversed(self.parts):
+            p.append(self._unreserved(item))
 
-	def append(self, item: Item) -> None:
-		for p in reversed(self.parts):
-			p.append(self._unreserved(item))
+    def _get(
+        self,
+        query: Query,
+        repositories: typing.Sequence[PartRepository],
+        parts: typing.Iterable[Part] = (Part(),),
+    ) -> typing.Iterable[Item]:
+        match len(repositories):
+            case 0:
+                for p in parts:
+                    yield p.item
+            case _:
+                for p in parts:
+                    for item in self._get(
+                        query=query,
+                        repositories=repositories[1:],
+                        parts=repositories[0].get(query, p),
+                    ):
+                        yield item
 
-	def _get(self, query: Query, repositories: typing.Sequence[PartRepository], parts: typing.Iterable[Part] = (Part(),)) -> typing.Iterable[Item]:
-		match len(repositories):
-			case 0:
-				for p in parts:
-					yield p.item
-			case _:
-				for p in parts:
-					for item in self._get(
-						query        = query,
-						repositories = repositories[1:],
-						parts        = repositories[0].get(query, p)
-					):
-						yield item
+    def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
+        reserver = Item.Reserver()
+        got: int = 0
 
-	def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
+        for i in self._get(
+            query=dataclasses.replace(
+                item_query,
+                mask=dataclasses.replace(item_query.mask, reserver=Item.Reserver(None)),
+            ),
+            repositories=self.parts,
+        ):
+            reserved = dataclasses.replace(i, reserver=reserver)
+            try:
+                self.__setitem__(i, reserved, True)
+            except KeyError:
+                continue
 
-		reserver = Item.Reserver()
-		got: int = 0
+            yield reserved
+            got += 1
+            if got == item_query.limit:
+                break
 
-		for i in self._get(
-			query = dataclasses.replace(
-				item_query,
-				mask = dataclasses.replace(
-					item_query.mask,
-					reserver = Item.Reserver(None)
-				)
-			),
-			repositories = self.parts
-		):
+    def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
+        if for_reserve:
+            _new = new
+        else:
+            _new = self._unreserved(new)
 
-			reserved = dataclasses.replace(i, reserver = reserver)
-			try:
-				self.__setitem__(i, reserved, True)
-			except KeyError:
-				continue
+        with self.transaction() as t:
+            for p in reversed(t.parts):
+                try:
+                    p[old] = _new
+                except NotImplementedError:
+                    pass
 
-			yield reserved
-			got += 1
-			if got == item_query.limit:
-				break
+    def __delitem__(self, item: Item) -> None:
+        with self.transaction() as t:
+            for p in t.parts:
+                try:
+                    del p[item]
+                except KeyError:
+                    break
 
-	def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
+    @contextlib.contextmanager
+    def _transaction(
+        self, parts_to_include: typing.Sequence[PartRepository]
+    ) -> typing.Iterator[typing.Sequence[PartRepository]]:
+        match len(parts_to_include):
+            case 0:
+                yield ()
+            case _:
+                with parts_to_include[0].transaction() as t:
+                    with self._transaction(parts_to_include[1:]) as _t:
+                        yield (t, *_t)
 
-		if for_reserve:
-			_new = new
-		else:
-			_new = self._unreserved(new)
+    @contextlib.contextmanager
+    def transaction(self) -> typing.Iterator[typing.Self]:
+        match self.transaction_:
+            case True:
+                yield self
+            case False:
+                with self._transaction(self.parts) as transaction_parts:
+                    yield dataclasses.replace(
+                        self, parts=transaction_parts, transaction_=True
+                    )
 
-		with self.transaction() as t:
-			for p in reversed(t.parts):
-				try:
-					p[old] = _new
-				except NotImplementedError:
-					pass
+    def __contains__(self, item: Item) -> bool:
+        return all(item in p for p in self.parts)
 
-	def __delitem__(self, item: Item) -> None:
-		with self.transaction() as t:
-			for p in t.parts:
-				try:
-					del p[item]
-				except KeyError:
-					break
+    def __len__(self) -> int:
+        return max(len(p) for p in self.parts)
 
-	@contextlib.contextmanager
-	def _transaction(self, parts_to_include: typing.Sequence[PartRepository]) -> typing.Iterator[typing.Sequence[PartRepository]]:
-		match len(parts_to_include):
-			case 0:
-				yield ()
-			case _:
-				with parts_to_include[0].transaction() as t:
-					with self._transaction(parts_to_include[1:]) as _t:
-						yield (t, *_t)
-
-	@contextlib.contextmanager
-	def transaction(self) -> typing.Iterator[typing.Self]:
-		match self.transaction_:
-			case True:
-				yield self
-			case False:
-				with self._transaction(self.parts) as transaction_parts:
-					yield dataclasses.replace(
-						self,
-						parts        = transaction_parts,
-						transaction_ = True
-					)
-
-	def __contains__(self, item: Item) -> bool:
-		return all(item in p for p in self.parts)
-
-	def __len__(self) -> int:
-		return max(len(p) for p in self.parts)
-
-	def clear(self) -> None:
-		with self.transaction() as t:
-			for p in t.parts:
-				p.clear()
+    def clear(self) -> None:
+        with self.transaction() as t:
+            for p in t.parts:
+                p.clear()

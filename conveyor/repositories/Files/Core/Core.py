@@ -11,105 +11,97 @@ from .Pathify import Pathify
 from .Transaction import Transaction
 
 
-@dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Core:
+    Transforms = Transforms
+    Pathify = Pathify
 
-	Transforms = Transforms
-	Pathify    = Pathify
+    root: pathlib.Path
+    suffix: str
 
-	root         : pathlib.Path
-	suffix       : str
+    prepare: Transforms.Transform[bytes, bytes]
+    sidestep: Transforms.Transform[bytes, bytes]
+    pathify: Transforms.Transform[Digest, pathlib.Path]
 
-	prepare      : Transforms.Transform[bytes, bytes]
-	sidestep     : Transforms.Transform[bytes, bytes]
-	pathify      : Transforms.Transform[Digest, pathlib.Path]
+    transaction_: Transaction | None = None
 
-	transaction_ : Transaction | None                         = None
+    empty: Digest = Data(value=b"").digest
 
-	empty        : Digest = Data(value = b'').digest
+    def path(self, digest: Digest) -> pathlib.Path:
+        return pathlib.Path(self.root, self.pathify(digest)).with_suffix(self.suffix)
 
-	def path(self, digest: Digest) -> pathlib.Path:
-		return pathlib.Path(self.root, self.pathify(digest)).with_suffix(self.suffix)
+    def append(self, data: Data) -> None:
+        if not data.value:
+            return
 
-	def append(self, data: Data) -> None:
+        with self.transaction() as t:
+            if t.transaction_ is not None:
+                t.transaction_.append(
+                    Transaction.Append(
+                        path=self.path(data.digest),
+                        data=data.value,
+                        transforms=self.prepare,
+                        equal_path=lambda b: self.path(Data(value=b).digest),
+                        equal_data=self.sidestep,
+                    )
+                )
+            else:
+                raise ValueError
 
-		if not data.value:
-			return
+    def __getitem__(self, digest: Digest) -> Data:
+        if digest == self.empty:
+            return Data(value=b"")
 
-		with self.transaction() as t:
-			if t.transaction_ is not None:
-				t.transaction_.append(
-					Transaction.Append(
-						path       = self.path(data.digest),
-						data       = data.value,
-						transforms = self.prepare,
-						equal_path = lambda b: self.path(Data(value = b).digest),
-						equal_data = self.sidestep
-					)
-				)
-			else:
-				raise ValueError
+        try:
+            return Data(
+                value=(~self.prepare)(self.path(digest).read_bytes()), test=digest
+            )
+        except FileNotFoundError:
+            raise KeyError(f"{self.root} {digest.string}")
+        except ValueError:
+            raise
 
-	def __getitem__(self, digest: Digest) -> Data:
+    def __delitem__(self, digest: Digest) -> None:
+        with self.transaction() as t:
+            if t.transaction_ is not None:
+                t.transaction_.append(Transaction.Delete(self.path(digest)))
+            else:
+                raise ValueError
 
-		if digest == self.empty:
-			return Data(value = b'')
+    @property
+    def _transaction(self):
+        if self.transaction_ is None:
+            result = dataclasses.replace(self, transaction_=Transaction())
+        else:
+            result = self
+        return result
 
-		try:
-			return Data(
-				value = (~self.prepare)(
-					self.path(digest).read_bytes()
-				),
-				test = digest
-			)
-		except FileNotFoundError:
-			raise KeyError(f'{self.root} {digest.string}')
-		except ValueError:
-			raise
+    @contextlib.contextmanager
+    def transaction(self) -> typing.Iterator[typing.Self]:
+        t = self._transaction
+        if t.transaction_ is None:
+            raise ValueError
+        try:
+            try:
+                yield t
+                if self.transaction_ is None:
+                    t.transaction_.commit()
+            except Exception:
+                t.transaction_.rollback()
+                raise
+        except FileNotFoundError as e:
+            raise KeyError from e
 
-	def __delitem__(self, digest: Digest) -> None:
-		with self.transaction() as t:
-			if t.transaction_ is not None:
-				t.transaction_.append(Transaction.Delete(self.path(digest)))
-			else:
-				raise ValueError
+    def __contains__(self, digest: Digest) -> bool:
+        return self.path(digest).exists()
 
-	@contextlib.contextmanager
-	def transaction(self) -> typing.Iterator[typing.Self]:
+    def __len__(self) -> int:
+        result: int = 0
 
-		if self.transaction_ is None:
-			t = dataclasses.replace(
-				self,
-				transaction_ = Transaction()
-			)
-		else:
-			t = self
+        for _ in self.root.rglob(f"*{self.suffix}"):
+            result += 1
 
-		if t.transaction_ is None:
-			raise ValueError
+        return result
 
-		try:
-			try:
-				yield t
-				if self.transaction_ is None:
-					t.transaction_.commit()
-			except:
-				t.transaction_.rollback()
-				raise
-		except FileNotFoundError as e:
-			raise KeyError from e
-
-	def __contains__(self, digest: Digest) -> bool:
-		return self.path(digest).exists()
-
-	def __len__(self) -> int:
-
-		result: int = 0
-
-		for _ in self.root.rglob(f'*{self.suffix}'):
-			result += 1
-
-		return result
-
-	def clear(self) -> None:
-		shutil.rmtree(self.root, ignore_errors=True)
+    def clear(self) -> None:
+        shutil.rmtree(self.root, ignore_errors=True)

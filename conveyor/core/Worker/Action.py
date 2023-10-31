@@ -9,86 +9,85 @@ from ..Repository.Repository import Repository
 from .Processor import Processor
 
 
+@dataclasses.dataclass(frozen=True, kw_only=False)
+class Action(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __call__(self, repository: Repository) -> None:
+        pass
 
-@dataclasses.dataclass(frozen = True, kw_only = False)
-class Action(metaclass = abc.ABCMeta):
-
-	@abc.abstractmethod
-	def __call__(self, repository: Repository) -> None:
-		pass
-
-	@property
-	@abc.abstractmethod
-	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		pass
+    @property
+    @abc.abstractmethod
+    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+        pass
 
 
-@dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Actor:
+    Processors = (
+        typing.Sequence[Processor[Action, Action]]
+        | typing.Iterable[Processor[Action, Action]]
+    )
 
-	Processors = typing.Sequence[Processor[Action, Action]] | typing.Iterable[Processor[Action, Action]]
+    processors: Processors = ()
 
-	processors : Processors = ()
+    def __call__(
+        self,
+        actions: typing.Sequence[Action] | typing.Iterable[Action],
+        repository: Repository,
+    ) -> None:
+        actions = (*actions,)
+        with repository.transaction() as t:
+            for a in functools.reduce(
+                lambda result, p: p(lambda: result, {}), self.processors, actions
+            ):
+                a(t)
 
-	def __call__(self, actions: typing.Sequence[Action] | typing.Iterable[Action], repository: Repository) -> None:
-		actions = (*actions,)
-		with repository.transaction() as t:
-			for a in functools.reduce(
-				lambda result, p: p(lambda: result, {}),
-				self.processors,
-				actions
-			):
-				a(t)
 
-
-@dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Append(Action):
+    new: Item
 
-	new : Item
+    def __call__(self, repository: Repository) -> None:
+        repository.append(self.new)
 
-	def __call__(self, repository: Repository) -> None:
-		repository.append(self.new)
+    @property
+    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+        yield ("item", self.new)
 
-	@property
-	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('item', self.new)
 
-@dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Update(Action):
+    old: Item
+    new: Item
 
-	old : Item
-	new : Item
+    def __call__(self, repository: Repository) -> None:
+        repository[self.old] = self.new
 
-	def __call__(self, repository: Repository) -> None:
-		repository[self.old] = self.new
-
-	@property
-	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('old', self.old)
-		yield ('new', self.new)
+    @property
+    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+        yield ("old", self.old)
+        yield ("new", self.new)
 
 
-@dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Delete(Action):
+    old: Item
 
-	old : Item
+    def __call__(self, repository: Repository) -> None:
+        del repository[self.old]
 
-	def __call__(self, repository: Repository) -> None:
-		del repository[self.old]
-
-	@property
-	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('item', self.old)
+    @property
+    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+        yield ("item", self.old)
 
 
-@dataclasses.dataclass(frozen = True, kw_only = False)
+@dataclasses.dataclass(frozen=True, kw_only=False)
 class Success(Action):
+    item: Item
 
-	item : Item
+    def __call__(self, repository: Repository) -> None:
+        return
 
-	def __call__(self, repository: Repository) -> None:
-		return
-
-	@property
-	def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-		yield ('item', self.item)
+    @property
+    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+        yield ("item", self.item)

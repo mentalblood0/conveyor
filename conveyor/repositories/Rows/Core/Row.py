@@ -1,4 +1,5 @@
 import typing
+import itertools
 import dataclasses
 
 from ....core import Item
@@ -6,82 +7,144 @@ from ....core import Item
 from .Enums import Enums
 
 
-@dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Row:
+    type: Item.Type
+    status: Item.Status
 
-	type     : Item.Type
-	status   : Item.Status
+    digest: Item.Data.Digest
+    metadata: Item.Metadata
 
-	digest   : Item.Data.Digest
-	metadata : Item.Metadata
+    chain: str
+    created: Item.Created
+    reserver: Item.Reserver
 
-	chain    : str
-	created  : Item.Created
-	reserver : Item.Reserver
+    def __post_init__(self):
+        for k in self.metadata:
+            if k.value in dir(self):
+                raise KeyError(
+                    f'Field name "{k.value}" reserved and can not be used in metadata'
+                )
 
-	def __post_init__(self):
-		for k in self.metadata:
-			if k.value in dir(self):
-				raise KeyError(f'Field name "{k.value}" reserved and can not be used in metadata')
+    @classmethod
+    def from_item(cls, item: Item) -> typing.Self:
+        return Row(
+            type=item.type,
+            status=item.status,
+            digest=item.data.digest,
+            chain=item.chain.value,
+            created=item.created,
+            reserver=item.reserver,
+            metadata=item.metadata,
+        )
 
-	@classmethod
-	def from_item(cls, item: Item) -> typing.Self:
-		return Row(
-			type     = item.type,
-			status   = item.status,
-			digest   = item.data.digest,
-			chain    = item.chain.value,
-			created  = item.created,
-			reserver = item.reserver,
-			metadata = item.metadata
-		)
+    @dataclasses.dataclass(frozen=True, kw_only=True)
+    class Dict:
+        row: "Row"
+        enums: Enums.Enums
+        skip: set[
+            typing.Literal["status", "digest", "chain", "created", "reserver"]
+        ] = dataclasses.field(default_factory=set)
 
-	def dict_(self, enums: Enums.Enums, skip: set[str] = set()) -> dict[str, Item.Value]:
+        def __call__(self):
+            return dict[str, Item.Value]({key: value for key, value in self})
 
-		result: dict[str, Item.Value] = {}
+        def __iter__(self):
+            return itertools.chain(
+                self.status,
+                self.chain,
+                self.digest,
+                self.created,
+                self.reserver,
+                self.metadata,
+            )
 
-		if 'status' not in skip:
-			status = enums[(self.type, Item.Key('status'))]
-			result[status.db_field] = status.Int(self.status)
+        @property
+        def status(self):
+            if "status" not in self.skip:
+                status = self.enums[(self.row.type, Item.Key("status"))]
+                yield (status.db_field, status.Int(self.row.status))
 
-		if 'chain' not in skip:
-			result['chain'] = self.chain
-		if 'digest' not in skip:
-			result['digest'] = self.digest.string
-		if 'created' not in skip:
-			result['created'] = self.created.value
-		if 'reserver' not in skip:
-			result['reserver'] = self.reserver.value
+        @property
+        def chain(self):
+            if "chain" not in self.skip:
+                yield ("chain", self.row.chain)
 
-		for key, value in self.metadata.items():
-			if key.value not in skip:
-				match value:
-					case Item.Metadata.Enumerable():
-						e = enums[(self.type, Item.Key(key.value))]
-						result[e.db_field] = e.convert(value)
-					case _:
-						result[key.value] = value
+        @property
+        def digest(self):
+            if "digest" not in self.skip:
+                yield ("digest", self.row.digest.string)
 
-		return result
+        @property
+        def created(self):
+            if "created" not in self.skip:
+                yield ("created", self.row.created.value)
 
-	def sub(self, another: 'Row', enums: Enums.Enums) -> dict[str, Item.Value]:
+        @property
+        def reserver(self):
+            if "reserver" not in self.skip:
+                yield ("reserver", self.row.reserver.value)
 
-		skip: set[str] = set()
+        @property
+        def metadata(self):
+            for key, value in self.row.metadata.items():
+                if key.value not in self.skip:
+                    match value:
+                        case Item.Metadata.Enumerable():
+                            e = self.enums[(self.row.type, Item.Key(key.value))]
+                            yield (e.db_field, e.convert(value))
+                        case _:
+                            yield (key.value, value)
 
-		if self.status == another.status:
-			skip.add('status')
-		if self.digest == another.digest:
-			skip.add('digest')
-		if self.chain == another.chain:
-			skip.add('chain')
-		if self.created == another.created:
-			skip.add('created')
-		if self.reserver == another.reserver:
-			skip.add('reserver')
+    @dataclasses.dataclass(frozen=True, kw_only=True)
+    class Skip:
+        row: "Row"
+        another: "Row"
+        enums: Enums.Enums
 
-		for k in self.metadata.keys():
-			if k in another.metadata:
-				if self.metadata[k] == another.metadata[k]:
-					skip.add(k.value)
+        def __call__(self):
+            return set(s for s in self)
 
-		return self.dict_(enums, skip)
+        def __iter__(self):
+            return itertools.chain(
+                self.status, self.digest, self.chain, self.created, self.reserver
+            )
+
+        @property
+        def status(self):
+            if self.row.status == self.another.status:
+                yield "status"
+
+        @property
+        def digest(self):
+            if self.row.digest == self.another.digest:
+                yield "digest"
+
+        @property
+        def chain(self):
+            if self.row.chain == self.another.chain:
+                yield "chain"
+
+        @property
+        def created(self):
+            if self.row.created == self.another.created:
+                yield "created"
+
+        @property
+        def reserver(self):
+            if self.row.reserver == self.another.reserver:
+                yield "reserver"
+
+        @property
+        def metadata(self):
+            for k in self.row.metadata.keys():
+                if k in self.another.metadata:
+                    if self.row.metadata[k] == self.another.metadata[k]:
+                        yield k.value
+
+    def sub(self, another: "Row", enums: Enums.Enums) -> dict[str, Item.Value]:
+        return self.Dict(
+            row=self,
+            enums=enums,
+            skip=self.Skip(row=self, another=another, enums=enums)(),
+        )()

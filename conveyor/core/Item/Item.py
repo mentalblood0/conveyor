@@ -9,29 +9,33 @@ from .Reserver import Reserver
 from .Metadata import Metadata
 
 
-@dataclasses.dataclass(frozen = True, kw_only = True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
+    class Type(Word):
+        pass
 
-	class Type(Word)   : pass
-	class Status(Word) : pass
-	Data      = Data
-	Chain     = Chain
-	Created   = Created
-	Reserver  = Reserver
-	Metadata  = Metadata
+    class Status(Word):
+        pass
 
-	class Key(Word): pass
+    Data = Data
+    Chain = Chain
+    Created = Created
+    Reserver = Reserver
+    Metadata = Metadata
 
-	BaseValue = typing.Union[Data, Type, Status, Chain, Created, Reserver]
-	Value     = BaseValue | Metadata.Value
+    class Key(Word):
+        pass
 
-	type      : Type
-	status    : Status
+    BaseValue = typing.Union[Data, Type, Status, Chain, Created, Reserver]
+    Value = BaseValue | Metadata.Value
 
-	data      : Data
+    type: Type
+    status: Status
 
-	metadata  : Metadata
+    data: Data
 
-	chain     : Chain
-	created   : Created
-	reserver  : Reserver = dataclasses.field(compare=False)
+    metadata: Metadata
+
+    chain: Chain
+    created: Created
+    reserver: Reserver = dataclasses.field(compare=False)

@@ -1,16 +1,20 @@
-# Conveyor
+<h1 align="center">🧮 conveyor</h1>
 
-Library for creating pipeline-oriented systems
+<h3 align="center">library for creating pipeline-oriented systems</h3>
 
-
+<p align="center">
+<a href="https://github.com/MentalBlood/conveyor/actions/workflows/lint.yml"><img alt="Lint Status" src="https://github.com/MentalBlood/conveyor/actions/workflows/lint.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/conveyor/actions/workflows/typing.yml"><img alt="Typing Status" src="https://github.com/MentalBlood/conveyor/actions/workflows/typing.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/conveyor/actions/workflows/complexity.yml"><img alt="Complexity Status" src="https://github.com/MentalBlood/conveyor/actions/workflows/complexity.yml/badge.svg"></a>
+<a href="https://github.com/MentalBlood/conveyor/actions/workflows/tests.yml"><img alt="Tests Status" src="https://github.com/MentalBlood/conveyor/actions/workflows/tests.yml/badge.svg"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
 
 ## Why
 
 * Simplicity
 * Maintainability
 * Scalability
-
-
 
 ## Key concepts
 
