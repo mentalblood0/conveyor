@@ -96,7 +96,7 @@ class Logger(Processor[Action.Action, Action.Action]):
                         Item.Metadata.Key(f"action_{k}_status"): v.status.value
                     }
                 case _:
-                    pass
+                    """"""
         return result
 
     def entry(self, a: Action.Action):

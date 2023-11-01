@@ -14,18 +14,17 @@ class Synthesizer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     def process(
         self, input: Item, matched: typing.Iterable[Item]
     ) -> typing.Iterable[Item.Status | Item]:
-        pass
+        """"""
 
     def _actions(self, i: Item, o: Item.Status | Item):
         match o:
             case Item.Status():
                 yield Action.Update(old=i, new=dataclasses.replace(i, status=o))
             case Item():
-                if o.chain != i.chain:
-                    raise ValueError(
-                        f"Output chain ({o.chain}) must be equal "
-                        f"to input chain ({i.chain})"
-                    )
+                assert o.chain == i.chain, (
+                    f"Output chain ({o.chain}) must be equal "
+                    f"to input chain ({i.chain})"
+                )
                 yield Action.Append(o)
 
     def _process(self, items: typing.Iterator[Item], i: Item):

@@ -99,12 +99,8 @@ def changed_row(
             case "created":
                 value = Item.Created(row.created.value - datetime.timedelta(seconds=1))
             case "metadata":
-                current = row.metadata[Item.Metadata.Key("key")]
-                match current:
-                    case str():
-                        new = "_"
-                    case _:
-                        raise ValueError
+                assert isinstance(row.metadata[Item.Metadata.Key("key")], str)
+                new = "_"
                 value = row.metadata | {Item.Metadata.Key("key"): new}
             case _:
                 continue

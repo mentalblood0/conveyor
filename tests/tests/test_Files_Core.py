@@ -28,7 +28,7 @@ def test_path(files: Files.Core, data: Data):
         try:
             p.rmdir()
         except Exception:
-            pass
+            """"""
 
 
 def test_append_one(files: Files.Core, data: Data):

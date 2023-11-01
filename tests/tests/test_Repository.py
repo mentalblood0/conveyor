@@ -79,13 +79,12 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
                 value = Item.Created(item.created.value - datetime.timedelta(seconds=1))
             case "metadata":
                 current = item.metadata["key"]
+                assert isinstance(current, Item.Metadata.Enumerable | str)
                 match current:
                     case Item.Metadata.Enumerable():
                         new = Item.Metadata.Enumerable("CHANGED")
                     case str():
                         new = "CHANGED"
-                    case _:
-                        raise ValueError
                 value = item.metadata | {Item.Metadata.Key("key"): new}
             case _:
                 continue

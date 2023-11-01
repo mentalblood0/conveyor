@@ -19,8 +19,7 @@ class Repository:
     transaction_: bool = False
 
     def __post_init__(self):
-        if not len(self.parts):
-            raise ValueError("`parts` must contain at least one element")
+        assert len(self.parts), "`parts` must contain at least one element"
 
     def _unreserved(self, item: Item) -> Item:
         return dataclasses.replace(item, reserver=Item.Reserver(None))
@@ -81,7 +80,7 @@ class Repository:
                 try:
                     p[old] = _new
                 except NotImplementedError:
-                    pass
+                    """"""
 
     def __delitem__(self, item: Item) -> None:
         with self.transaction() as t:
@@ -113,9 +112,6 @@ class Repository:
                     yield dataclasses.replace(
                         self, parts=transaction_parts, transaction_=True
                     )
-
-    def __contains__(self, item: Item) -> bool:
-        return all(item in p for p in self.parts)
 
     def __len__(self) -> int:
         return max(len(p) for p in self.parts)

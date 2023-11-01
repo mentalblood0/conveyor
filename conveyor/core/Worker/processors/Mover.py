@@ -14,7 +14,7 @@ class Mover(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     def process(
         self, input: Item
     ) -> typing.Iterable[Item.Status | Item.Metadata | Item]:
-        pass
+        """"""
 
     def actions(self, i: Item, o: Item.Status | Item.Metadata | Item):
         match o:
@@ -26,11 +26,10 @@ class Mover(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
                     new=dataclasses.replace(i, metadata=i.metadata | o.value),
                 )
             case Item():
-                if o.chain != i.chain:
-                    raise ValueError(
-                        f"Output chain ({o.chain}) must be equal "
-                        f"to input chain ({i.chain})"
-                    )
+                assert o.chain == i.chain, (
+                    f"Output chain ({o.chain}) must be equal "
+                    f"to input chain ({i.chain})"
+                )
                 yield Action.Append(o)
 
     @typing.final

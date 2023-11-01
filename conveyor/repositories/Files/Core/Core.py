@@ -35,18 +35,16 @@ class Core:
             return
 
         with self.transaction() as t:
-            if t.transaction_ is not None:
-                t.transaction_.append(
-                    Transaction.Append(
-                        path=self.path(data.digest),
-                        data=data.value,
-                        transforms=self.prepare,
-                        equal_path=lambda b: self.path(Data(value=b).digest),
-                        equal_data=self.sidestep,
-                    )
+            assert t.transaction_ is not None
+            t.transaction_.append(
+                Transaction.Append(
+                    path=self.path(data.digest),
+                    data=data.value,
+                    transforms=self.prepare,
+                    equal_path=lambda b: self.path(Data(value=b).digest),
+                    equal_data=self.sidestep,
                 )
-            else:
-                raise ValueError
+            )
 
     def __getitem__(self, digest: Digest) -> Data:
         if digest == self.empty:
@@ -58,15 +56,13 @@ class Core:
             )
         except FileNotFoundError:
             raise KeyError(f"{self.root} {digest.string}")
-        except ValueError:
+        except AssertionError:
             raise
 
     def __delitem__(self, digest: Digest) -> None:
         with self.transaction() as t:
-            if t.transaction_ is not None:
-                t.transaction_.append(Transaction.Delete(self.path(digest)))
-            else:
-                raise ValueError
+            assert t.transaction_ is not None
+            t.transaction_.append(Transaction.Delete(self.path(digest)))
 
     @property
     def _transaction(self):
@@ -79,8 +75,7 @@ class Core:
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:
         t = self._transaction
-        if t.transaction_ is None:
-            raise ValueError
+        assert t.transaction_ is not None
         try:
             try:
                 yield t

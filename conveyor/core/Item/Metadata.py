@@ -10,7 +10,7 @@ from .Enumerable import Enumerable
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Metadata:
     class Key(Word):
-        pass
+        """"""
 
     Value = str | int | float | datetime.datetime | Enumerable | None
 
@@ -29,27 +29,14 @@ class Metadata:
             case str():
                 return self[Metadata.Key(key)]
 
-    def __or__(
-        self, o: dict[Key, Value] | typing.Mapping[Key, Value] | "Metadata"
-    ) -> typing.Self:
-        match o:
-            case dict() | typing.Mapping():
-                return Metadata(self.value | o)
-            case Metadata():
-                return self | o.value
-        raise ValueError(
-            "Metadata instance can be joined only with "
-            f"another Metadata instance or dictionary (got {type(o)})"
-        )
+    def __or__(self, o: dict[Key, Value] | typing.Mapping[Key, Value]) -> typing.Self:
+        return Metadata(self.value | o)
 
     def __ror__(self, __value: typing.Any) -> typing.Self:
         return self | __value
 
     def keys(self):
         return self.value.keys()
-
-    def values(self):
-        return self.value.values()
 
     def items(self):
         return self.value.items()

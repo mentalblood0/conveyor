@@ -18,12 +18,9 @@ class Data:
     algorithm: typing.Callable[[bytes], bytes] = default_algorithm
 
     def __post_init__(self):
-        if self.test is not None:
-            if (correct := Data(value=self.value).digest) != self.test:
-                raise ValueError(
-                    f'Provided digest "{self.test}" is not correct '
-                    f'(correct is "{correct}")'
-                )
+        assert (self.test is None) or (
+            (correct := Data(value=self.value).digest) == self.test
+        ), f'Provided digest "{self.test}" is not correct (correct is "{correct}")'
 
     @property
     def digest(self) -> Digest:

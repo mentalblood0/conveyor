@@ -12,7 +12,7 @@ from ..Processor import Processor
 class Creator(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def process(self, config: typing.Any) -> typing.Iterable[Item]:
-        pass
+        """"""
 
     @typing.final
     def __call__(

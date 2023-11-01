@@ -9,5 +9,4 @@ class Word(Enumerable):
     value: str
 
     def __post_init__(self):
-        if re.match(r"\w+", self.value) is None:
-            raise ValueError("`Word` value must be word")
+        assert re.fullmatch(r"\w+", self.value), "`Word` value must be word"

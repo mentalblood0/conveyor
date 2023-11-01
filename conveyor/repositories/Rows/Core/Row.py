@@ -20,11 +20,9 @@ class Row:
     reserver: Item.Reserver
 
     def __post_init__(self):
-        for k in self.metadata:
-            if k.value in dir(self):
-                raise KeyError(
-                    f'Field name "{k.value}" reserved and can not be used in metadata'
-                )
+        assert all(
+            k.value not in dir(self) for k in self.metadata
+        ), f"Some fields from metadata {self.metadata} are collide with reserved fields {dir(self)}"
 
     @classmethod
     def from_item(cls, item: Item) -> typing.Self:

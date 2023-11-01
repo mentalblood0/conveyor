@@ -12,10 +12,10 @@ from .Metadata import Metadata
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Item:
     class Type(Word):
-        pass
+        """"""
 
     class Status(Word):
-        pass
+        """"""
 
     Data = Data
     Chain = Chain
@@ -24,7 +24,7 @@ class Item:
     Metadata = Metadata
 
     class Key(Word):
-        pass
+        """"""
 
     BaseValue = typing.Union[Data, Type, Status, Chain, Created, Reserver]
     Value = BaseValue | Metadata.Value

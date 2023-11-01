@@ -23,7 +23,7 @@ class Worker:
             while True:
                 self.actor(self.processor(iterator.__next__, config), self.repository)
         except RuntimeError:
-            pass
+            """"""
 
     def _without_receiver(self, config: typing.Any = {}):
         self.actor(self.processor(lambda: (), config), self.repository)

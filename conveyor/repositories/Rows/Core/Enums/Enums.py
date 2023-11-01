@@ -37,13 +37,13 @@ class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
         try:
             return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
         except KeyError:
-            pass
+            """"""
 
         try:
             self.load()
             return self.cache[self.enum_table].value[Item.Metadata.Enumerable(i.value)]
         except Exception:
-            pass
+            """"""
 
         try:
             with self.connect() as connection:
@@ -139,11 +139,11 @@ class Enum:
 
     @typing.overload
     def convert(self, value: Item.Metadata.Enumerable) -> int:
-        pass
+        """"""
 
     @typing.overload
     def convert(self, value: int | None) -> Item.Metadata.Enumerable:
-        pass
+        """"""
 
     @dataclasses.dataclass(frozen=True, kw_only=True)
     class Converted:

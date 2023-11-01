@@ -13,12 +13,12 @@ from .Processor import Processor
 class Action(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __call__(self, repository: Repository) -> None:
-        pass
+        """"""
 
     @property
     @abc.abstractmethod
     def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
-        pass
+        """"""
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
@@ -51,7 +51,7 @@ class Append(Action):
         repository.append(self.new)
 
     @property
-    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+    def info(self):
         yield ("item", self.new)
 
 
@@ -64,7 +64,7 @@ class Update(Action):
         repository[self.old] = self.new
 
     @property
-    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+    def info(self):
         yield ("old", self.old)
         yield ("new", self.new)
 
@@ -77,7 +77,7 @@ class Delete(Action):
         del repository[self.old]
 
     @property
-    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+    def info(self):
         yield ("item", self.old)
 
 
@@ -89,5 +89,5 @@ class Success(Action):
         return
 
     @property
-    def info(self) -> typing.Iterable[tuple[str, typing.Any]]:
+    def info(self):
         yield ("item", self.item)

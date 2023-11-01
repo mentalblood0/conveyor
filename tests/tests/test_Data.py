@@ -4,7 +4,7 @@ from conveyor.core.Item import Data, Digest
 
 
 def test_checking_digest():
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         Data(value=b" ", test=Digest(b" " * 32))
 
 

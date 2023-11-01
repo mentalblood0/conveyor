@@ -14,15 +14,15 @@ T_ = typing.TypeVar("T_")
 class Transform(typing.Generic[S, T], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def transform(self, i: S) -> T:
-        pass
+        """"""
 
     @abc.abstractmethod
     def __call__(self, i: S) -> T:
-        pass
+        """"""
 
     @abc.abstractmethod
     def __invert__(self: "Transform[S, T]") -> "Transform[T, S]":
-        pass
+        """"""
 
     @typing.final
     def valid(self, i: S) -> bool:
@@ -36,10 +36,6 @@ class Transform(typing.Generic[S, T], metaclass=abc.ABCMeta):
     def __add__(self, another: "Transform[T, T_]") -> "_Transforms[S, T, T_]":
         return _Transforms(self, another)
 
-    @typing.final
-    def __radd__(self, another: "Transform[S_, S]") -> "_Transforms[S_, S, T]":
-        return _Transforms(another, self)
-
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Safe(Transform[S, T]):
@@ -47,11 +43,10 @@ class Safe(Transform[S, T]):
     def __call__(self, i: S) -> T:
         result = self.transform(i)
 
-        if i != (inverted := (~self).transform(result)):
-            raise ValueError(
-                f"Transform `{self}` not invertible for input `{i}`"
-                f": got `{(inverted)} instead`"
-            )
+        assert i == (inverted := (~self).transform(result)), (
+            f"Transform `{self}` not invertible for input `{i}`"
+            f": got `{(inverted)} instead`"
+        )
 
         return result
 
@@ -80,8 +75,5 @@ class _Transforms(Trusted[S, T], typing.Generic[S, M, T]):
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Nothing(Trusted[T, T], typing.Generic[T]):
-    def transform(self, i: T) -> T:
-        return i
-
     def __invert__(self) -> typing.Self:
         return self

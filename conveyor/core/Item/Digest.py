@@ -18,36 +18,32 @@ class Digest:
     value_or_string: bytes | Base64String
 
     def __post_init__(self):
-        if (given := len(self.value)) < (required := 32):
-            raise ValueError(
-                f"`Digest` value must be of minimum length {required} "
-                f"(got {self.value} which is of length {given})"
-            )
+        assert (given := len(self.value)) >= (required := 32), (
+            f"`Digest` value must be of minimum length {required} "
+            f"(got {self.value} which is of length {given})"
+        )
 
     @property
     def value(self) -> bytes:
+        assert isinstance(self.value_or_string, bytes | Base64String)
         match self.value_or_string:
             case bytes():
                 return self.value_or_string
             case Base64String():
                 return self.value_or_string.decoded
-        raise ValueError
 
     @property
     def string(self) -> str:
+        assert isinstance(self.value_or_string, bytes | Base64String)
         match self.value_or_string:
             case Base64String():
                 return self.value_or_string.value
             case bytes():
                 return base64.b64encode(self.value_or_string).decode("ascii")
-        raise ValueError
 
     def __eq__(self, another: object) -> bool:
-        match another:
-            case Digest():
-                return self.value == another.value
-            case _:
-                raise ValueError(
-                    "Can not compare instance of type `Digest` "
-                    f"with instance of type `{type(another)}`"
-                )
+        assert isinstance(another, Digest), (
+            "Can not compare instance of type `Digest` "
+            f"with instance of type `{type(another)}`"
+        )
+        return self.value == another.value

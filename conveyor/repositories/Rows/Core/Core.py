@@ -69,7 +69,7 @@ class Core:
         def chain(self):
             match self.ref.chain:
                 case None:
-                    pass
+                    """"""
                 case str():
                     yield sqlalchemy.column("chain") == self.ref.chain
                 case _:
@@ -171,8 +171,9 @@ class Core:
 
         def status(self, r: sqlalchemy.Row[typing.Any]):
             enum = self.status_enum(r)
-            if (result := enum.String(getattr(r, enum.db_field)).value) is None:
-                raise ValueError("Status value can not be None")
+            assert (
+                result := enum.String(getattr(r, enum.db_field)).value
+            ) is not None, "Status value can not be None"
             return Item.Status(result)
 
         def metadata(self, query: Query, r: sqlalchemy.Row[typing.Any]):
@@ -183,20 +184,17 @@ class Core:
                     or name in ("digest", self.status_enum(r).db_field)
                 ):
                     if (~self.rows.enum).valid(name):
-                        match value := getattr(r, name):
-                            case int() | None:
-                                unenumed = (~self.rows.enum)(name)
-                                result = result | {
-                                    Item.Metadata.Key(unenumed.value): self.rows._enums[
-                                        (query.mask.type, unenumed)
-                                    ].convert(value)
-                                }
-                            case _:
-                                raise ValueError(
-                                    f"Expected column `{name}` "
-                                    f"in table `{query.mask.type.value}` "
-                                    "to hold enumerable using integer or null value"
-                                )
+                        assert isinstance(value := getattr(r, name), int | None), (
+                            f"Expected column `{name}` "
+                            f"in table `{query.mask.type.value}` "
+                            "to hold enumerable using integer or null value"
+                        )
+                        unenumed = (~self.rows.enum)(name)
+                        result = result | {
+                            Item.Metadata.Key(unenumed.value): self.rows._enums[
+                                (query.mask.type, unenumed)
+                            ].convert(value)
+                        }
                     else:
                         result = result | {Item.Metadata.Key(name): getattr(r, name)}
             return result
@@ -262,7 +260,7 @@ class Core:
                     )
                 )
         except Exception:
-            pass
+            """"""
 
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:

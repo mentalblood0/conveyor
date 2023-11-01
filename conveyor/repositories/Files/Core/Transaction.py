@@ -7,7 +7,7 @@ from ....core.Transforms import Transform
 
 
 class Collision(Exception):
-    pass
+    """"""
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
@@ -23,19 +23,19 @@ class Action(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def temp(self) -> pathlib.Path:
-        pass
+        """"""
 
     @abc.abstractmethod
     def prepare(self) -> None:
-        pass
+        """"""
 
     @abc.abstractmethod
     def commit(self) -> None:
-        pass
+        """"""
 
     @abc.abstractmethod
     def rollback(self) -> None:
-        pass
+        """"""
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

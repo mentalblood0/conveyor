@@ -25,4 +25,4 @@ class Processor(typing.Generic[S, T], metaclass=abc.ABCMeta):
     def __call__(
         self, input: typing.Callable[[], typing.Iterable[S]], config: typing.Any
     ) -> typing.Iterable[T]:
-        pass
+        """"""

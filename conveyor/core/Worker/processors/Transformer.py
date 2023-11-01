@@ -12,7 +12,7 @@ from ..Processor import Processor
 class Transformer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
-        pass
+        """"""
 
     def _process(self, i: Item):
         try:
