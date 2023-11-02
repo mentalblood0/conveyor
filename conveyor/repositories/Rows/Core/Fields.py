@@ -41,8 +41,8 @@ class Field:
     name: Item.Key
     value: Item.Value | Item.Data.Digest
 
-    table: Item.Type
-    transform: Transforms.Safe[Item.Type, str]
+    table: Item.Kind
+    transform: Transforms.Safe[Item.Kind, str]
 
     enums: Enums.Enums
 
@@ -58,11 +58,11 @@ class Field:
     def column(self):
         try:
             return next(iter(self.Column(self)))
-        except StopIteration:
+        except StopIteration as e:
             raise ValueError(
                 "Can not guess column type "
                 f"corresponding to value with type `{type(self.value)}`"
-            )
+            ) from e
 
     @dataclasses.dataclass(frozen=True, kw_only=False)
     class Column:
@@ -75,9 +75,9 @@ class Field:
                 self.chain,
                 self.created,
                 self.reserver,
-                self.str,
-                self.int,
-                self.float,
+                self.str_,
+                self.int_,
+                self.float_,
                 self.datetime,
             )
 
@@ -117,21 +117,21 @@ class Field:
                 )
 
         @property
-        def str(self):
+        def str_(self):
             if isinstance(self.source.value, str):
                 yield sqlalchemy.Column(
                     self.source.name.value, sqlalchemy.String(255), nullable=True
                 )
 
         @property
-        def int(self):
+        def int_(self):
             if isinstance(self.source.value, int):
                 yield sqlalchemy.Column(
                     self.source.name.value, sqlalchemy.Integer(), nullable=True
                 )
 
         @property
-        def float(self):
+        def float_(self):
             if isinstance(self.source.value, float):
                 yield sqlalchemy.Column(
                     self.source.name.value, sqlalchemy.Float(), nullable=True
@@ -161,12 +161,12 @@ class Fields:
     row: Row
     db: sqlalchemy.Engine
 
-    table: Item.Type
-    transform: Transforms.Safe[Item.Type, str]
+    table: Item.Kind
+    transform: Transforms.Safe[Item.Kind, str]
 
     enums: Enums.Enums
 
-    ignore = {"type", "data", "metadata"}
+    ignore = {"kind", "data", "metadata"}
 
     @property
     def fields(self) -> typing.Iterable[Field]:

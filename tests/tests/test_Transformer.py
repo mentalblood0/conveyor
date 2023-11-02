@@ -21,11 +21,13 @@ def transformer(
     transformer_changes: typing.Sequence[TransformerChanges],
 ) -> processors.Transformer:
     class T(processors.Transformer):
-        def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
+        def process(
+            self, payload: Item
+        ) -> typing.Iterable[Item.Status | Item.Metadata]:
             for c in transformer_changes:
                 match c:
                     case TransformerChanges.status:
-                        yield Item.Status(f"{input.status.value}_")
+                        yield Item.Status(f"{payload.status.value}_")
                     case TransformerChanges.metadata_add:
                         yield Item.Metadata({Item.Metadata.Key("new"): 1})
                     case TransformerChanges.metadata_delete:

@@ -43,10 +43,11 @@ class Safe(Transform[S, T]):
     def __call__(self, i: S) -> T:
         result = self.transform(i)
 
-        assert i == (inverted := (~self).transform(result)), (
-            f"Transform `{self}` not invertible for input `{i}`"
-            f": got `{(inverted)} instead`"
-        )
+        if i != (inverted := (~self).transform(result)):
+            raise TypeError(
+                f"Transform `{self}` not invertible for input `{i}`"
+                f": got `{(inverted)} instead`"
+            )
 
         return result
 

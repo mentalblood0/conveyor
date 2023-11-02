@@ -14,12 +14,12 @@ class Error(Action.Action):
     old: Item
     exception: Exception
 
-    type: Item.Type
+    kind: Item.Kind
 
     @property
     def item(self) -> Item:
         return Item(
-            type=self.type,
+            kind=self.kind,
             status=Item.Status("created"),
             data=Item.Data(
                 value="\n".join(traceback.format_exception(self.exception)).encode()
@@ -30,7 +30,7 @@ class Error(Action.Action):
                         self.exception.__class__.__name__
                     ),
                     Item.Metadata.Key("error_text"): str(self.exception),
-                    Item.Metadata.Key("item_type"): self.old.type,
+                    Item.Metadata.Key("item_type"): self.old.kind,
                     Item.Metadata.Key("item_status"): self.old.status.value,
                 }
             ),
@@ -51,7 +51,7 @@ class Error(Action.Action):
 class Solution(Action.Action):
     ref: Item | Action.Success
 
-    type: Item.Type
+    kind: Item.Kind
 
     @property
     def old(self) -> Item:
@@ -62,7 +62,7 @@ class Solution(Action.Action):
                 return self.ref.item
 
     def __call__(self, repository: Repository) -> None:
-        Action.Delete(Error(old=self.old, exception=Exception(), type=self.type).item)(
+        Action.Delete(Error(old=self.old, exception=Exception(), kind=self.kind).item)(
             repository
         )
 
@@ -76,11 +76,11 @@ class Logger(Processor[Action.Action, Action.Action]):
     Error = Error
     Solution = Solution
 
-    normal: Item.Type
-    errors: Item.Type
+    normal: Item.Kind
+    errors: Item.Kind
 
     def process_success(self, a: Action.Success):
-        yield Solution(ref=a, type=self.errors)
+        yield Solution(ref=a, kind=self.errors)
 
     def info(self, a: Action.Action):
         result = Item.Metadata({})
@@ -90,7 +90,7 @@ class Logger(Processor[Action.Action, Action.Action]):
                     result = result | {Item.Metadata.Key(f"action_{k}"): v}
                 case Item():
                     result = result | {
-                        Item.Metadata.Key(f"action_{k}_type"): v.type.value
+                        Item.Metadata.Key(f"action_{k}_type"): v.kind.value
                     }
                     result = result | {
                         Item.Metadata.Key(f"action_{k}_status"): v.status.value
@@ -101,7 +101,7 @@ class Logger(Processor[Action.Action, Action.Action]):
 
     def entry(self, a: Action.Action):
         return Item(
-            type=self.normal,
+            kind=self.normal,
             status=Item.Status("preaction"),
             data=Item.Data(value=b""),
             metadata=self.info(a)
@@ -126,15 +126,13 @@ class Logger(Processor[Action.Action, Action.Action]):
 
     def __call__(
         self,
-        input: typing.Callable[[], typing.Iterable[Action.Action]],
+        payload: typing.Callable[[], typing.Iterable[Action.Action]],
         _: typing.Any,
     ) -> typing.Iterable[Action.Action]:
         try:
-            for a in input():
-                match a:
-                    case Action.Success():
-                        return self.process_success(a)
-                    case _:
-                        return self.process_other(a)
+            for a in payload():
+                if isinstance(a, Action.Success):
+                    return self.process_success(a)
+                return self.process_other(a)
         except Processor.Error[Item] as e:
-            yield Error(old=e.input, exception=e.exception, type=self.errors)
+            yield Error(old=e.payload, exception=e.exception, kind=self.errors)

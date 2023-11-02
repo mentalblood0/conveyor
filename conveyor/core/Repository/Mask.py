@@ -5,7 +5,7 @@ from ..Item import Item
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Mask:
-    type: Item.Type
+    kind: Item.Kind
     status: Item.Status | None = None
     data: Item.Data | None = None
     metadata: Item.Metadata | None = None

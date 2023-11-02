@@ -16,7 +16,7 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item, query_all: Quer
     saved_items = [*rows[query_all]]
     assert len(saved_items) == 1
     saved = saved_items[0]
-    assert saved.type == row.type
+    assert saved.kind == row.kind
     assert saved.status == row.status
     assert saved.digest == row.digest
     assert saved.metadata == row.metadata
@@ -61,7 +61,7 @@ def test_transaction_append_many_in_one_table(rows: Rows.Core, row: Rows.Core.It
 
 
 def test_transaction_append_one_in_many_tables(rows: Rows.Core, row: Rows.Core.Item):
-    another_row = dataclasses.replace(row, type=Item.Type("another_type"))
+    another_row = dataclasses.replace(row, kind=Item.Kind("another_type"))
 
     try:
         with rows.transaction() as t:
@@ -111,13 +111,13 @@ def changed_row(
 
 def test_add_columns_one(rows: Rows.Core, row: Rows.Core.Item):
     rows.append(row)
-    assert [*rows[Query(mask=Mask(type=row.type), limit=1)]] == [row]
+    assert [*rows[Query(mask=Mask(kind=row.kind), limit=1)]] == [row]
 
     new_metadata = row.metadata | {Item.Metadata.Key("new_column"): "lalala"}
     new_row = dataclasses.replace(row, metadata=new_metadata)
 
     rows.append(new_row)
-    assert [*rows[Query(mask=Mask(type=row.type, metadata=new_metadata), limit=1)]] == [
+    assert [*rows[Query(mask=Mask(kind=row.kind, metadata=new_metadata), limit=1)]] == [
         new_row
     ]
 
@@ -162,9 +162,9 @@ def test_extend_status_enum(rows: Rows.Core, row: Rows.Core.Item):
     rows.append(row)
     rows.append(changed_row)
 
-    assert [*rows[Query(mask=Mask(type=row.type, status=row.status), limit=2)]] == [row]
+    assert [*rows[Query(mask=Mask(kind=row.kind, status=row.status), limit=2)]] == [row]
     assert [
-        *rows[Query(mask=Mask(type=row.type, status=changed_row.status), limit=2)]
+        *rows[Query(mask=Mask(kind=row.kind, status=changed_row.status), limit=2)]
     ] == [changed_row]
 
 
@@ -182,10 +182,10 @@ def test_extend_metadata_enum(rows: Rows.Core, row: Rows.Core.Item):
     rows.append(dataclasses.replace(row, metadata=metadata_1))
     rows.append(dataclasses.replace(row, metadata=metadata_2))
 
-    assert [*rows[Query(mask=Mask(type=row.type, metadata=metadata_1), limit=2)]] == [
+    assert [*rows[Query(mask=Mask(kind=row.kind, metadata=metadata_1), limit=2)]] == [
         item_1
     ]
-    assert [*rows[Query(mask=Mask(type=row.type, metadata=metadata_2), limit=2)]] == [
+    assert [*rows[Query(mask=Mask(kind=row.kind, metadata=metadata_2), limit=2)]] == [
         item_2
     ]
 
@@ -204,10 +204,10 @@ def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
     rows.append(dataclasses.replace(row, metadata=metadata_1))
     rows.append(dataclasses.replace(row, metadata=metadata_2))
 
-    assert [*rows[Query(mask=Mask(type=row.type, metadata=metadata_1), limit=2)]] == [
+    assert [*rows[Query(mask=Mask(kind=row.kind, metadata=metadata_1), limit=2)]] == [
         item_1
     ]
-    assert [*rows[Query(mask=Mask(type=row.type, metadata=metadata_2), limit=2)]] == [
+    assert [*rows[Query(mask=Mask(kind=row.kind, metadata=metadata_2), limit=2)]] == [
         item_2
     ]
 
@@ -233,7 +233,7 @@ def test_get_exact(
         *rows[
             Query(
                 mask=Mask(
-                    type=row.type,
+                    kind=row.kind,
                     status=row.status,
                     chain=Item.Chain(ref=row.chain),
                     created=row.created,

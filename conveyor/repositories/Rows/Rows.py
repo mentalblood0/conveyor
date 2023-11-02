@@ -19,7 +19,7 @@ class Rows(PartRepository):
         for r in self.rows[item_query]:
             yield dataclasses.replace(
                 accumulator,
-                type_=r.type,
+                kind_=r.kind,
                 status_=r.status,
                 digest_=r.digest,
                 chain_=Item.Chain(ref=r.chain),

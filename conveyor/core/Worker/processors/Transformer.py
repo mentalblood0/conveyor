@@ -11,7 +11,7 @@ from ..Processor import Processor
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Transformer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def process(self, input: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
+    def process(self, payload: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
         """"""
 
     def _process(self, i: Item):
@@ -26,15 +26,16 @@ class Transformer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
                             new=dataclasses.replace(i, metadata=i.metadata | o),
                         )
         except Exception as e:
-            raise self.error(i, e)
+            raise self.error(i, e) from e
 
         yield Action.Success(i)
 
     @typing.final
     def __call__(
-        self, input: typing.Callable[[], typing.Iterable[Item]], config: typing.Any = {}
+        self,
+        payload: typing.Callable[[], typing.Iterable[Item]],
+        config: typing.Any = None,
     ) -> typing.Iterable[Action.Action]:
-        for i in input():
-            for r in self._process(i):
-                yield r
+        for i in payload():
+            yield from self._process(i)
             break

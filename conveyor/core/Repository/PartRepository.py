@@ -19,7 +19,7 @@ class PartRepository(metaclass=abc.ABCMeta):
         """"""
 
     def __setitem__(self, old: Item, new: Item) -> None:
-        """"""
+        raise NotImplementedError
 
     @abc.abstractmethod
     def __delitem__(self, item: Item) -> None:

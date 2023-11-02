@@ -8,5 +8,8 @@ from .Enumerable import Enumerable
 class Word(Enumerable):
     value: str
 
+    regex = re.compile(r"\w+")
+
     def __post_init__(self):
-        assert re.fullmatch(r"\w+", self.value), "`Word` value must be word"
+        if not self.regex.fullmatch(self.value):
+            raise TypeError(f"`Word` value must match regex {self.regex}")

@@ -14,6 +14,8 @@ class Metadata:
 
     Value = str | int | float | datetime.datetime | Enumerable | None
 
+    Mutable = dict[Key, Value]
+
     Enumerable = Enumerable
 
     value_: dict[Key, Value] | types.MappingProxyType[Key, Value]

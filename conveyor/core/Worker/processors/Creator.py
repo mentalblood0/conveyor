@@ -16,7 +16,7 @@ class Creator(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
 
     @typing.final
     def __call__(
-        self, input: typing.Callable[[], typing.Iterable[Item]], config: typing.Any
+        self, payload: typing.Callable[[], typing.Iterable[Item]], config: typing.Any
     ) -> typing.Iterable[Action.Action]:
         for o in self.process(config):
             yield Action.Append(o)

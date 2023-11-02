@@ -12,14 +12,14 @@ from ..common import *
 @pytest.fixture
 def mover() -> processors.Mover:
     class M(processors.Mover):
-        def process(self, input: Item) -> typing.Iterable[Item.Status | Item]:
-            yield Item.Status(f"{input.status.value}_")
+        def process(self, payload: Item) -> typing.Iterable[Item.Status | Item]:
+            yield Item.Status(f"{payload.status.value}_")
 
-            n = input.metadata["n"]
+            n = payload.metadata["n"]
             match n:
                 case int():
                     for _ in range(n):
-                        yield dataclasses.replace(input, type=Item.Type("new"))
+                        yield dataclasses.replace(payload, kind=Item.Kind("new"))
                 case _:
                     """"""
 
@@ -49,8 +49,8 @@ def test_mover_change_status_create_one_item(
             assert i == dataclasses.replace(
                 item, status=Item.Status(f"{status.value}_")
             )
-        for i in worker.repository[Query(mask=Mask(type=Item.Type("new")), limit=None)]:
-            assert i == dataclasses.replace(item, type=Item.Type("new"))
+        for i in worker.repository[Query(mask=Mask(kind=Item.Kind("new")), limit=None)]:
+            assert i == dataclasses.replace(item, kind=Item.Kind("new"))
 
 
 def test_mover_change_status_create_many_items(
@@ -70,5 +70,5 @@ def test_mover_change_status_create_many_items(
             assert i == dataclasses.replace(
                 item, status=Item.Status(f"{status.value}_")
             )
-        for i in worker.repository[Query(mask=Mask(type=Item.Type("new")), limit=None)]:
-            assert i == dataclasses.replace(item, type=Item.Type("new"))
+        for i in worker.repository[Query(mask=Mask(kind=Item.Kind("new")), limit=None)]:
+            assert i == dataclasses.replace(item, kind=Item.Kind("new"))

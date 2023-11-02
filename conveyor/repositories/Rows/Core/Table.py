@@ -39,7 +39,7 @@ class Table:
                         f"ADD COLUMN {f.column.name} {f.column.type}"
                     )
                 )
-                if not (i := f.index(self.table)) in self.table.indexes:
+                if (i := f.index(self.table)) not in self.table.indexes:
                     i.create(bind=self.connection)
 
     def create(self):

@@ -1,4 +1,5 @@
 import typing
+import contextlib
 import dataclasses
 
 from .. import Item
@@ -16,19 +17,18 @@ class Worker:
     actor: Actor = Actor()
     repository: Repository
 
-    def _with_receiver(self, config: typing.Any = {}):
-        assert isinstance(self.receiver, Receiver)
+    def _with_receiver(self, config: typing.Any = None):
+        if not isinstance(self.receiver, Receiver):
+            raise TypeError
         iterator = iter(self.receiver(self.repository))
-        try:
+        with contextlib.suppress(RuntimeError):
             while True:
                 self.actor(self.processor(iterator.__next__, config), self.repository)
-        except RuntimeError:
-            """"""
 
-    def _without_receiver(self, config: typing.Any = {}):
+    def _without_receiver(self, config: typing.Any = None):
         self.actor(self.processor(lambda: (), config), self.repository)
 
-    def __call__(self, config: typing.Any = {}):
+    def __call__(self, config: typing.Any = None):
         if self.receiver is None:
             self._without_receiver(config)
         else:

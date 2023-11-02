@@ -14,7 +14,7 @@ def test_append_get_delete(repository: Repository, item: Item, query_all: Query)
     saved_items = [*repository[query_all]]
     assert len(saved_items) == 1
     saved = saved_items[0]
-    assert saved.type == item.type
+    assert saved.kind == item.kind
     assert saved.status == item.status
     assert saved.data == item.data
     assert saved.metadata == item.metadata
@@ -125,7 +125,7 @@ def test_get_exact(
         *repository[
             Query(
                 mask=Mask(
-                    type=item.type,
+                    kind=item.kind,
                     status=item.status,
                     chain=item.chain,
                     data=item.data,

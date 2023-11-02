@@ -7,6 +7,7 @@ class Created:
     value: datetime.datetime
 
     def __post_init__(self):
-        assert self.value <= (
-            now := datetime.datetime.now(datetime.UTC)
-        ), f"`Created` value {self.value} must not be greater then now {now}"
+        if self.value > (now := datetime.datetime.now(datetime.UTC)):
+            raise ValueError(
+                f"`Created` value {self.value} must not be greater then now {now}"
+            )

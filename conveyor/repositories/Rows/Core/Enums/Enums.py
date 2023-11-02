@@ -28,7 +28,7 @@ class EnumsTransform:
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Int(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
+class Integer(EnumsTransform, Transforms.Trusted[Item.Metadata.Enumerable, int]):
     @property
     def table(self):
         return sqlalchemy.Table(self.enum_table, sqlalchemy.MetaData(), *columns())
@@ -86,16 +86,16 @@ class String(EnumsTransform, Transforms.Trusted[int, Item.Metadata.Enumerable]):
             f"No description found for enum value `{i}` in table `{self.enum_table}`"
         )
 
-    def __invert__(self) -> Int:
-        return Int(
+    def __invert__(self) -> Integer:
+        return Integer(
             connect=self.connect, enum_table=self.enum_table, cache_id=self.cache_id
         )
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Enum:
-    type: Item.Type
-    type_transform: Transforms.Safe[Item.Type, str]
+    kind: Item.Kind
+    kind_transform: Transforms.Safe[Item.Kind, str]
 
     field: Item.Key
     enum_transform: Transforms.Safe[Item.Key, str]
@@ -105,7 +105,7 @@ class Enum:
 
     @property
     def db_type(self) -> str:
-        return self.type_transform(self.type)
+        return self.kind_transform(self.kind)
 
     @property
     def db_field(self) -> str:
@@ -114,8 +114,8 @@ class Enum:
     @property
     def table(self) -> sqlalchemy.Table:
         return sqlalchemy.Table(
-            DbTableName(f"_conveyor_enum_{self.type.value}")(
-                Item.Type(self.field.value)
+            DbTableName(f"_conveyor_enum_{self.kind.value}")(
+                Item.Kind(self.field.value)
             ),
             sqlalchemy.MetaData(),
             *columns(),
@@ -155,22 +155,22 @@ class Enum:
 
         def __iter__(self):
             return itertools.chain(
-                self.int,
+                self.integer,
                 self.enumerable,
                 self.none,
             )
 
         @property
-        def int(self):
+        def integer(self):
             if isinstance(self.value, int):
-                yield self.source.String(self.value)
+                yield self.source.string(self.value)
 
         @property
         def enumerable(self):
             if isinstance(self.value, Item.Metadata.Enumerable):
                 match self.value.value:
                     case str():
-                        yield self.source.Int(self.value)
+                        yield self.source.integer(self.value)
                     case None:
                         yield None
 
@@ -185,13 +185,13 @@ class Enum:
         return self.Converted(source=self, value=value)()
 
     @property
-    def Int(self) -> Int:
-        return Int(
+    def integer(self) -> Integer:
+        return Integer(
             connect=self.connect, enum_table=self.table.name, cache_id=self.cache_id
         )
 
     @property
-    def String(self) -> String:
+    def string(self) -> String:
         return String(
             connect=self.connect, enum_table=self.table.name, cache_id=self.cache_id
         )
@@ -202,15 +202,15 @@ class Enums:
     connect: Connect
     cache_id: str
 
-    type_transform: Transforms.Safe[Item.Type, str]
+    kind_transform: Transforms.Safe[Item.Kind, str]
     enum_transform: Transforms.Safe[Item.Key, str]
 
-    def __getitem__(self, table_and_field: tuple[Item.Type, Item.Key]):
+    def __getitem__(self, table_and_field: tuple[Item.Kind, Item.Key]):
         return Enum(
             connect=self.connect,
             cache_id=self.cache_id,
-            type=table_and_field[0],
-            type_transform=self.type_transform,
+            kind=table_and_field[0],
+            kind_transform=self.kind_transform,
             field=table_and_field[1],
             enum_transform=self.enum_transform,
         )

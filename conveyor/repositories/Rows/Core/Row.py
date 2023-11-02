@@ -9,7 +9,7 @@ from .Enums import Enums
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Row:
-    type: Item.Type
+    kind: Item.Kind
     status: Item.Status
 
     digest: Item.Data.Digest
@@ -20,15 +20,16 @@ class Row:
     reserver: Item.Reserver
 
     def __post_init__(self):
-        assert all(k.value not in dir(self) for k in self.metadata), (
-            f"Some fields from metadata {self.metadata} are "
-            f"collide with reserved fields {dir(self)}"
-        )
+        if any(k.value in dir(self) for k in self.metadata):
+            raise TypeError(
+                f"Some fields from metadata {self.metadata} are "
+                f"collide with reserved fields {dir(self)}"
+            )
 
     @classmethod
     def from_item(cls, item: Item) -> typing.Self:
         return Row(
-            type=item.type,
+            kind=item.kind,
             status=item.status,
             digest=item.data.digest,
             chain=item.chain.value,
@@ -61,8 +62,8 @@ class Row:
         @property
         def status(self):
             if "status" not in self.skip:
-                status = self.enums[(self.row.type, Item.Key("status"))]
-                yield (status.db_field, status.Int(self.row.status))
+                status = self.enums[(self.row.kind, Item.Key("status"))]
+                yield (status.db_field, status.integer(self.row.status))
 
         @property
         def chain(self):
@@ -90,7 +91,7 @@ class Row:
                 if key.value not in self.skip:
                     match value:
                         case Item.Metadata.Enumerable():
-                            e = self.enums[(self.row.type, Item.Key(key.value))]
+                            e = self.enums[(self.row.kind, Item.Key(key.value))]
                             yield (e.db_field, e.convert(value))
                         case _:
                             yield (key.value, value)
@@ -137,9 +138,10 @@ class Row:
         @property
         def metadata(self):
             for k in self.row.metadata.keys():
-                if k in self.another.metadata:
-                    if self.row.metadata[k] == self.another.metadata[k]:
-                        yield k.value
+                if k in self.another.metadata and (
+                    self.row.metadata[k] == self.another.metadata[k]
+                ):
+                    yield k.value
 
     def sub(self, another: "Row", enums: Enums.Enums) -> dict[str, Item.Value]:
         return self.Dict(

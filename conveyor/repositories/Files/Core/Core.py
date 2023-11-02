@@ -54,9 +54,9 @@ class Core:
             return Data(
                 value=(~self.prepare)(self.path(digest).read_bytes()), test=digest
             )
-        except FileNotFoundError:
-            raise KeyError(f"{self.root} {digest.string}")
-        except AssertionError:
+        except FileNotFoundError as e:
+            raise KeyError(f"{self.root} {digest.string}") from e
+        except ValueError:
             raise
 
     def __delitem__(self, digest: Digest) -> None:
@@ -75,7 +75,8 @@ class Core:
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:
         t = self._transaction
-        assert t.transaction_ is not None
+        if t.transaction_ is None:
+            raise ValueError
         try:
             try:
                 yield t

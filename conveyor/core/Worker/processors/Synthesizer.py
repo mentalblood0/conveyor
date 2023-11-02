@@ -12,7 +12,7 @@ from ..Processor import Processor
 class Synthesizer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def process(
-        self, input: Item, matched: typing.Iterable[Item]
+        self, payload: Item, matched: typing.Iterable[Item]
     ) -> typing.Iterable[Item.Status | Item]:
         """"""
 
@@ -21,29 +21,32 @@ class Synthesizer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
             case Item.Status():
                 yield Action.Update(old=i, new=dataclasses.replace(i, status=o))
             case Item():
-                assert o.chain == i.chain, (
-                    f"Output chain ({o.chain}) must be equal "
-                    f"to input chain ({i.chain})"
-                )
+                if o.chain != i.chain:
+                    raise ValueError(
+                        f"Output chain ({o.chain}) must be equal "
+                        f"to input chain ({i.chain})"
+                    )
                 yield Action.Append(o)
 
-    def _process(self, items: typing.Iterator[Item], i: Item):
+    def _process(
+        self, items: typing.Iterator[Item], i: Item
+    ) -> typing.Generator[
+        Action.Update | Action.Append | Action.Success, typing.Any, None
+    ]:
         try:
             for o in self.process(i, iter(items)):
-                for a in self._actions(i, o):
-                    yield a
+                yield from self._actions(i, o)
         except Exception as e:
-            raise self.error(i, e)
+            raise self.error(i, e) from e
 
         yield Action.Success(i)
 
     @typing.final
     def __call__(
-        self, input: typing.Callable[[], typing.Iterable[Item]], config: typing.Any = {}
+        self,
+        payload: typing.Callable[[], typing.Iterable[Item]],
+        config: typing.Any = None,
     ) -> typing.Iterable[Action.Action]:
-        iterator = iter(input())
-
-        for i in iterator:
-            for r in self._process(iterator, i):
-                yield r
+        for i in (iterator := iter(payload())):
+            yield from self._process(iterator, i)
             break

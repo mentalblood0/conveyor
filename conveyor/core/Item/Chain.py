@@ -17,8 +17,9 @@ class Chain:
                 return self.ref
 
     def __eq__(self, another: object) -> bool:
-        assert isinstance(another, Chain), (
-            f"Can not compare instance of type `Chain` "
-            f"with instance of type `{type(another)}`"
-        )
+        if not isinstance(another, Chain):
+            raise TypeError(
+                f"Can not compare instance of type `Chain` "
+                f"with instance of type `{type(another)}`"
+            )
         return self.value == another.value

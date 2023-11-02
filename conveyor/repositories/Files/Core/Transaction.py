@@ -78,9 +78,9 @@ class Append(Action):
         action.path.parent.mkdir(parents=True, exist_ok=True)
         try:
             action.temp.rename(action.path)
-        except (FileExistsError, FileNotFoundError):
+        except (FileExistsError, FileNotFoundError) as e:
             if action.data != action.path.read_bytes():
-                raise Collision(str(action.path))
+                raise Collision(str(action.path)) from e
 
     def commit(self) -> None:
         action: typing.Self = self

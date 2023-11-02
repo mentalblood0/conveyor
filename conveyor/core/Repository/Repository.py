@@ -8,18 +8,16 @@ from ..Item.Item import Item
 from .PartRepository import PartRepository
 
 
-Parts = typing.Sequence[PartRepository]
-
-
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Repository:
-    Parts = Parts
+    Parts = typing.Sequence[PartRepository]
 
     parts: Parts
     transaction_: bool = False
 
     def __post_init__(self):
-        assert len(self.parts), "`parts` must contain at least one element"
+        if not self.parts:
+            raise ValueError("`parts` must contain at least one element")
 
     def _unreserved(self, item: Item) -> Item:
         return dataclasses.replace(item, reserver=Item.Reserver(None))
@@ -32,20 +30,19 @@ class Repository:
         self,
         query: Query,
         repositories: typing.Sequence[PartRepository],
-        parts: typing.Iterable[Part] = (Part(),),
+        parts: typing.Iterable[Part] | None = None,
     ) -> typing.Iterable[Item]:
-        match len(repositories):
-            case 0:
-                for p in parts:
-                    yield p.item
-            case _:
-                for p in parts:
-                    for item in self._get(
-                        query=query,
-                        repositories=repositories[1:],
-                        parts=repositories[0].get(query, p),
-                    ):
-                        yield item
+        parts = parts or (Part(),)
+        if repositories:
+            for p in parts:
+                yield from self._get(
+                    query=query,
+                    repositories=repositories[1:],
+                    parts=repositories[0].get(query, p),
+                )
+        else:
+            for p in parts:
+                yield p.item
 
     def __getitem__(self, item_query: Query) -> typing.Iterable[Item]:
         reserver = Item.Reserver()
@@ -60,7 +57,7 @@ class Repository:
         ):
             reserved = dataclasses.replace(i, reserver=reserver)
             try:
-                self.__setitem__(i, reserved, True)
+                self._setitem(i, reserved)
             except KeyError:
                 continue
 
@@ -69,18 +66,16 @@ class Repository:
             if got == item_query.limit:
                 break
 
-    def __setitem__(self, old: Item, new: Item, for_reserve: bool = False) -> None:
-        if for_reserve:
-            _new = new
-        else:
-            _new = self._unreserved(new)
-
+    def _setitem(self, old: Item, new: Item):
         with self.transaction() as t:
             for p in reversed(t.parts):
                 try:
-                    p[old] = _new
+                    p[old] = new
                 except NotImplementedError:
                     """"""
+
+    def __setitem__(self, old: Item, new: Item) -> None:
+        self._setitem(old, self._unreserved(new))
 
     def __delitem__(self, item: Item) -> None:
         with self.transaction() as t:
@@ -98,9 +93,10 @@ class Repository:
             case 0:
                 yield ()
             case _:
-                with parts_to_include[0].transaction() as t:
-                    with self._transaction(parts_to_include[1:]) as _t:
-                        yield (t, *_t)
+                with parts_to_include[0].transaction() as t, self._transaction(
+                    parts_to_include[1:]
+                ) as _t:
+                    yield (t, *_t)
 
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:

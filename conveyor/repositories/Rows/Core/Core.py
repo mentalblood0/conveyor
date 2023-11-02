@@ -28,7 +28,7 @@ class Core:
     db: sqlalchemy.engine.Engine
     connection: sqlalchemy.Connection | None = None
 
-    table: Transforms.Safe[Item.Type, str] = DbTableName("conveyor")
+    table: Transforms.Safe[Item.Kind, str] = DbTableName("conveyor")
     enum: Transforms.Safe[Item.Key, str] = DbEnumName("enum")
 
     @property
@@ -43,7 +43,7 @@ class Core:
     def _enums(self) -> Enums.Enums:
         return Enums.Enums(
             connect=self._connect,
-            type_transform=self.table,
+            kind_transform=self.table,
             enum_transform=self.enum,
             cache_id=self._cache_id,
         )
@@ -61,7 +61,7 @@ class Core:
         @property
         def status(self):
             if self.ref.status is not None:
-                yield self.rows._enums[(self.ref.type, Item.Key("status"))].eq(
+                yield self.rows._enums[(self.ref.kind, Item.Key("status"))].eq(
                     self.ref.status
                 )
 
@@ -92,7 +92,7 @@ class Core:
                     match v:
                         case Item.Metadata.Enumerable():
                             yield self.rows._enums[
-                                (self.ref.type, Item.Key(k.value))
+                                (self.ref.kind, Item.Key(k.value))
                             ].eq(v)
                         case _:
                             yield sqlalchemy.column(k.value) == v
@@ -119,7 +119,7 @@ class Core:
         return ", ".join(f"{k} = {self._compile(v)}" for k, v in d.items())
 
     def append(self, row: Row) -> None:
-        name = self.table(row.type)
+        name = self.table(row.kind)
 
         created = False
         for _ in range(5):
@@ -141,7 +141,7 @@ class Core:
                             fields=Fields.Fields(
                                 row=row,
                                 db=self.db,
-                                table=row.type,
+                                table=row.kind,
                                 transform=self.table,
                                 enums=self._enums,
                             ).fields,
@@ -154,7 +154,7 @@ class Core:
         query: Query
 
         def __str__(self):
-            q = f"select * from {self.rows.table(self.query.mask.type)}"
+            q = f"select * from {self.rows.table(self.query.mask.kind)}"
             if where := self.rows._where_string(self.query.mask):
                 q = f"{q} where {where}"
             if self.query.limit is not None:
@@ -167,43 +167,70 @@ class Core:
                 return (*connection.execute(sqlalchemy.text(str(self))),)
 
         def status_enum(self, r: sqlalchemy.Row[typing.Any]):
-            return self.rows._enums[(self.query.mask.type, Item.Key("status"))]
+            return self.rows._enums[(self.query.mask.kind, Item.Key("status"))]
 
         def status(self, r: sqlalchemy.Row[typing.Any]):
             enum = self.status_enum(r)
-            assert (
-                result := enum.String(getattr(r, enum.db_field)).value
-            ) is not None, "Status value can not be None"
+            if (result := enum.string(getattr(r, enum.db_field)).value) is None:
+                raise TypeError("Status value can not be None")
             return Item.Status(result)
 
-        def metadata(self, query: Query, r: sqlalchemy.Row[typing.Any]):
-            result = Item.Metadata({})
-            for name in r.__getstate__()["_parent"].__getstate__()["_keys"]:
-                if not (
-                    name in (f.name for f in dataclasses.fields(Item))
-                    or name in ("digest", self.status_enum(r).db_field)
-                ):
-                    if (~self.rows.enum).valid(name):
-                        assert isinstance(value := getattr(r, name), int | None), (
-                            f"Expected column `{name}` "
-                            f"in table `{query.mask.type.value}` "
-                            "to hold enumerable using integer or null value"
-                        )
-                        unenumed = (~self.rows.enum)(name)
-                        result = result | {
-                            Item.Metadata.Key(unenumed.value): self.rows._enums[
-                                (query.mask.type, unenumed)
-                            ].convert(value)
-                        }
+        @dataclasses.dataclass(frozen=True, kw_only=True)
+        class Metadata:
+            source: Core.Get
+            row: sqlalchemy.Row[typing.Any]
+
+            def _base_field(self, name: str):
+                return name in (f.name for f in dataclasses.fields(Item))
+
+            def _base_inner_field(self, name: str):
+                return name in ("digest", self.source.status_enum(self.row).db_field)
+
+            def _key(self, name: str):
+                return not (self._base_field(name) or self._base_inner_field(name))
+
+            @functools.cached_property
+            def _names(self):
+                return (
+                    name
+                    for name in self.row.__getstate__()["_parent"].__getstate__()[
+                        "_keys"
+                    ]
+                    if self._key(name)
+                )
+
+            def _enum(self, name: str):
+                if not isinstance(value := getattr(self.row, name), int | None):
+                    raise TypeError(
+                        f"Expected column `{name}` "
+                        f"in table `{self.source.query.mask.kind.value}` "
+                        "to hold enumerable using integer or null value"
+                    )
+                unenumed = (~self.source.rows.enum)(name)
+                key = Item.Metadata.Key(unenumed.value)
+                value = self.source.rows._enums[
+                    (self.source.query.mask.kind, unenumed)
+                ].convert(value)
+                return key, value
+
+            def _not_enum(self, name: str):
+                return Item.Metadata.Key(name), getattr(self.row, name)
+
+            def __call__(self):
+                result: Item.Metadata.Mutable = {}
+                for name in self._names:
+                    if (~self.source.rows.enum).valid(name):
+                        key, value = self._enum(name)
                     else:
-                        result = result | {Item.Metadata.Key(name): getattr(r, name)}
-            return result
+                        key, value = self._not_enum(name)
+                    result[key] = value
+                return Item.Metadata(result)
 
     def __getitem__(self, query: Query) -> typing.Iterable[Row]:
         get = self.Get(rows=self, query=query)
         return (
             Row(
-                type=query.mask.type,
+                kind=query.mask.kind,
                 status=get.status(r),
                 chain=r.chain,
                 created=Item.Created(
@@ -215,7 +242,7 @@ class Core:
                 if bool(r.reserver)
                 else Item.Reserver(None),
                 digest=Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
-                metadata=get.metadata(query, r),
+                metadata=get.Metadata(source=get, row=r)(),
             )
             for r in get.raw
         )
@@ -224,7 +251,7 @@ class Core:
         if not (changes := new.sub(old, self._enums)):
             return
 
-        name = self.table(old.type)
+        name = self.table(old.kind)
 
         for _ in range(2):
             try:
@@ -244,7 +271,7 @@ class Core:
                         fields=Fields.Fields(
                             row=new,
                             db=self.db,
-                            table=old.type,
+                            table=old.kind,
                             transform=self.table,
                             enums=self._enums,
                         ).fields,
@@ -255,7 +282,7 @@ class Core:
             with self._connect() as connection:
                 connection.execute(
                     sqlalchemy.text(
-                        f"delete from {self.table(row.type)} "
+                        f"delete from {self.table(row.kind)} "
                         f"where {self._where_string(row)}"
                     )
                 )
@@ -286,7 +313,7 @@ class Core:
             try:
                 return connection.execute(
                     sqlalchemy.text(
-                        f"select (exists (select * from {self.table(row.type)} "
+                        f"select (exists (select * from {self.table(row.kind)} "
                         f"where {self._where_string(row)}))"
                     )
                 ).scalar_one()

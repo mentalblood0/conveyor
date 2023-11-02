@@ -9,7 +9,7 @@ T = typing.TypeVar("T")
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Error(RuntimeError, typing.Generic[S]):
-    input: S
+    payload: S
     exception: Exception
 
 
@@ -19,10 +19,10 @@ class Processor(typing.Generic[S, T], metaclass=abc.ABCMeta):
 
     @typing.final
     def error(self, i: S, exception: Exception) -> Error[S]:
-        return Error(input=i, exception=exception)
+        return Error(payload=i, exception=exception)
 
     @abc.abstractmethod
     def __call__(
-        self, input: typing.Callable[[], typing.Iterable[S]], config: typing.Any
+        self, payload: typing.Callable[[], typing.Iterable[S]], config: typing.Any
     ) -> typing.Iterable[T]:
         """"""

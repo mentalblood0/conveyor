@@ -16,7 +16,7 @@ def item() -> Item:
     data = Item.Data(value=b"v")
 
     return Item(
-        type=Item.Type("type"),
+        kind=Item.Kind("kind"),
         status=Item.Status("status"),
         data=data,
         metadata=Item.Metadata({Item.Metadata.Key("key"): "value"}),
@@ -111,7 +111,7 @@ def row() -> Rows.Core.Item:
     data = Item.Data(value=b"v")
 
     return Rows.Core.Item(
-        type=Item.Type("type"),
+        kind=Item.Kind("kind"),
         status=Item.Status("status"),
         digest=data.digest,
         metadata=Item.Metadata({Item.Metadata.Key("key"): "value"}),
@@ -123,7 +123,7 @@ def row() -> Rows.Core.Item:
 
 @pytest.fixture
 def query_all(row: Rows.Core.Item) -> Query:
-    return Query(mask=Query.Mask(type=row.type), limit=None)
+    return Query(mask=Query.Mask(kind=row.kind), limit=None)
 
 
 @pytest.fixture
@@ -135,4 +135,4 @@ def repository(files: Files.Core, rows: Rows.Core) -> Repository:
 
 @pytest.fixture
 def receiver(item: Item) -> Worker.Receiver:
-    return Worker.Receiver(masks=(lambda _: Mask(type=item.type),), limit=None)
+    return Worker.Receiver(masks=(lambda _: Mask(kind=item.kind),), limit=None)
