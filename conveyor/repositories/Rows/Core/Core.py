@@ -207,11 +207,10 @@ class Core:
                         "to hold enumerable using integer or null value"
                     )
                 unenumed = (~self.source.rows.enum)(name)
-                key = Item.Metadata.Key(unenumed.value)
-                value = self.source.rows._enums[
-                    (self.source.query.mask.kind, unenumed)
+                enum_id = (self.source.query.mask.kind, unenumed)
+                return Item.Metadata.Key(unenumed.value), self.source.rows._enums[
+                    enum_id
                 ].convert(value)
-                return key, value
 
             def _not_enum(self, name: str):
                 return Item.Metadata.Key(name), getattr(self.row, name)
