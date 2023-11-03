@@ -134,5 +134,9 @@ class Logger(Processor[Action.Action, Action.Action]):
                 if isinstance(a, Action.Success):
                     return self.process_success(a)
                 return self.process_other(a)
-        except Processor.Error[Item] as e:
-            yield Error(old=e.payload, exception=e.exception, kind=self.errors)
+        except Exception as e:
+            if isinstance(e, Processor.Error):
+                _e: Processor.Error[Item] = e
+                yield Error(old=_e.payload, exception=_e.exception, kind=self.errors)
+            else:
+                raise
