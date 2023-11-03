@@ -31,9 +31,6 @@ class RemoveLast(Files.Core.Transforms.Safe[bytes, bytes]):
     def transform(self, i: bytes) -> bytes:
         return i[:-1]
 
-    def __invert__(self) -> "AddSpace":
-        return AddSpace()
-
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class AddSpace(Files.Core.Transforms.Safe[bytes, bytes]):
@@ -83,20 +80,8 @@ DbType = typing.Literal["postgres"] | typing.Literal["sqlite"]
 
 
 @pytest.fixture
-def db_type() -> DbType:
-    return "sqlite"
-
-
-@pytest.fixture
-def db(db_type: DbType) -> sqlalchemy.engine.Engine:
-    match db_type:
-        case "postgres":
-            return sqlalchemy.create_engine(
-                "postgresql+psycopg2://postgres:5924@10.8.5.171:5480/postgres",
-                echo=True,
-            )
-        case "sqlite":
-            return sqlalchemy.create_engine("sqlite://", echo=True)
+def db() -> sqlalchemy.engine.Engine:
+    return sqlalchemy.create_engine("sqlite://", echo=True)
 
 
 @pytest.fixture

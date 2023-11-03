@@ -20,9 +20,8 @@ class Transform(typing.Generic[S, T], abc.ABC):
     def __call__(self, i: S) -> T:
         """"""
 
-    @abc.abstractmethod
     def __invert__(self: "Transform[S, T]") -> "Transform[T, S]":
-        """"""
+        raise NotImplementedError
 
     @typing.final
     def valid(self, i: S) -> bool:
