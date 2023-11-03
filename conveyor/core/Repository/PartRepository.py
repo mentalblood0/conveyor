@@ -30,9 +30,6 @@ class PartRepository(abc.ABC):
     def transaction(self) -> typing.Iterator[typing.Self]:
         """"""
 
-    def __contains__(self, item: Item) -> bool:
-        raise NotImplementedError
-
     @abc.abstractmethod
     def __len__(self) -> int:
         """"""
