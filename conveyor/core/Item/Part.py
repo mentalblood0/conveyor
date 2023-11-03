@@ -15,14 +15,8 @@ class Part:
     reserver_: Item.Reserver | None = None
 
     def __post_init__(self):
-        match self.data_:
-            case Item.Data():
-                if self.digest_ is None:
-                    return self.data_.digest
-                elif self.data_.digest != self.digest_:
-                    raise ValueError("Data digest not match separate digest")
-            case None:
-                pass
+        if self.data_ is not None:
+            Item.Data(value=self.data_.value, test=self.digest_)
 
     @property
     def item(self) -> Item:
