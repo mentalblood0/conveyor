@@ -42,9 +42,7 @@ class Row:
     class Dict:
         row: "Row"
         enums: Enums.Enums
-        skip: set[
-            typing.Literal["status", "digest", "chain", "created", "reserver"]
-        ] = dataclasses.field(default_factory=set)
+        skip: set[str] = dataclasses.field(default_factory=set)
 
         def __call__(self):
             return dict[str, Item.Value]({key: value for key, value in self})
@@ -107,7 +105,12 @@ class Row:
 
         def __iter__(self):
             return itertools.chain(
-                self.status, self.digest, self.chain, self.created, self.reserver
+                self.status,
+                self.digest,
+                self.chain,
+                self.created,
+                self.reserver,
+                self.metadata,
             )
 
         @property
