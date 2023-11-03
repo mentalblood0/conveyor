@@ -8,7 +8,6 @@ from .Item import Item as Item, Word as Word
 __all__ = [
     "Data",
     "Digest",
-    "Base64String",
     "Created",
     "Reserver",
     "Chain",
