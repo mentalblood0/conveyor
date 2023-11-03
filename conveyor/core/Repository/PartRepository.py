@@ -9,7 +9,7 @@ from .Query import Query
 
 
 @dataclasses.dataclass(frozen=True)
-class PartRepository(metaclass=abc.ABCMeta):
+class PartRepository(abc.ABC):
     @abc.abstractmethod
     def append(self, item: Item) -> None:
         """"""

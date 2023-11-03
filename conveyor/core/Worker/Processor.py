@@ -14,7 +14,7 @@ class Error(RuntimeError, typing.Generic[S]):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Processor(typing.Generic[S, T], metaclass=abc.ABCMeta):
+class Processor(typing.Generic[S, T], abc.ABC):
     Error = Error
 
     @typing.final

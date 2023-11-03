@@ -10,7 +10,7 @@ from .Processor import Processor
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
-class Action(metaclass=abc.ABCMeta):
+class Action(abc.ABC):
     @abc.abstractmethod
     def __call__(self, repository: Repository) -> None:
         """"""

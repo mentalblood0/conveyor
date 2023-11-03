@@ -11,7 +11,7 @@ T_ = typing.TypeVar("T_")
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Transform(typing.Generic[S, T], metaclass=abc.ABCMeta):
+class Transform(typing.Generic[S, T], abc.ABC):
     @abc.abstractmethod
     def transform(self, i: S) -> T:
         """"""

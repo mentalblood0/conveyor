@@ -9,7 +9,7 @@ from ..Processor import Processor
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Transformer(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
+class Transformer(Processor[Item, Action.Action], abc.ABC):
     @abc.abstractmethod
     def process(self, payload: Item) -> typing.Iterable[Item.Status | Item.Metadata]:
         """"""

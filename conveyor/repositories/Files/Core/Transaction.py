@@ -11,7 +11,7 @@ class Collision(Exception):
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
-class Action(metaclass=abc.ABCMeta):
+class Action(abc.ABC):
     path: pathlib.Path
     prepare_now: bool = True
 

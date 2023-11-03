@@ -9,7 +9,7 @@ from ..Processor import Processor
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Mover(Processor[Item, Action.Action], metaclass=abc.ABCMeta):
+class Mover(Processor[Item, Action.Action], abc.ABC):
     @abc.abstractmethod
     def process(
         self, payload: Item
