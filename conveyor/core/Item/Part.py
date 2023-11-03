@@ -3,18 +3,8 @@ import dataclasses
 from . import Item
 
 
-class AccessError(BaseException):
-    def __init__(self, field: str):
-        self.message = f"Item part has no field `{field}` yet"
-
-    def __str__(self) -> str:
-        return self.message
-
-
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Part:
-    AccessError = AccessError
-
     kind_: Item.Kind | None = None
     status_: Item.Status | None = None
     data_: Item.Data | None = None
@@ -50,7 +40,7 @@ class Part:
     def kind(self) -> Item.Kind:
         match self.kind_:
             case None:
-                raise AttributeError(name="kind")
+                raise KeyError("kind")
             case _:
                 return self.kind_
 
@@ -58,7 +48,7 @@ class Part:
     def status(self) -> Item.Status:
         match self.status_:
             case None:
-                raise AttributeError(name="status")
+                raise KeyError("status")
             case _:
                 return self.status_
 
@@ -66,7 +56,7 @@ class Part:
     def data(self) -> Item.Data:
         match self.data_:
             case None:
-                raise AttributeError(name="data")
+                raise KeyError("data")
             case _:
                 return self.data_
 
@@ -74,7 +64,7 @@ class Part:
     def digest(self) -> Item.Data.Digest:
         match self.digest_:
             case None:
-                raise AttributeError(name="digest")
+                raise KeyError("digest")
             case _:
                 return self.digest_
 
@@ -82,7 +72,7 @@ class Part:
     def metadata(self) -> Item.Metadata:
         match self.metadata_:
             case None:
-                raise AttributeError(name="metadata")
+                raise KeyError("metadata")
             case _:
                 return self.metadata_
 
@@ -90,7 +80,7 @@ class Part:
     def chain(self) -> Item.Chain:
         match self.chain_:
             case None:
-                raise AttributeError(name="chain")
+                raise KeyError("chain")
             case _:
                 return self.chain_
 
@@ -98,7 +88,7 @@ class Part:
     def created(self) -> Item.Created:
         match self.created_:
             case None:
-                raise AttributeError(name="created")
+                raise KeyError("created")
             case _:
                 return self.created_
 
@@ -106,6 +96,6 @@ class Part:
     def reserver(self) -> Item.Reserver:
         match self.reserver_:
             case None:
-                raise AttributeError(name="reserver")
+                raise KeyError("reserver")
             case _:
                 return self.reserver_
