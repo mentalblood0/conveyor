@@ -66,8 +66,7 @@ class Core:
     def _transaction(self):
         if self.transaction_ is None:
             return Transaction()
-        else:
-            return self.transaction_
+        return self.transaction_
 
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:
