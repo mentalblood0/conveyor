@@ -56,8 +56,6 @@ class Core:
             )
         except FileNotFoundError as e:
             raise KeyError(f"{self.root} {digest.string}") from e
-        except ValueError:
-            raise
 
     def __delitem__(self, digest: Digest) -> None:
         with self.transaction() as t:
@@ -67,29 +65,23 @@ class Core:
     @property
     def _transaction(self):
         if self.transaction_ is None:
-            result = dataclasses.replace(self, transaction_=Transaction())
+            return Transaction()
         else:
-            result = self
-        return result
+            return self.transaction_
 
     @contextlib.contextmanager
     def transaction(self) -> typing.Iterator[typing.Self]:
         t = self._transaction
-        if t.transaction_ is None:
-            raise ValueError
         try:
             try:
-                yield t
+                yield dataclasses.replace(self, transaction_=t)
                 if self.transaction_ is None:
-                    t.transaction_.commit()
+                    t.commit()
             except Exception:
-                t.transaction_.rollback()
+                t.rollback()
                 raise
         except FileNotFoundError as e:
             raise KeyError from e
-
-    def __contains__(self, digest: Digest) -> bool:
-        return self.path(digest).exists()
 
     def __len__(self) -> int:
         result: int = 0
