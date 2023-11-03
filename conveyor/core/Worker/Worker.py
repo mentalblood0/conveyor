@@ -26,7 +26,7 @@ class Worker:
                 self.actor(self.processor(iterator.__next__, config), self.repository)
 
     def _without_receiver(self, config: typing.Any = None):
-        self.actor(self.processor(lambda: (), config), self.repository)
+        self.actor(self.processor(tuple, config), self.repository)
 
     def __call__(self, config: typing.Any = None):
         if self.receiver is None:
