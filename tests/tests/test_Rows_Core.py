@@ -246,5 +246,5 @@ def test_get_exact(
     assert len(result) == 1
     assert result[0] == row
 
-    for r in [*rows[query_all]]:
+    for r in (*rows[query_all],):
         del rows[r]
