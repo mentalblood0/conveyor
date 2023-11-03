@@ -17,10 +17,8 @@ class Worker:
     actor: Actor = Actor()
     repository: Repository
 
-    def _with_receiver(self, config: typing.Any = None):
-        if not isinstance(self.receiver, Receiver):
-            raise TypeError
-        iterator = iter(self.receiver(self.repository))
+    def _with_receiver(self, receiver: Receiver, config: typing.Any = None):
+        iterator = iter(receiver(self.repository))
         with contextlib.suppress(RuntimeError):
             while True:
                 self.actor(self.processor(iterator.__next__, config), self.repository)
@@ -32,4 +30,4 @@ class Worker:
         if self.receiver is None:
             self._without_receiver(config)
         else:
-            self._with_receiver(config)
+            self._with_receiver(self.receiver, config)
