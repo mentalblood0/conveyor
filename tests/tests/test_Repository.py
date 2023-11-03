@@ -67,28 +67,13 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
     changes: dict[str, Item.Value | Item.Metadata | Item.Data] = {}
 
     for key in changes_list:
-        value: Item.Value | Item.Metadata | Item.Data | None = None
-        match key:
-            case "status":
-                value = Item.Status("CHANGED")
-            case "chain":
-                value = Item.Chain(ref=Item.Data(value=b"CHANGED"))
-            case "data":
-                value = Item.Data(value=b"CHANGED")
-            case "created":
-                value = Item.Created(item.created.value - datetime.timedelta(seconds=1))
-            case "metadata":
-                current = item.metadata["key"]
-                assert isinstance(current, Item.Metadata.Enumerable | str)
-                match current:
-                    case Item.Metadata.Enumerable():
-                        new = Item.Metadata.Enumerable("CHANGED")
-                    case str():
-                        new = "CHANGED"
-                value = item.metadata | {Item.Metadata.Key("key"): new}
-            case _:
-                continue
-        changes[key] = value
+        changes[key] = {
+            "status": Item.Status("CHANGED"),
+            "chain": Item.Chain(ref=Item.Data(value=b"CHANGED")),
+            "data": Item.Data(value=b"CHANGED"),
+            "created": Item.Created(item.created.value - datetime.timedelta(seconds=1)),
+            "metadata": item.metadata | {Item.Metadata.Key("key"): "CHANGED"},
+        }.get(key, None)
 
     return dataclasses.replace(item, **changes)
 
