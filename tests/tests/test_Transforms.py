@@ -1,9 +1,8 @@
-import enum
 import pytest
-import typing
 import dataclasses
 
 from conveyor.core import Transforms
+from conveyor.core.Transforms import Transform
 
 from ..common import *
 
@@ -19,4 +18,26 @@ def test_transform_not_invertible_by_default():
             return i
 
     with pytest.raises(NotImplementedError):
-        assert Test()("string")
+        Test()("string")
+
+
+def test_safe_transform_checks_inverted():
+    @dataclasses.dataclass(frozen=True, kw_only=False)
+    class Test(Transforms.Safe[str, str]):
+        def transform(self, i: str) -> str:
+            return i + "postfix"
+
+        def __invert__(self: Transform[str, str]) -> Transform[str, str]:
+            return self
+
+    with pytest.raises(TypeError):
+        Test()("string")
+
+
+def test_trusted_transform_does_not_check_inverted():
+    @dataclasses.dataclass(frozen=True, kw_only=False)
+    class Test(Transforms.Trusted[str, str]):
+        def transform(self, i: str) -> str:
+            return i + "postfix"
+
+    Test()("string")
