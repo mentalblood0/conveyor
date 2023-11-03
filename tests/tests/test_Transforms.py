@@ -7,8 +7,16 @@ from conveyor.core.Transforms import Transform
 from ..common import *
 
 
-def test_nothing_transform():
-    assert Transforms.Nothing[str]()("string") == "string"
+def test_nothing_transform(
+    nothing: Transforms.Trusted[str, str] = Transforms.Nothing[str](),
+):
+    assert nothing("string") == "string"
+    assert ~nothing == nothing
+
+
+def test_transform_combination():
+    double_nothing = Transforms.Nothing[str]() + Transforms.Nothing[str]()
+    test_nothing_transform(double_nothing)
 
 
 def test_transform_not_invertible_by_default():
