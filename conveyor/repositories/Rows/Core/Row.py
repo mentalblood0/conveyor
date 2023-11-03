@@ -109,7 +109,6 @@ class Row:
                 self.digest,
                 self.chain,
                 self.created,
-                self.reserver,
                 self.metadata,
             )
 
@@ -132,11 +131,6 @@ class Row:
         def created(self):
             if self.row.created == self.another.created:
                 yield "created"
-
-        @property
-        def reserver(self):
-            if self.row.reserver == self.another.reserver:
-                yield "reserver"
 
         @property
         def metadata(self):

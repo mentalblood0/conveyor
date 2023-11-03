@@ -83,6 +83,13 @@ def test_delete_nonexistent(rows: Rows.Core, row: Rows.Core.Item):
     del rows[row]
 
 
+def test_fields_names_collision(row: Rows.Core.Item):
+    with pytest.raises(TypeError):
+        dataclasses.replace(
+            row, metadata=Item.Metadata({Item.Metadata.Key("kind"): "kind"})
+        )
+
+
 @pytest.fixture
 def changed_row(
     row: Rows.Core.Item, changes_list: typing.Iterable[str]
