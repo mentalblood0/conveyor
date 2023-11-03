@@ -83,12 +83,7 @@ class Core:
             raise KeyError from e
 
     def __len__(self) -> int:
-        result: int = 0
-
-        for _ in self.root.rglob(f"*{self.suffix}"):
-            result += 1
-
-        return result
+        return sum(1 for _ in self.root.rglob(f"*{self.suffix}"))
 
     def clear(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
