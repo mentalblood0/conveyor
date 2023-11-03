@@ -90,21 +90,14 @@ def changed_row(
     changes: dict[str, Item.Value | Item.Metadata] = {}
 
     for key in changes_list:
-        value: Item.Value | Item.Metadata | None = None
-        match key:
-            case "status":
-                value = Item.Status(row.status.value + "_")
-            case "chain":
-                value = row.chain + "_"
-            case "created":
-                value = Item.Created(row.created.value - datetime.timedelta(seconds=1))
-            case "metadata":
-                assert isinstance(row.metadata[Item.Metadata.Key("key")], str)
-                new = "_"
-                value = row.metadata | {Item.Metadata.Key("key"): new}
-            case _:
-                continue
-        changes[key] = value
+        changes[key] = {
+            "status": Item.Status(row.status.value + "_"),
+            "chain": row.chain + "_",
+            "created": Item.Created(row.created.value - datetime.timedelta(seconds=1)),
+            "metadata": row.metadata | {Item.Metadata.Key("key"): "_"}
+            if isinstance(row.metadata[Item.Metadata.Key("key")], str)
+            else None,
+        }.get(key, None)
 
     return dataclasses.replace(row, **changes)
 
