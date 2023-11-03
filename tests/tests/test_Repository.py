@@ -98,12 +98,10 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
     (
         c
         for c in itertools.chain.from_iterable(
-            (
-                itertools.combinations(
-                    ("status", "chain", "data", "created", "metadata"), n
-                )
-                for n in range(1, 6)
+            itertools.combinations(
+                ("status", "chain", "data", "created", "metadata"), n
             )
+            for n in range(1, 6)
         )
         if not (
             ("chain" in c and "data" not in c) or ("chain" not in c and "data" in c)
