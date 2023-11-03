@@ -75,5 +75,8 @@ class _Transforms(Trusted[S, T], typing.Generic[S, M, T]):
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Nothing(Trusted[T, T], typing.Generic[T]):
+    def transform(self, i: T) -> T:
+        return i
+
     def __invert__(self) -> typing.Self:
         return self
