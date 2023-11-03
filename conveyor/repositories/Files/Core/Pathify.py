@@ -10,15 +10,7 @@ from ....core.Transforms import Transform, Safe
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Segment(Safe[Digest, typing.Sequence[str]]):
     def _segment(self, s: str) -> str:
-        match s:
-            case "+":
-                return "plus"
-            case "/":
-                return "slash"
-            case "=":
-                return "equal"
-            case _:
-                return s
+        return {"+": "plus", "/": "slash", "=": "equal"}.get(s, s)
 
     def transform(self, i: Digest) -> typing.Sequence[str]:
         return [*map(self._segment, i.string)]
@@ -30,15 +22,7 @@ class Segment(Safe[Digest, typing.Sequence[str]]):
 @dataclasses.dataclass(frozen=True, kw_only=False)
 class Desegment(Safe[typing.Sequence[str], Digest]):
     def _desegment(self, s: str) -> str:
-        match s:
-            case "plus":
-                return "+"
-            case "slash":
-                return "/"
-            case "equal":
-                return "="
-            case _:
-                return s
+        return {"plus": "+", "slash": "/", "equal": "="}.get(s, s)
 
     def transform(self, i: typing.Sequence[str]) -> Digest:
         return Digest(Digest.Base64String("".join(self._desegment(s) for s in i)))

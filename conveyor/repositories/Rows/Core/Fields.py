@@ -147,13 +147,11 @@ class Field:
                 )
 
     def index(self, table: sqlalchemy.Table) -> sqlalchemy.Index:
-        match self.value:
-            case Item.Metadata.Enumerable():
-                return self.enums[(self.table, self.name)].index(table)
-            case _:
-                return sqlalchemy.Index(
-                    f"index__{self.name.value}", self.name.value, _table=table
-                )
+        if isinstance(self.value, Item.Metadata.Enumerable):
+            return self.enums[(self.table, self.name)].index(table)
+        return sqlalchemy.Index(
+            f"index__{self.name.value}", self.name.value, _table=table
+        )
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
