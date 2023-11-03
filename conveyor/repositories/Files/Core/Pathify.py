@@ -27,9 +27,6 @@ class Desegment(Safe[typing.Sequence[str], Digest]):
     def transform(self, i: typing.Sequence[str]) -> Digest:
         return Digest(Digest.Base64String("".join(self._desegment(s) for s in i)))
 
-    def __invert__(self) -> Segment:
-        return Segment()
-
 
 Granulation = typing.Callable[[int], int]
 
@@ -79,9 +76,6 @@ class Ungroup(Safe[pathlib.Path, typing.Sequence[str]]):
                 result.extend(p)
 
         return result
-
-    def __invert__(self) -> Group:
-        return Group(self.inverted_granulation)
 
 
 class Pathify:
