@@ -97,8 +97,8 @@ def changed_item(item: Item, changes_list: typing.Iterable[str]) -> Item:
     "changes_list",
     (
         c
-        for c in itertools.chain(
-            *(
+        for c in itertools.chain.from_iterable(
+            (
                 itertools.combinations(
                     ("status", "chain", "data", "created", "metadata"), n
                 )

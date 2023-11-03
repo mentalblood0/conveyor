@@ -214,8 +214,8 @@ def test_none_metadata_enum_value(rows: Rows.Core, row: Rows.Core.Item):
 
 @pytest.mark.parametrize(
     "changes_list",
-    itertools.chain(
-        *(
+    itertools.chain.from_iterable(
+        (
             itertools.combinations(("status", "chain", "created", "metadata"), n)
             for n in range(1, 5)
         )
