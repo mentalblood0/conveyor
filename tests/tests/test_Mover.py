@@ -14,14 +14,9 @@ def mover() -> processors.Mover:
     class M(processors.Mover):
         def process(self, payload: Item) -> typing.Iterable[Item.Status | Item]:
             yield Item.Status(f"{payload.status.value}_")
-
-            n = payload.metadata["n"]
-            match n:
-                case int():
-                    for _ in range(n):
-                        yield dataclasses.replace(payload, kind=Item.Kind("new"))
-                case _:
-                    """"""
+            if isinstance(n := payload.metadata["n"], int):
+                for _ in range(n):
+                    yield dataclasses.replace(payload, kind=Item.Kind("new"))
 
     return M()
 
