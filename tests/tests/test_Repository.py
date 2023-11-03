@@ -23,7 +23,7 @@ def test_append_get_delete(repository: Repository, item: Item, query_all: Query)
     assert saved.reserver.value is not None
 
     del repository[saved]
-    assert not len([*repository[query_all]])
+    assert not (*repository[query_all],)
 
 
 def test_delete_nonexistent(repository: Repository, item: Item):

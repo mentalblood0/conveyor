@@ -25,7 +25,7 @@ def test_append_get_delete(rows: Rows.Core, row: Rows.Core.Item, query_all: Quer
     assert saved.reserver == row.reserver
 
     del rows[row]
-    assert not len([*rows[query_all]])
+    assert not (*rows[query_all],)
 
 
 def test_transaction_append_one_in_one_table(rows: Rows.Core, row: Rows.Core.Item):
