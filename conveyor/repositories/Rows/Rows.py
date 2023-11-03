@@ -39,9 +39,6 @@ class Rows(PartRepository):
         with self.rows.transaction() as t:
             yield dataclasses.replace(self, rows=t)
 
-    def __contains__(self, item: Item) -> bool:
-        return self.rows.Item.from_item(item) in self.rows
-
     def __len__(self) -> int:
         return len(self.rows)
 
