@@ -3,19 +3,12 @@ import dataclasses
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)
-class Base64String:
-    value: str
-
-    @property
-    def decoded(self):
-        return base64.b64decode(self.value.encode("ascii"))
-
-
-@dataclasses.dataclass(frozen=True, kw_only=False)
 class Digest:
-    Base64String = Base64String
+    value: bytes
 
-    value_or_string: bytes | Base64String
+    @classmethod
+    def from_base64(cls, source: str):
+        return Digest(base64.b64decode(source.encode("ascii")))
 
     def __post_init__(self):
         if (given := len(self.value)) < (required := 32):
@@ -25,22 +18,8 @@ class Digest:
             )
 
     @property
-    def value(self) -> bytes:
-        match self.value_or_string:
-            case bytes():
-                return self.value_or_string
-            case Base64String():
-                return self.value_or_string.decoded
-        raise TypeError
-
-    @property
     def string(self) -> str:
-        match self.value_or_string:
-            case Base64String():
-                return self.value_or_string.value
-            case bytes():
-                return base64.b64encode(self.value_or_string).decode("ascii")
-        raise TypeError
+        return base64.b64encode(self.value).decode("ascii")
 
     def __eq__(self, another: object) -> bool:
         if not isinstance(another, Digest):

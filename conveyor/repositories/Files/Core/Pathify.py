@@ -25,7 +25,7 @@ class Desegment(Safe[typing.Sequence[str], Digest]):
         return {"plus": "+", "slash": "/", "equal": "="}.get(s, s)
 
     def transform(self, i: typing.Sequence[str]) -> Digest:
-        return Digest(Digest.Base64String("".join(self._desegment(s) for s in i)))
+        return Digest.from_base64("".join(self._desegment(s) for s in i))
 
 
 Granulation = typing.Callable[[int], int]

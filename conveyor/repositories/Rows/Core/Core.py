@@ -240,7 +240,7 @@ class Core:
                 reserver=Item.Reserver(r.reserver)
                 if bool(r.reserver)
                 else Item.Reserver(None),
-                digest=Item.Data.Digest(Item.Data.Digest.Base64String(r.digest)),
+                digest=Item.Data.Digest.from_base64(r.digest),
                 metadata=get.Metadata(source=get, row=r)(),
             )
             for r in get.raw
