@@ -27,9 +27,6 @@ class Files(PartRepository):
         with self.files.transaction() as t:
             yield dataclasses.replace(self, files=t)
 
-    def __contains__(self, item: Item) -> bool:
-        return item.data.digest in self.files
-
     def __len__(self) -> int:
         return len(self.files)
 
