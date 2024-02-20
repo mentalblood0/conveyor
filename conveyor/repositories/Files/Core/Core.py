@@ -35,7 +35,8 @@ class Core:
             return
 
         with self.transaction() as t:
-            assert t.transaction_ is not None
+            if t.transaction_ is None:
+                raise ValueError
             t.transaction_.append(
                 Transaction.Append(
                     path=self.path(data.digest),
@@ -59,7 +60,8 @@ class Core:
 
     def __delitem__(self, digest: Digest) -> None:
         with self.transaction() as t:
-            assert t.transaction_ is not None
+            if t.transaction_ is None:
+                raise ValueError
             t.transaction_.append(Transaction.Delete(self.path(digest)))
 
     @property

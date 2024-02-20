@@ -1,9 +1,9 @@
-import typing
 import contextlib
 import dataclasses
+import typing
 
+from ...core import Item, Part, PartRepository, Query
 from .Core.Core import Core
-from ...core import Item, Query, Part, PartRepository
 
 
 @dataclasses.dataclass(frozen=True, kw_only=False)

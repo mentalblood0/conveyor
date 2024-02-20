@@ -1,9 +1,8 @@
 import abc
-import typing
 import dataclasses
+import typing
 
 from ...Item import Item
-
 from .. import Action
 from ..Processor import Processor
 
